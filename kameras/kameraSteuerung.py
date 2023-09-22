@@ -36,7 +36,6 @@ class KameraSteuerung:
 
     def shutdown(self):
         """ Shutdown Raspberry Pi """
-        self.stop_children()
         system("sleep 5s; sudo shutdown -h now")
         print("Shutdown Raspberry...")
         exit(0)
@@ -44,12 +43,6 @@ class KameraSteuerung:
     def run(self):
         self.cam = Kamera()  # flip pi camera if upside down.
         print("Moin")
-
-    # def stream(self):
-    #    while True:
-    #        frame = self.cam.get_frame()
-    #        yield (b'--frame\r\n'
-    #            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
     def photo(self, focus):
         return self.cam.make_picture(focus)
@@ -84,10 +77,11 @@ def web_shutdown():
     Shutdown..."""
 
 
-@app.route('/stream')
+"""@app.route('/stream.mjpg')
 def stream():
-    return Response(ks.stream(),
+    return Response(ks.cam.streaming(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+"""
 
 
 @app.route('/photo/')
