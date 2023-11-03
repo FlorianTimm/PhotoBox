@@ -29,14 +29,33 @@ def index():
                     images[i].src = images[i].src.split("?")[0] + "?"+ new Date().getTime();
                 } 
             }
-            setInterval(updateImage, 1000);
+            setInterval(updateImage, 10000);
         }   
     </script>
+    <style>
+    div {
+        display: inline-block;
+        height: 20%;
+        width: 20%;
+    }
+    #img {
+        max-height: 90%;
+        max-width: 100%;
+    }
+    </style>
     </head>
     <body>"""
+    
+    hnames = dict()
+
     for e in liste:
-        output = output + """<a href="http://""" + e + """:8080/photo"><img id="img" src="http://""" + \
-            e + """:8080/preview/-2?" width="640" height="480" /></a><br />"""
+        hnames[socket.gethostbyaddr(e)[0]] = e
+
+    hnames = dict(sorted(hnames.items()))
+
+    for e in hnames.values():
+        output = output + """<div><a href="http://""" + e + """:8080/photo"><img id="img" src="http://""" + \
+            e + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + socket.gethostbyaddr(e)[0] + """</div>"""
     output = output + """</body>
     </html>"""
     return output
