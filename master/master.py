@@ -5,6 +5,13 @@ from threading import Thread
 
 liste = set()
 
+pixel_pin = board.D18
+num_pixels = 48
+
+pixels = neopixel.NeoPixel(
+    pixel_pin, num_pixels, brightness=0.1, auto_write=True, pixel_order=neopixel.RGB)
+
+pixels.fill((0, 0, 255))
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -45,7 +52,7 @@ def index():
     </style>
     </head>
     <body>"""
-    
+
     hnames = dict()
 
     for e in liste:
@@ -55,7 +62,8 @@ def index():
 
     for e in hnames.values():
         output = output + """<div><a href="http://""" + e + """:8080/photo"><img id="img" src="http://""" + \
-            e + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + socket.gethostbyaddr(e)[0] + """</div>"""
+            e + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + \
+                socket.gethostbyaddr(e)[0] + """</div>"""
     output = output + """</body>
     </html>"""
     return output
@@ -74,3 +82,7 @@ if __name__ == '__main__':
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
         data, addr = sock.recvfrom(1024)
         liste.add(addr[0])
+        t = re.findall("\d{2}", socket.gethostbyaddr(addr[0])[0])
+        if len(t) > 0:
+            pixels[int(t[0])*2-2] = (0, 255, 0)
+            pixels[int(t[0])*2-1] = (0, 255, 0)
