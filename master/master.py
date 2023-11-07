@@ -97,14 +97,14 @@ def search():
     liste = dict()
     pixels.fill((0, 0, 255))
     send_to_all('search')
-    return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
+    return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
 @app.route("/photo")
 def photo():
     msg = b'photo'
     send_to_all('photo')
-    return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
+    return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
 
 
 @app.route("/shutdown")
@@ -120,7 +120,7 @@ def shutdown():
 def focus(val=-1):
     """ Focus """
     send_to_all('focus:' + str(val))
-    return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Focus...</title></head><body>Focus wird gemacht...</body></html>"""
+    return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Focus...</title></head><body>Fokussierung...</body></html>"""
 
 
 @app.route("/reboot")

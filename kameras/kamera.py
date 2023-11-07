@@ -7,12 +7,13 @@ from time import sleep
 
 
 class Kamera(object):
-    def __init__(self):
+    def __init__(self, folder):
         self.cam = Picamera2()
         self.preview_config = self.cam.create_preview_configuration()
         self.still_config = self.cam.create_still_configuration()
         self.cam.configure(self.preview_config)
         self.cam.start()
+        self.folder = folder
         #
 
     def make_picture(self, focus, preview=False) -> memoryview:
@@ -28,6 +29,14 @@ class Kamera(object):
         print("Bild gemacht!")
         data.seek(0)
         return data.read()
+
+    def save_picture(self, filename, focus) -> memoryview:
+        data = io.BytesIO()
+        print("Kamera aktiviert!")
+        self.focus(focus)
+        picam2.switch_mode_and_capture_file(
+            self.still_config, self.folder + filename)
+        print("Bild " + filename + " gemacht!")
 
     def focus(self, focus):
         if (focus == -2):
