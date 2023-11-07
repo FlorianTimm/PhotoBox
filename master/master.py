@@ -159,7 +159,10 @@ if __name__ == '__main__':
         if data[:4] == 'Moin':
             hostname = data[5:]
             liste[hostname] = addr[0]
-            t = int(re.findall("\d{2}", hostname))
-            for led in leds:
-                if t == led:
+            n = re.findall("\d{2}", hostname)
+            if len(n) > 0:
+                t = int(n[0])
+                for led in leds:
+                    if t != led:
+                        continue
                     pixels[led] = (0, 255, 0)
