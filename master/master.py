@@ -152,6 +152,7 @@ def photo(id=""):
 def shutdown():
     """ Shutdown Raspberry Pi """
     send_to_all('shutdown')
+    pixels.fill((0, 0, 0))
     system("sleep 5s; sudo shutdown -h now")
     print("Shutdown Raspberry...")
     exit(0)
@@ -168,6 +169,7 @@ def focus(val=-1):
 def reboot():
     """ Reboot Raspberry Pi """
     send_to_all('reboot')
+    pixels.fill((0, 0, 0))
     system("sleep 5s; sudo reboot")
     print("Reboot Raspberry...")
     exit(0)
