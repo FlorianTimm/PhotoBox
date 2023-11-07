@@ -178,7 +178,7 @@ def start_web(ks: KameraSteuerung):
     """ start web control """
     print("Web server is starting...")
     app.run('0.0.0.0', ks.conf['kameras']['WebPort'], static_url_path='bilder',
-            static_folder=self.conf['kameras']['Folder'])
+            static_folder=ks.conf['kameras']['Folder'])
 
 
 if __name__ == '__main__':
