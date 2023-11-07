@@ -106,7 +106,7 @@ def search():
 def photo(id=""):
     if id == "":
         id = str(uuid.uuid4())
-        msg = ('photo:' + uuid).encode("utf-8")
+        msg = ('photo:' + id).encode("utf-8")
         send_to_all('photo')
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
