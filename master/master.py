@@ -7,7 +7,7 @@ import board
 import re
 from time import sleep
 
-liste = set()
+liste = dict()
 
 pixel_pin = board.D18
 num_pixels = 48
@@ -19,6 +19,8 @@ pixels.fill((0, 0, 255))
 
 conf = configparser.ConfigParser()
 conf.read("../config.ini")
+
+leds = [int(v) for v in conf['server']['leds'].split(",")]
 
 socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -78,12 +80,7 @@ def index():
     </head>
     <body>"""
 
-    hnames = dict()
-
-    for e in liste:
-        hnames[socket.gethostbyaddr(e)[0]] = e
-
-    hnames = dict(sorted(hnames.items()))
+    hnames = dict(sorted(liste.items()))
 
     for e in hnames.values():
         output = output + """<div><a href="http://""" + e + """:8080/photo"><img id="img" src="http://""" + \
@@ -97,7 +94,8 @@ def index():
 @app.route("/search")
 def search():
     msg = b'search'
-    liste = set()
+    liste = dict()
+    pixels.fill((0, 0, 255))
     send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
@@ -158,9 +156,10 @@ if __name__ == '__main__':
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
         data, addr = socket_rec.recvfrom(1024)
         data = data.decode("utf-8")
-        if data == 'Moin':
-            liste.add(addr[0])
-            t = re.findall("\d{2}", socket.gethostbyaddr(addr[0])[0])
-            if len(t) > 0:
-                pixels[int(t[0])*2-2] = (0, 255, 0)
-                pixels[int(t[0])*2-1] = (0, 255, 0)
+        if data[:4] == 'Moin':
+            hostname = data[5:]
+            liste[hostname] = addr[0]
+            t = int(re.findall("\d{2}", hostname))
+            for led in leds:
+                if t == led:
+                    pixels[led] = (0, 255, 0)
