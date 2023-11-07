@@ -176,10 +176,8 @@ def status_led():
             n = re.findall("\d{2}", hostname)
             if len(n) > 0:
                 t = int(n[0])
-                if t != pi:
-                    continue
-                pixels[led] = (0, 25, 0)
-                break
+                if t == pi:
+                    pixels[led] = (0, 25, 0)
 
 
 def send_to_all(msg):
@@ -206,6 +204,7 @@ if __name__ == '__main__':
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
         data, addr = socket_rec.recvfrom(1024)
         data = data.decode("utf-8")
+        print(addr[0] + ": " + data)
         if data[:4] == 'Moin':
             hostname = data[5:]
             liste[hostname] = addr[0]
