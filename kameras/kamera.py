@@ -11,7 +11,7 @@ class Kamera(object):
         self.cam = Picamera2()
         self.preview_config = self.cam.create_preview_configuration()
         self.still_config = self.cam.create_still_configuration(controls={
-            "AwbMode": controls.AwbModeEnum.Flourescent,
+            "AwbMode": controls.AwbModeEnum.Fluorescent,
             "AeMeteringMode": controls.AeMeteringModeEnum.CenterWeighted,
             "AfMeteringMode": controls.AfMeteringModeEnum.Windows,
             "AfWindow": controls.AfWindow(2000, 1000, 600, 500),
