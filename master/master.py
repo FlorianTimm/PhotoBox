@@ -108,7 +108,7 @@ def photo():
 
 
 @app.route("/shutdown")
-def shutdown(self):
+def shutdown():
     """ Shutdown Raspberry Pi """
     send_to_all('shutdown')
     system("sleep 5s; sudo shutdown -h now")
@@ -117,14 +117,14 @@ def shutdown(self):
 
 
 @app.route("/focus/<val>")
-def focus(self, val=-1):
+def focus(val=-1):
     """ Focus """
     send_to_all('focus:' + str(val))
     return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Focus...</title></head><body>Focus wird gemacht...</body></html>"""
 
 
 @app.route("/reboot")
-def reboot(self):
+def reboot():
     """ Reboot Raspberry Pi """
     send_to_all('reboot')
     system("sleep 5s; sudo reboot")
