@@ -101,6 +101,7 @@ def search():
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
+@app.route("/photo")
 @app.route("/photo/<id>")
 def photo(id=""):
     if id == "":
