@@ -73,10 +73,7 @@ class KameraSteuerung:
             if data[:4] == 'Moin':
                 pass
             elif data == 'search':
-                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                    sock.sendto(('Moin:'+socket.gethostname()).encode("utf-8"), (addr[0], int(
-                        self.conf['both']['BroadCastPort'])))
+                answer(addr[0], 'Moin:'+socket.gethostname())
             elif data[0:5] == 'focus':
                 z = -1
                 try:
@@ -87,6 +84,7 @@ class KameraSteuerung:
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
                 self.save(data[6:], -2)
+                answer(addr[0], 'photo:' + data[6:])
             elif data == 'preview':
                 self.preview(-2)  # preview
             elif data == 'shutdown':
@@ -97,6 +95,12 @@ class KameraSteuerung:
                 exit(0)
             else:
                 print("Unknown command: " + data)
+
+    def answer(self, addr, msg):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            sock.sendto((msg).encode("utf-8"), (addr, int(
+                self.conf['both']['BroadCastPort'])))
 
 
 # web control
