@@ -105,8 +105,8 @@ def search():
 @app.route("/photo")
 def photo():
     msg = b'photo'
-    liste = set()
     send_to_all('photo')
+    return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
 
 
 @app.route("/shutdown")
@@ -118,10 +118,19 @@ def shutdown(self):
     exit(0)
 
 
+@app.route("/focus/<int:val>")
+def shutdown(self, val):
+    """ Shutdown Raspberry Pi """
+    send_to_all('focus:' + str(val))
+
+
 @app.route("/reboot")
 def reboot(self):
     """ Reboot Raspberry Pi """
     send_to_all('reboot')
+    system("sleep 5s; sudo reboot")
+    print("Reboot Raspberry...")
+    exit(0)
 
 
 def send_to_all(msg):
