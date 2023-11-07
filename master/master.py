@@ -105,9 +105,8 @@ def search():
 @app.route("/photo/<id>")
 def photo(id=""):
     if id == "":
-        id = str(uuid.uuid4())
-        msg = ('photo:' + id + '.jpg').encode("utf-8")
-        send_to_all('photo')
+        id = str(uuid.uuid4()) + '.jpg'
+        send_to_all('photo:' + id)
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
         output = """<html>
