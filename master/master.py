@@ -108,10 +108,13 @@ def search():
 def photo(id=""):
     global photo_count
     if id == "":
-        id = str(uuid.uuid4()) + '.jpg'
         pixels.fill((255, 255, 255))
+        id = str(uuid.uuid4()) + '.jpg'
+        time.sleep(0.1)
         photo_count = photo_count + len(liste)
         send_to_all('photo:' + id)
+        time.sleep(0.5)
+        status_led()
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
         output = """<html>
