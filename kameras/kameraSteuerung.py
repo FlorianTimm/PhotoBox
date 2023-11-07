@@ -73,7 +73,7 @@ class KameraSteuerung:
             if data[:4] == 'Moin':
                 pass
             elif data == 'search':
-                answer(addr[0], 'Moin:'+socket.gethostname())
+                self.answer(addr[0], 'Moin:'+socket.gethostname())
             elif data[0:5] == 'focus':
                 z = -1
                 try:
@@ -84,7 +84,7 @@ class KameraSteuerung:
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
                 self.save(data[6:], -2)
-                answer(addr[0], 'photo:' + data[6:])
+                self.answer(addr[0], 'photo:' + data[6:])
             elif data == 'preview':
                 self.preview(-2)  # preview
             elif data == 'shutdown':
