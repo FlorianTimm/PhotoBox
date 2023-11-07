@@ -37,6 +37,7 @@ class Kamera(object):
         self.cam.switch_mode_and_capture_file(
             self.still_config, self.folder + filename)
         print("Bild " + filename + " gemacht!")
+        return "fertig"
 
     def focus(self, focus):
         if (focus == -2):

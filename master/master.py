@@ -10,6 +10,8 @@ import uuid
 
 liste = dict()
 
+photo_count = 0
+
 conf = configparser.ConfigParser()
 conf.read("../config.ini")
 
@@ -107,10 +109,10 @@ def photo(id=""):
     if id == "":
         id = str(uuid.uuid4()) + '.jpg'
         pixels.fill((255, 255, 255))
+        photo_count = photo_count + len(liste)
         send_to_all('photo:' + id)
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
-        status_led()
         output = """<html>
         <head>
             <title>Kamera</title>
@@ -213,3 +215,7 @@ if __name__ == '__main__':
                     if t != pi:
                         continue
                     pixels[led] = (0, 25, 0)
+        elif data[:5] == 'photo':
+            photo_count = photo_count - 1
+            if photo_count == 0:
+                status_led()
