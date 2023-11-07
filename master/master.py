@@ -6,6 +6,7 @@ import neopixel
 import board
 import re
 from time import sleep
+import uuid
 
 liste = dict()
 
@@ -100,11 +101,42 @@ def search():
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
-@app.route("/photo")
-def photo():
-    msg = b'photo'
-    send_to_all('photo')
-    return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
+@app.route("/photo/<id>")
+def photo(id=""):
+    if id == "":
+        id = uuid.uuid4()
+        msg = b'photo'
+        send_to_all('photo')
+        return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
+    else:
+        output = """<html>
+        <head>
+            <title>Kamera</title>
+            <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+        <style>
+        div {
+            display: inline-block;
+            height: 20%;
+            width: 20%;
+        }
+        #img {
+            max-height: 90%;
+            max-width: 100%;
+        }
+        </style>
+        </head>
+        <body>"""
+
+        hnames = dict(sorted(liste.items()))
+
+        for hostname, ip in hnames.items():
+            output = output + """<div><a href="http://""" + \
+                ip + """:8080/bilder/""" + id + """" <img id="img" src="http://""" + \
+                ip + """:8080/bilder/""" + id + """" /></a><br>""" + \
+                hostname + """</div>"""
+        output = output + """</body>
+        </html>"""
+        return output
 
 
 @app.route("/shutdown")
