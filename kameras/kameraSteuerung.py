@@ -68,7 +68,7 @@ class KameraSteuerung:
             elif data[0:5] == 'focus':
                 z = -1
                 try:
-                    z = float(data[5:])
+                    z = float(data[6:])
                 except:
                     pass
                 print("Focus: " + str(z))
@@ -181,5 +181,5 @@ if __name__ == '__main__':
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.sendto(b'Moin', ('255.255.255.255', int(
+        sock.sendto(('Moin:'+socket.gethostname()).encode("utf-8"), ('255.255.255.255', int(
             ks.conf['both']['BroadCastPort'])))
