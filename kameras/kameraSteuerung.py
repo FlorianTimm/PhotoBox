@@ -71,6 +71,7 @@ class KameraSteuerung:
                     z = float(data[5:])
                 except:
                     pass
+                print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data == 'photo':
                 self.photo(-2)  # preview
@@ -181,4 +182,4 @@ if __name__ == '__main__':
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.sendto(b'Moin', ('255.255.255.255', int(
-            self.conf['both']['BroadCastPort'])))
+            ks.conf['both']['BroadCastPort'])))
