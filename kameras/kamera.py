@@ -14,8 +14,7 @@ class Kamera(object):
             "AwbMode": controls.AwbModeEnum.Fluorescent,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
             "AfMetering": controls.AfMeteringEnum.Windows,
-            "AfWindows": [Rectangle(2000, 1000, 600, 500)],
-            "AeExposureMode": controls.AeExposureModeEnum.Auto,
+            "AfWindows": [Rectangle(2000, 1000, 600, 500)]
         })
         self.cam.configure(self.still_config)
         self.cam.start()
