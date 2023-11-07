@@ -106,6 +106,7 @@ def search():
 @app.route("/photo")
 @app.route("/photo/<id>")
 def photo(id=""):
+    global photo_count
     if id == "":
         id = str(uuid.uuid4()) + '.jpg'
         pixels.fill((255, 255, 255))
