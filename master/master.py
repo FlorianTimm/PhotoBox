@@ -18,9 +18,9 @@ pixel_pin = board.D18
 num_pixels = len(leds)
 
 pixels = neopixel.NeoPixel(
-    pixel_pin, num_pixels, brightness=0.1, auto_write=True, pixel_order=neopixel.RGB)
+    pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)
 
-pixels.fill((0, 0, 255))
+pixels.fill((0, 0, 25))
 
 
 socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -96,7 +96,7 @@ def index():
 def search():
     msg = b'search'
     liste = dict()
-    pixels.fill((0, 0, 255))
+    pixels.fill((0, 0, 25))
     send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
@@ -167,15 +167,16 @@ def reboot():
 
 
 def status_led():
-    for led, pi in enumerta(leds):
-        pixels[led] = (255, 0, 0)
+    for led, pi in enumerte(leds):
+        pixels[led] = (25, 0, 0)
         for hostname, ip in liste.items():
             n = re.findall("\d{2}", hostname)
             if len(n) > 0:
                 t = int(n[0])
                 if t != pi:
                     continue
-                pixels[led] = (0, 255, 0)
+                pixels[led] = (0, 25, 0)
+                break
 
 
 def send_to_all(msg):
@@ -211,4 +212,4 @@ if __name__ == '__main__':
                 for led, pi in enumerate(leds):
                     if t != pi:
                         continue
-                    pixels[led] = (0, 255, 0)
+                    pixels[led] = (0, 25, 0)
