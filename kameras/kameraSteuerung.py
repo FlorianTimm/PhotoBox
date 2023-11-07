@@ -96,7 +96,8 @@ class KameraSteuerung:
 
 
 # web control
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='bilder',
+            static_folder=ks.conf['kameras']['Folder'])
 
 
 @app.route("/")
@@ -177,8 +178,7 @@ def focus(focus=-1):
 def start_web(ks: KameraSteuerung):
     """ start web control """
     print("Web server is starting...")
-    app.run('0.0.0.0', ks.conf['kameras']['WebPort'], static_url_path='bilder',
-            static_folder=ks.conf['kameras']['Folder'])
+    app.run('0.0.0.0', ks.conf['kameras']['WebPort'])
 
 
 if __name__ == '__main__':
