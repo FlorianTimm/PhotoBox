@@ -9,18 +9,18 @@ from time import sleep
 
 liste = dict()
 
+conf = configparser.ConfigParser()
+conf.read("../config.ini")
+
+leds = [int(v) for v in conf['server']['leds'].split(",")]
 pixel_pin = board.D18
-num_pixels = 48
+num_pixels = len(leds)
 
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.1, auto_write=True, pixel_order=neopixel.RGB)
 
 pixels.fill((0, 0, 255))
 
-conf = configparser.ConfigParser()
-conf.read("../config.ini")
-
-leds = [int(v) for v in conf['server']['leds'].split(",")]
 
 socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -116,7 +116,7 @@ def shutdown(self):
     exit(0)
 
 
-@app.route("/focus/<int:val>")
+@app.route("/focus/<val>")
 def focus(self, val=-1):
     """ Focus """
     send_to_all('focus:' + str(val))
@@ -162,7 +162,7 @@ if __name__ == '__main__':
             n = re.findall("\d{2}", hostname)
             if len(n) > 0:
                 t = int(n[0])
-                for led in leds:
-                    if t != led:
+                for led, pi in enumerate(leds):
+                    if t != pi:
                         continue
                     pixels[led] = (0, 255, 0)
