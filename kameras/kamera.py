@@ -11,11 +11,11 @@ class Kamera(object):
         self.cam = Picamera2()
         self.preview_config = self.cam.create_preview_configuration()
         self.still_config = self.cam.create_still_configuration(controls={
-            "AwbMode": libcamera.controls.AwbModeEnum.Flourescent,
-            "AeMeteringMode": libcamera.controls.AeMeteringModeEnum.CenterWeighted,
-            "AfMeteringMode": libcamera.controls.AfMeteringModeEnum.Windows,
-            "AfWindow": libcamera.controls.AfWindow(2000, 1000, 600, 500),
-            "AeExposureMode": libcamera.controls.AeExposureModeEnum.Auto,
+            "AwbMode": controls.AwbModeEnum.Flourescent,
+            "AeMeteringMode": controls.AeMeteringModeEnum.CenterWeighted,
+            "AfMeteringMode": controls.AfMeteringModeEnum.Windows,
+            "AfWindow": controls.AfWindow(2000, 1000, 600, 500),
+            "AeExposureMode": controls.AeExposureModeEnum.Auto,
         })
         self.cam.configure(self.still_config)
         self.cam.start()
