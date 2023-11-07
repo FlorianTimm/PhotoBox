@@ -40,6 +40,9 @@ def web_index():
         <a href="/overview">Overview</a><br>
         <a href="/search">Search</a><br>
         <a href="/shutdown">Shutdown</a><br>
+        <a href="/reboot">Reboot</a><br>
+        <a href="/photo">Photo</a><br>
+        <a href="/focus/-1">Autofocus</a><br>
     </body>
     </html>"""
 
@@ -86,7 +89,7 @@ def index():
         output = output + """<div><a href="http://""" + e + """:8080/photo"><img id="img" src="http://""" + \
             e + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + \
                 socket.gethostbyaddr(e)[0] + """</div>"""
-    output = output + """</body>
+    output = output + """<a href="/focus/-1">Autofocus</a><br></body>
     </html>"""
     return output
 
@@ -95,32 +98,38 @@ def index():
 def search():
     msg = b'search'
     liste = set()
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.sendto(msg, ("255.255.255.255", int(
-            conf['both']['BroadCastPort'])))
+    send_to_all('search')
+    return """<html><head><meta http-equiv="refresh" content="5; URL=./overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
 @app.route("/photo")
-def search():
+def photo():
     msg = b'photo'
     liste = set()
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.sendto(msg, ("255.255.255.255", int(
-            conf['both']['BroadCastPort'])))
+    send_to_all('photo')
 
 
 @app.route("/shutdown")
 def shutdown(self):
     """ Shutdown Raspberry Pi """
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.sendto(b'shutdown', ("255.255.255.255", int(
-            conf['both']['BroadCastPort'])))
+    send_to_all('shutdown')
     system("sleep 5s; sudo shutdown -h now")
     print("Shutdown Raspberry...")
     exit(0)
+
+
+@app.route("/reboot")
+def reboot(self):
+    """ Reboot Raspberry Pi """
+    send_to_all('reboot')
+
+
+def send_to_all(msg):
+    msg = msg.encode("utf-8")
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(msg, ("255.255.255.255", int(
+            conf['both']['BroadCastPort'])))
 
 
 def start_web():
@@ -132,8 +141,8 @@ def start_web():
 if __name__ == '__main__':
     w = Thread(target=start_web)
     w.start()
-    s = Thread(target=search)
-    s.start()
+    # s = Thread(target=search)
+    # s.start()
     search()
     while True:
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
