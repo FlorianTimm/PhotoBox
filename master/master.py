@@ -85,10 +85,10 @@ def index():
 
     hnames = dict(sorted(liste.items()))
 
-    for e in hnames.values():
-        output = output + """<div><a href="http://""" + e + """:8080/photo"><img id="img" src="http://""" + \
-            e + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + \
-                socket.gethostbyaddr(e)[0] + """</div>"""
+    for hostname, ip in hnames.items():
+        output = output + """<div><a href="http://""" + ip + """:8080/photo"><img id="img" src="http://""" + \
+            ip + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + \
+            hostname + """</div>"""
     output = output + """<a href="/focus/-1">Autofocus</a><br></body>
     </html>"""
     return output
