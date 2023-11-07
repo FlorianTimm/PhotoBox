@@ -13,7 +13,7 @@ class Kamera(object):
         self.still_config = self.cam.create_still_configuration(controls={
             "AwbMode": controls.AwbModeEnum.Fluorescent,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
-            "AfMetering": controls.AfMeteringModeEnum.Windows,
+            "AfMetering": controls.AfMeteringEnum.Windows,
             "AfWindow": controls.AfWindow(2000, 1000, 600, 500),
             "AeExposureMode": controls.AeExposureModeEnum.Auto,
         })
