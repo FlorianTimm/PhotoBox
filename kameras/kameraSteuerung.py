@@ -9,7 +9,7 @@
 from flask import Flask, make_response
 from threading import Thread
 import configparser
-from os import system
+from os import system, mkdir, exists
 from sys import exit
 from kamera import Kamera
 import socket
@@ -32,6 +32,8 @@ class KameraSteuerung:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.sock.bind(("0.0.0.0", int(self.conf['both']['BroadCastPort'])))
+        if not exists(self.conf['kameras']['Folder']):
+            mkdir(self.conf['kameras']['Folder'])
 
         t = Thread(target=self.receive_broadcast)
         t.start()
@@ -43,11 +45,14 @@ class KameraSteuerung:
         exit(0)
 
     def run(self):
-        self.cam = Kamera()  # flip pi camera if upside down.
+        self.cam = Kamera(self.conf['kameras']['Folder'])
         print("Moin")
 
     def photo(self, focus):
         return self.cam.make_picture(focus)
+
+    def save(self, filename, focus):
+        return self.cam.save_picture(filename, focus)
 
     def preview(self, focus):
         return self.cam.make_picture(focus, preview=True)
@@ -75,8 +80,8 @@ class KameraSteuerung:
                     pass
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
-            elif data == 'photo':
-                self.photo(-2)  # preview
+            elif data[:5] == 'photo':
+                self.save(date[6:], -2)
             elif data == 'preview':
                 self.preview(-2)  # preview
             elif data == 'shutdown':
@@ -171,7 +176,8 @@ def focus(focus=-1):
 def start_web(ks: KameraSteuerung):
     """ start web control """
     print("Web server is starting...")
-    app.run('0.0.0.0', ks.conf['kameras']['WebPort'])
+    app.run('0.0.0.0', ks.conf['kameras']['WebPort'], static_url_path='bilder',
+            static_folder=self.conf['kameras']['Folder'])
 
 
 if __name__ == '__main__':
