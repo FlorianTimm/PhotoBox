@@ -20,18 +20,20 @@ class KameraSteuerung:
 
     """ main script for automatic start """
 
-    def __init__(self, web_interface):
+    def __init__(self):
         """
         Constructor
-        :param web_interface: Thread with Flask web interface
-        :type web_interface: Thread
         """
         print("Kamerasteuerung\n")
 
         # load config file
-        self.__conf = configparser.ConfigParser()
-        self.__conf.read("config.ini")
-        t = Thread(target=self.broadcast)
+        self.conf = configparser.ConfigParser()
+        self.conf.read("../config.ini")
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.sock.bind(("0.0.0.0", int(self.conf['both']['BroadCastPort'])))
+
+        t = Thread(target=self.receive_broadcast)
         t.start()
 
     def shutdown(self):
@@ -53,15 +55,10 @@ class KameraSteuerung:
     def focus(self, focus):
         return self.cam.focus(focus)
 
-    def broadcast(self):
-        msg = b'hello world'
+    def receive_broadcast(self):
         while True:
-
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                sock.sendto(msg, ("255.255.255.255", 5005))
-
-            sleep(2)
+            data, addr = self.sock.recvfrom(1024)
+            print(data)
 
 
 # web control
@@ -143,14 +140,15 @@ def focus(focus=-1):
     return ks.focus(focus)
 
 
-def start_web():
+def start_web(ks: KameraSteuerung):
     """ start web control """
     print("Web server is starting...")
-    app.run('0.0.0.0', 8080)
+    app.run('0.0.0.0', ks.conf['both']['BroadCastPort'])
 
 
 if __name__ == '__main__':
-    w = Thread(target=start_web)
-    ks = KameraSteuerung(w)
+
+    ks = KameraSteuerung()
+    w = Thread(target=start_web, args=(ks,))
     w.start()
     ks.run()

@@ -1,6 +1,10 @@
 import socket
 from flask import Flask
 from threading import Thread
+import configparser
+import neopixel
+import board
+import re
 
 
 liste = set()
@@ -13,9 +17,12 @@ pixels = neopixel.NeoPixel(
 
 pixels.fill((0, 0, 255))
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-sock.bind(("0.0.0.0", 5005))
+conf = configparser.ConfigParser()
+conf.read("../config.ini")
+
+socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+socket_rec.bind(("0.0.0.0", conf['both']['BroadCastPort']))
 
 
 # web control
@@ -75,12 +82,24 @@ def start_web():
     app.run('0.0.0.0', 8080)
 
 
+def search():
+    msg = b'search'
+    while True:
+
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            sock.sendto(msg, ("255.255.255.255", 5005))
+
+        sleep(10)
+
+
 if __name__ == '__main__':
     w = Thread(target=start_web)
+    w = Thread(target=search)
     w.start()
     while True:
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
-        data, addr = sock.recvfrom(1024)
+        data, addr = socket_rec.recvfrom(1024)
         liste.add(addr[0])
         t = re.findall("\d{2}", socket.gethostbyaddr(addr[0])[0])
         if len(t) > 0:
