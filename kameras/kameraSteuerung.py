@@ -58,7 +58,27 @@ class KameraSteuerung:
     def receive_broadcast(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
-            print(data)
+            data = data.decode("utf-8")
+            print(addr)
+            if data == 'search':
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                    sock.sendto(b'Moin', (addr[0], int(
+                        self.conf['both']['BroadCastPort'])))
+            elif data == 'focus':
+                self.focus(-1)  # Autofokus
+            elif data == 'photo':
+                self.photo(-2)  # preview
+            elif data == 'preview':
+                self.preview(-2)  # preview
+            elif data == 'shutdown':
+                self.shutdown()
+            elif data == 'reboot':
+                system("sleep 5s; sudo reboot")
+                print("Reboot Raspberry...")
+                exit(0)
+            else:
+                print("Unknown command: " + data)
 
 
 # web control
@@ -143,7 +163,7 @@ def focus(focus=-1):
 def start_web(ks: KameraSteuerung):
     """ start web control """
     print("Web server is starting...")
-    app.run('0.0.0.0', ks.conf['both']['BroadCastPort'])
+    app.run('0.0.0.0', ks.conf['kameras']['WebPort'])
 
 
 if __name__ == '__main__':
