@@ -15,20 +15,24 @@ from kamera import Kamera
 import socket
 from time import sleep
 
+conf = configparser.ConfigParser()
+conf.read("../config.ini")
+
 
 class KameraSteuerung:
 
     """ main script for automatic start """
 
-    def __init__(self):
+    def __init__(self, conf):
         """
         Constructor
         """
         print("Kamerasteuerung\n")
 
         # load config file
-        self.conf = configparser.ConfigParser()
-        self.conf.read("../config.ini")
+
+        self.conf = conf
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.sock.bind(("0.0.0.0", int(self.conf['both']['BroadCastPort'])))
@@ -97,7 +101,7 @@ class KameraSteuerung:
 
 # web control
 app = Flask(__name__, static_url_path='bilder',
-            static_folder=ks.conf['kameras']['Folder'])
+            static_folder=conf['kameras']['Folder'])
 
 
 @app.route("/")
@@ -175,16 +179,16 @@ def focus(focus=-1):
     return ks.focus(focus)
 
 
-def start_web(ks: KameraSteuerung):
+def start_web(conf):
     """ start web control """
     print("Web server is starting...")
-    app.run('0.0.0.0', ks.conf['kameras']['WebPort'])
+    app.run('0.0.0.0', conf['kameras']['WebPort'])
 
 
 if __name__ == '__main__':
 
-    ks = KameraSteuerung()
-    w = Thread(target=start_web, args=(ks,))
+    ks = KameraSteuerung(conf)
+    w = Thread(target=start_web, args=(conf,))
     w.start()
     ks.run()
 
