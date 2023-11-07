@@ -167,7 +167,7 @@ def reboot():
 
 
 def status_led():
-    for led, pi in enumerte(leds):
+    for led, pi in enumerate(leds):
         pixels[led] = (25, 0, 0)
         for hostname, ip in liste.items():
             n = re.findall("\d{2}", hostname)
