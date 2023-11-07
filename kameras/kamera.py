@@ -9,16 +9,16 @@ from time import sleep
 class Kamera(object):
     def __init__(self, folder):
         self.cam = Picamera2()
-        controls = {
+        ctrl = {
             "AwbMode": controls.AwbModeEnum.Fluorescent,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted  # ,
             # "AfMetering": controls.AfMeteringEnum.Windows,
             # "AfWindows": [Rectangle(2000, 1000, 600, 500)]
         }
         self.preview_config = self.cam.create_preview_configuration(
-            controls=controls)
+            controls=ctrl)
         self.still_config = self.cam.create_still_configuration(
-            controls=controls)
+            controls=ctrl)
         self.cam.configure(self.still_config)
         self.cam.start()
         self.folder = folder
