@@ -11,7 +11,7 @@ class Kamera(object):
         self.cam = Picamera2()
         self.preview_config = self.cam.create_preview_configuration()
         self.still_config = self.cam.create_still_configuration()
-        self.cam.configure(self.preview_config)
+        self.cam.configure(self.still_config)
         self.cam.start()
         self.folder = folder
         #
@@ -21,11 +21,11 @@ class Kamera(object):
         print("Kamera aktiviert!")
         self.focus(focus)
         if (preview):
-            self.cam.capture_file(data, format='jpeg')
-        else:
             req = self.cam.switch_mode_and_capture_image(
-                self.still_config)
+                self.preview_config)
             req.save(data, format='jpeg')
+        else:
+            self.cam.capture_file(data, format='jpeg')
         print("Bild gemacht!")
         data.seek(0)
         return data.read()
@@ -34,8 +34,7 @@ class Kamera(object):
         data = io.BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
-        self.cam.switch_mode_and_capture_file(
-            self.still_config, self.folder + filename)
+        self.cam.capture_file(self.folder + filename)
         print("Bild " + filename + " gemacht!")
         return "fertig"
 
