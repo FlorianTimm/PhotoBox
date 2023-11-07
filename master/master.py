@@ -106,9 +106,11 @@ def search():
 def photo(id=""):
     if id == "":
         id = str(uuid.uuid4()) + '.jpg'
+        pixels.fill((255, 255, 255))
         send_to_all('photo:' + id)
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
+        status_led()
         output = """<html>
         <head>
             <title>Kamera</title>
@@ -131,7 +133,7 @@ def photo(id=""):
 
         for hostname, ip in hnames.items():
             output = output + """<div><a href="http://""" + \
-                ip + """:8080/bilder/""" + id + """" <img id="img" src="http://""" + \
+                ip + """:8080/bilder/""" + id + """"><img id="img" src="http://""" + \
                 ip + """:8080/bilder/""" + id + """" /></a><br>""" + \
                 hostname + """</div>"""
         output = output + """</body>
@@ -162,6 +164,18 @@ def reboot():
     system("sleep 5s; sudo reboot")
     print("Reboot Raspberry...")
     exit(0)
+
+
+def status_led():
+    for led, pi in enumerta(leds):
+        pixels[led] = (255, 0, 0)
+        for hostname, ip in liste.items():
+            n = re.findall("\d{2}", hostname)
+            if len(n) > 0:
+                t = int(n[0])
+                if t != pi:
+                    continue
+                pixels[led] = (0, 255, 0)
 
 
 def send_to_all(msg):
