@@ -5,7 +5,7 @@ import configparser
 import neopixel
 import board
 import re
-
+from time import sleep
 
 liste = set()
 
@@ -22,7 +22,7 @@ conf.read("../config.ini")
 
 socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-socket_rec.bind(("0.0.0.0", conf['both']['BroadCastPort']))
+socket_rec.bind(("0.0.0.0", int(conf['both']['BroadCastPort'])))
 
 
 # web control
@@ -30,6 +30,21 @@ app = Flask(__name__)
 
 
 @app.route("/")
+def web_index():
+    return """<html>
+    <head>
+        <title>Kamera</title>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+    </head>
+    <body>
+        <a href="/overview">Overview</a><br>
+        <a href="/search">Search</a><br>
+        <a href="/shutdown">Shutdown</a><br>
+    </body>
+    </html>"""
+
+
+@app.route("/overview")
 def index():
     output = """<html>
     <head>
@@ -76,32 +91,57 @@ def index():
     return output
 
 
+@app.route("/search")
+def search():
+    msg = b'search'
+    liste = set()
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(msg, ("255.255.255.255", int(
+            conf['both']['BroadCastPort'])))
+
+
+@app.route("/photo")
+def search():
+    msg = b'photo'
+    liste = set()
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(msg, ("255.255.255.255", int(
+            conf['both']['BroadCastPort'])))
+
+
+@app.route("/shutdown")
+def shutdown(self):
+    """ Shutdown Raspberry Pi """
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(b'shutdown', ("255.255.255.255", int(
+            conf['both']['BroadCastPort'])))
+    system("sleep 5s; sudo shutdown -h now")
+    print("Shutdown Raspberry...")
+    exit(0)
+
+
 def start_web():
     """ start web control """
     print("Web server is starting...")
     app.run('0.0.0.0', 8080)
 
 
-def search():
-    msg = b'search'
-    while True:
-
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            sock.sendto(msg, ("255.255.255.255", 5005))
-
-        sleep(10)
-
-
 if __name__ == '__main__':
     w = Thread(target=start_web)
-    w = Thread(target=search)
     w.start()
+    s = Thread(target=search)
+    s.start()
+    search()
     while True:
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
         data, addr = socket_rec.recvfrom(1024)
-        liste.add(addr[0])
-        t = re.findall("\d{2}", socket.gethostbyaddr(addr[0])[0])
-        if len(t) > 0:
-            pixels[int(t[0])*2-2] = (0, 255, 0)
-            pixels[int(t[0])*2-1] = (0, 255, 0)
+        data = data.decode("utf-8")
+        if data == 'Moin':
+            liste.add(addr[0])
+            t = re.findall("\d{2}", socket.gethostbyaddr(addr[0])[0])
+            if len(t) > 0:
+                pixels[int(t[0])*2-2] = (0, 255, 0)
+                pixels[int(t[0])*2-1] = (0, 255, 0)
