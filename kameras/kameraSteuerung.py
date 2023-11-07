@@ -86,7 +86,7 @@ class KameraSteuerung:
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
-                self.save(date[6:], -2)
+                self.save(data[6:], -2)
             elif data == 'preview':
                 self.preview(-2)  # preview
             elif data == 'shutdown':
