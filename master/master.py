@@ -119,7 +119,7 @@ def shutdown(self):
 
 
 @app.route("/focus/<int:val>")
-def shutdown(self, val):
+def focus(self, val):
     """ Shutdown Raspberry Pi """
     send_to_all('focus:' + str(val))
 
