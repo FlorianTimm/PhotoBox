@@ -63,7 +63,7 @@ class KameraSteuerung:
             if data == 'search':
                 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
                     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                    sock.sendto(b'Moin', (addr[0], int(
+                    sock.sendto(('Moin:'+socket.gethostname()).encode("utf-8"), (addr[0], int(
                         self.conf['both']['BroadCastPort'])))
             elif data[0:5] == 'focus':
                 z = -1
