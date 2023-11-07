@@ -2,7 +2,7 @@
 
 import io
 from picamera2 import Picamera2
-from libcamera import controls
+from libcamera import controls, Rectangle
 from time import sleep
 
 
@@ -14,7 +14,7 @@ class Kamera(object):
             "AwbMode": controls.AwbModeEnum.Fluorescent,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
             "AfMetering": controls.AfMeteringEnum.Windows,
-            "AfWindows": controls.AfWindows(2000, 1000, 600, 500),
+            "AfWindows": controls.AfWindows([Rectangle(2000, 1000, 600, 500)]),
             "AeExposureMode": controls.AeExposureModeEnum.Auto,
         })
         self.cam.configure(self.still_config)
