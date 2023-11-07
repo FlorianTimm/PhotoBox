@@ -65,8 +65,13 @@ class KameraSteuerung:
                     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
                     sock.sendto(b'Moin', (addr[0], int(
                         self.conf['both']['BroadCastPort'])))
-            elif data == 'focus':
-                self.focus(-1)  # Autofokus
+            elif data[0:5] == 'focus':
+                z = -1
+                try:
+                    z = float(data[5:])
+                except:
+                    pass
+                self.focus(z)  # Autofokus
             elif data == 'photo':
                 self.photo(-2)  # preview
             elif data == 'preview':
@@ -172,3 +177,8 @@ if __name__ == '__main__':
     w = Thread(target=start_web, args=(ks,))
     w.start()
     ks.run()
+
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(b'Moin', ('255.255.255.255', int(
+            self.conf['both']['BroadCastPort'])))
