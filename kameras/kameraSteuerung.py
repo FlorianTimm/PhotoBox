@@ -100,7 +100,7 @@ class KameraSteuerung:
 
 
 # web control
-app = Flask(__name__, static_url_path='bilder',
+app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['kameras']['Folder'])
 
 
