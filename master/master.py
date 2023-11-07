@@ -7,6 +7,7 @@ import board
 import re
 from time import sleep
 import uuid
+from os import system
 
 liste = dict()
 
