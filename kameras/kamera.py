@@ -42,8 +42,7 @@ class Kamera(object):
         data = io.BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
-        self.cam.switch_mode_and_capture_file(
-            self.still_config, self.folder + filename)
+        self.cam.capture_file(self.folder + filename)
         print("Bild " + filename + " gemacht!")
         return "fertig"
 
