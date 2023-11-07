@@ -10,8 +10,13 @@ class Kamera(object):
     def __init__(self, folder):
         self.cam = Picamera2()
         self.preview_config = self.cam.create_preview_configuration()
-        self.still_config = self.cam.create_still_configuration()
-        self.cam.configure(self.still_config)
+        self.still_config = self.cam.create_still_configuration(controls={
+            "AwbMode": controls.AwbModeEnum.Fluorescent,
+            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted  # ,
+            # "AfMetering": controls.AfMeteringEnum.Windows,
+            # "AfWindows": [Rectangle(2000, 1000, 600, 500)]
+        })
+        self.cam.configure(self.preview_config)
         self.cam.start()
         self.folder = folder
         #
@@ -21,11 +26,11 @@ class Kamera(object):
         print("Kamera aktiviert!")
         self.focus(focus)
         if (preview):
-            req = self.cam.switch_mode_and_capture_image(
-                self.preview_config)
-            req.save(data, format='jpeg')
-        else:
             self.cam.capture_file(data, format='jpeg')
+        else:
+            req = self.cam.switch_mode_and_capture_image(
+                self.still_config)
+            req.save(data, format='jpeg')
         print("Bild gemacht!")
         data.seek(0)
         return data.read()
@@ -34,7 +39,8 @@ class Kamera(object):
         data = io.BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
-        self.cam.capture_file(self.folder + filename)
+        self.cam.switch_mode_and_capture_file(
+            self.still_config, self.folder + filename)
         print("Bild " + filename + " gemacht!")
         return "fertig"
 
