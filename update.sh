@@ -20,7 +20,7 @@ if test -f "$FILE"; then
     systemctl restart PhotoBoxMaster.service || /bin/true
 fi
 
-FILE=/etc/systemd/system/PhotoBoxMaster.service
+FILE=/etc/systemd/system/PhotoBoxKamera.service
 if test -f "$FILE"; then
     rm /etc/systemd/system/PhotoBoxKamera.service
     cp  /home/photo/PhotoBox/kameras/PhotoBoxKamera.service /etc/systemd/system/PhotoBoxKamera.service
