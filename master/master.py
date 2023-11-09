@@ -38,6 +38,22 @@ socket_rec.bind(("0.0.0.0", int(conf['both']['BroadCastPort'])))
 app = Flask(__name__)
 
 
+def collect_photos(liste, id):
+    """ collect photos """
+    print("Collecting photos...")
+    sleep(5)
+    for hostname, ip in liste.items():
+        print("Collecting photo from " + hostname + "...")
+        try:
+            url = "http://" + ip + ":8080/bilder/" + id
+            print(url)
+            r = requests.get(url, allow_redirects=True)
+            open(conf['server']['Folder'] + id, 'wb').write(r.content)
+        except:
+            print("Error collecting photo from " + hostname + "...")
+    print("Collecting photos done!")
+
+
 @app.route("/")
 def web_index():
     return """<html>
@@ -52,7 +68,7 @@ def web_index():
         <a href="/reboot">Reboot</a><br>
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
-        <a href="/licht">Licht</a><br>
+        <a href="/light">Light</a><br>
     </body>
     </html>"""
 
@@ -187,7 +203,7 @@ def photo_light(val=1):
     pixels.fill((255, 255, 255))
     sleep(float(val))
     status_led()
-    return """<html><head><meta http-equiv="refresh" content="1; URL=/overview"><title>Light...</title></head><body>Light...</body></html>"""
+    return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
 
 
 def status_led():
@@ -242,19 +258,3 @@ if __name__ == '__main__':
                 status_led()
         elif data[:5] == 'light':
             photo_light()
-
-
-def collect_photos(liste, id):
-    """ collect photos """
-    print("Collecting photos...")
-    sleep(5)
-    for hostname, ip in liste.items():
-        print("Collecting photo from " + hostname + "...")
-        try:
-            url = "http://" + ip + ":8080/bilder/" + id
-            print(url)
-            r = requests.get(url, allow_redirects=True)
-            open(conf['server']['Folder'] + id, 'wb').write(r.content)
-        except:
-            print("Error collecting photo from " + hostname + "...")
-    print("Collecting photos done!")
