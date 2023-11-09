@@ -9,7 +9,7 @@ from time import sleep
 class Kamera(object):
     def __init__(self, folder):
         self.cam = Picamera2()
-        scm = cam.camera_properties['ScalerCropMaximum']
+        scm = self.cam.camera_properties['ScalerCropMaximum']
         h = scm[3]-scm[1]
         w = scm[2]-scm[0]
         rect = (scm[0]+w//3, scm[1]+w//3, w//3, h//3)
