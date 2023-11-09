@@ -72,4 +72,15 @@ class Kamera(object):
 
     def aruco(self):
         im = self.cam.capture_array()
-        return detectMarkers(im, self.aruco_dict, parameters=self.parameter)
+        corners, ids, _ = detectMarkers(
+            im, self.aruco_dict, parameters=self.parameter)
+        marker = []
+        if ids is not None:
+            for ecke, id_ in zip(corners, ids):
+                for eid, e in enumerate(ecke[0]):
+                    x, y = e[0], e[1]
+                    marker.add({'marker': int(id_[0]),
+                                'ecke': eid,
+                                'x': float(x),
+                                'y': float(y)})
+        return marker
