@@ -30,7 +30,7 @@ class Kamera(object):
         self.folder = folder
         self.aruco_dict = aruco.Dictionary_create(32, 3)
         self.parameter = aruco.DetectorParameters.create()
-        self.parameter.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
+        self.parameter.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
         #
 
     def make_picture(self, focus, preview=False) -> memoryview:
@@ -72,4 +72,4 @@ class Kamera(object):
 
     def aruco(self):
         im = self.cam.capture_array()
-        return cv2.aruco.detectMarkers(im, self.aruco_dict, parameters=self.parameter)
+        return aruco.detectMarkers(im, self.aruco_dict, parameters=self.parameter)
