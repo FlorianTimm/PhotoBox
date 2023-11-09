@@ -4,6 +4,7 @@ import io
 from picamera2 import Picamera2
 from libcamera import controls
 from time import sleep
+from cv2 import aruco
 
 
 class Kamera(object):
@@ -27,6 +28,9 @@ class Kamera(object):
         self.cam.configure(self.still_config)
         self.cam.start()
         self.folder = folder
+        self.aruco_dict = aruco.Dictionary_create(32, 3)
+        self.parameter = aruco.DetectorParameters.create()
+        self.parameter.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         #
 
     def make_picture(self, focus, preview=False) -> memoryview:
@@ -65,3 +69,7 @@ class Kamera(object):
 
     def get_status(self):
         return self.cam.camera_properties
+
+    def aruco(self):
+        im = self.cam.capture_array()
+        return cv2.aruco.detectMarkers(im, self.aruco_dict, parameters=self.parameter)
