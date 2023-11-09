@@ -4,7 +4,6 @@ from io import BytesIO
 from picamera2 import Picamera2
 from libcamera import controls
 from time import sleep
-from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
 
 
 class Kamera(object):
@@ -71,6 +70,7 @@ class Kamera(object):
         return self.cam.camera_properties
 
     def aruco(self):
+        from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
         im = self.cam.capture_array()
         corners, ids, _ = detectMarkers(
             im, self.aruco_dict, parameters=self.parameter)
