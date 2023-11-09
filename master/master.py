@@ -136,7 +136,7 @@ def photo(id=""):
         send_to_all('photo:' + id)
         sleep(0.5)
         status_led()
-        Thread(collect_photos, args=(liste, id)).start()
+        Thread(target=collect_photos, args=(liste, id)).start()
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
         output = """<html>
