@@ -12,3 +12,5 @@ if [ $n -eq 2 ]
 then
   cp  /home/photo/PhotoBox/master/PhotoBoxMaster.service /etc/systemd/system/PhotoBoxMaster.service
 fi
+
+./update.sh
