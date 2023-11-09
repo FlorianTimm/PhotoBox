@@ -42,15 +42,17 @@ def collect_photos(liste, id):
     """ collect photos """
     print("Collecting photos...")
     sleep(5)
+    folder = makedirs(conf['server']['Folder']) + id + "/"
+    makedirs(folder)
     for hostname, ip in liste.items():
         print("Collecting photo from " + hostname + "...")
         try:
             url = "http://" + ip + ":8080/bilder/" + id
             print(url)
             r = requests.get(url, allow_redirects=True)
-            open(conf['server']['Folder'] + id, 'wb').write(r.content)
-        except:
-            print("Error collecting photo from " + hostname + "...")
+            open(folder + hostname + '.jpg', 'wb').write(r.content)
+        except Exception as e:
+            print("Error collecting photo from " + hostname + ":", e)
     print("Collecting photos done!")
 
 
