@@ -2,18 +2,23 @@
 
 import io
 from picamera2 import Picamera2
-from libcamera import controls, Rectangle
+from libcamera import controls
 from time import sleep
 
 
 class Kamera(object):
     def __init__(self, folder):
         self.cam = Picamera2()
+        scm = cam.camera_properties['ScalerCropMaximum']
+        h = scm[3]-scm[1]
+        w = scm[2]-scm[0]
+        rect = (scm[0]+w//3, scm[1]+w//3, w//3, h//3)
         ctrl = {
             "AwbMode": controls.AwbModeEnum.Fluorescent,
-            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted  # ,
-            # "AfMetering": controls.AfMeteringEnum.Windows,
-            # "AfWindows": [Rectangle(2000, 1000, 600, 500)]
+            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+            "AfMetering": controls.AfMeteringEnum.Windows,
+            "AfWindows": [rect],
+            "AfMode": controls.AfModeEnum.Continuous
         }
         self.preview_config = self.cam.create_preview_configuration(
             controls=ctrl)
