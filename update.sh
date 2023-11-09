@@ -6,7 +6,7 @@ cd /home/photo/PhotoBox/
 # Git aktualisieren
 git pull
 
-cp  /home/photo/PhotoBox/PhotoBoxUpdate.service /etc/systemd/system/PhotoBoxMaster.service
+cp  /home/photo/PhotoBox/PhotoBoxUpdate.service /etc/systemd/system/PhotoBoxUpdate.service
 systemctl daemon-reload
 systemctl enable PhotoBoxUpdate.service || /bin/true
 
