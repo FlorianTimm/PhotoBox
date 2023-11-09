@@ -65,6 +65,9 @@ class KameraSteuerung:
     def focus(self, focus):
         return self.cam.focus(focus)
 
+    def aruco(self):
+        return self.cam.aruco()
+
     def receive_broadcast(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
@@ -181,6 +184,11 @@ def preview(focus=-2):
 def focus(focus=-1):
     focus = float(focus)
     return ks.focus(focus)
+
+
+@app.route('/aruco/')
+def aruco():
+    return ks.aruco()
 
 
 def start_web(conf):
