@@ -58,7 +58,7 @@ def collect_photos(liste, id):
 
 
 @app.route("/")
-def web_index():
+def index():
     return """<html>
     <head>
         <title>Kamera</title>
@@ -77,7 +77,8 @@ def web_index():
 
 
 @app.route("/overview")
-def index():
+def overview():
+    global liste
     output = """<html>
     <head>
         <title>Kamera</title>
@@ -120,6 +121,7 @@ def index():
 
 @app.route("/search")
 def search():
+    global liste
     msg = b'search'
     liste = dict()
     pixels.fill((0, 0, 25))
@@ -134,7 +136,7 @@ def photo(id=""):
     if id == "":
         pixels.fill((255, 255, 255))
         id = str(uuid.uuid4()) + '.jpg'
-        sleep(0.1)
+        sleep(2)
         photo_count = photo_count + len(liste)
         send_to_all('photo:' + id)
         sleep(0.5)
