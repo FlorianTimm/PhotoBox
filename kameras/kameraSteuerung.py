@@ -8,14 +8,15 @@
 
 from flask import Flask, make_response
 from threading import Thread
-import configparser
+from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
 from kamera import Kamera
 import socket
 from time import sleep
+from json import dumps
 
-conf = configparser.ConfigParser()
+conf = ConfigParser()
 conf.read("../config.ini")
 
 
@@ -188,7 +189,7 @@ def focus(focus=-1):
 
 @app.route('/aruco/')
 def aruco():
-    return ks.aruco()
+    return dumps(ks.aruco())
 
 
 def start_web(conf):

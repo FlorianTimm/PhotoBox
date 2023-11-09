@@ -1,10 +1,10 @@
 # stream: https://github.com/raspberrypi/picamera2/issues/366#issuecomment-1285888051
 
-import io
+from io import BytesIO
 from picamera2 import Picamera2
 from libcamera import controls
 from time import sleep
-from cv2 import aruco
+from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
 
 
 class Kamera(object):
@@ -28,13 +28,13 @@ class Kamera(object):
         self.cam.configure(self.still_config)
         self.cam.start()
         self.folder = folder
-        self.aruco_dict = aruco.Dictionary_create(32, 3)
-        self.parameter = aruco.DetectorParameters.create()
-        self.parameter.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
+        self.aruco_dict = Dictionary_create(32, 3)
+        self.parameter = DetectorParameters.create()
+        self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
         #
 
     def make_picture(self, focus, preview=False) -> memoryview:
-        data = io.BytesIO()
+        data = BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
         if (preview):
@@ -48,7 +48,7 @@ class Kamera(object):
         return data.read()
 
     def save_picture(self, filename, focus) -> memoryview:
-        data = io.BytesIO()
+        data = BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
         self.cam.capture_file(self.folder + filename)
@@ -72,4 +72,4 @@ class Kamera(object):
 
     def aruco(self):
         im = self.cam.capture_array()
-        return aruco.detectMarkers(im, self.aruco_dict, parameters=self.parameter)
+        return detectMarkers(im, self.aruco_dict, parameters=self.parameter)
