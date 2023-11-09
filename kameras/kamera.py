@@ -79,8 +79,8 @@ class Kamera(object):
             for ecke, id_ in zip(corners, ids):
                 for eid, e in enumerate(ecke[0]):
                     x, y = e[0], e[1]
-                    marker.add({'marker': int(id_[0]),
-                                'ecke': eid,
-                                'x': float(x),
-                                'y': float(y)})
+                    marker.append({'marker': int(id_[0]),
+                                   'ecke': eid,
+                                   'x': float(x),
+                                   'y': float(y)})
         return marker
