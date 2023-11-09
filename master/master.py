@@ -42,7 +42,7 @@ def collect_photos(liste, id):
     """ collect photos """
     print("Collecting photos...")
     sleep(5)
-    folder = makedirs(conf['server']['Folder']) + id + "/"
+    folder = conf['server']['Folder'] + id + "/"
     makedirs(folder)
     for hostname, ip in liste.items():
         print("Collecting photo from " + hostname + "...")
