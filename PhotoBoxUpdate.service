@@ -1,0 +1,10 @@
+[Unit]
+Description=PhotoBox Update
+
+[Service]
+User=root
+WorkingDirectory=/home/photo/PhotoBox/
+ExecStart=/home/photo/PhotoBox/update.sh
+
+[Install]
+WantedBy=multi-user.target
