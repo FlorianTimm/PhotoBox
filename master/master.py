@@ -9,6 +9,11 @@ from time import sleep
 import uuid
 from os import system
 
+from os import system, makedirs, path
+
+if not path.exists(self.conf['server']['Folder']):
+    makedirs(self.conf['server']['Folder'])
+
 liste = dict()
 
 photo_count = 0
@@ -49,6 +54,7 @@ def web_index():
         <a href="/reboot">Reboot</a><br>
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
+        <a href="/licht">Licht</a><br>
     </body>
     </html>"""
 
@@ -116,6 +122,7 @@ def photo(id=""):
         send_to_all('photo:' + id)
         sleep(0.5)
         status_led()
+        Thread(collect_photos, args=(liste, id)).start()
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
         output = """<html>
@@ -158,6 +165,7 @@ def shutdown():
     exit(0)
 
 
+@app.route("/focus")
 @app.route("/focus/<val>")
 def focus(val=-1):
     """ Focus """
@@ -173,6 +181,15 @@ def reboot():
     system("sleep 5s; sudo reboot")
     print("Reboot Raspberry...")
     exit(0)
+
+
+@app.route("/light")
+@app.route("/light/<val>")
+def photo_light(val=1):
+    pixels.fill((255, 255, 255))
+    sleep(float(val))
+    status_led()
+    return """<html><head><meta http-equiv="refresh" content="1; URL=/overview"><title>Light...</title></head><body>Light...</body></html>"""
 
 
 def status_led():
@@ -225,3 +242,21 @@ if __name__ == '__main__':
             photo_count = photo_count - 1
             if photo_count == 0:
                 status_led()
+        elif data[:5] == 'light':
+            photo_light()
+
+
+def collect_photos(liste, id):
+    """ collect photos """
+    print("Collecting photos...")
+    sleep(5)
+    for hostname, ip in liste.items():
+        print("Collecting photo from " + hostname + "...")
+        try:
+            url = "http://" + ip + ":8080/bilder/" + id
+            print(url)
+            r = requests.get(url, allow_redirects=True)
+            open(conf['server']['Folder'] + id, 'wb').write(r.content)
+        except:
+            print("Error collecting photo from " + hostname + "...")
+    print("Collecting photos done!")
