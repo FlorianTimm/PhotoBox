@@ -7,12 +7,7 @@ import board
 import re
 from time import sleep
 import uuid
-from os import system
-
 from os import system, makedirs, path
-
-if not path.exists(self.conf['server']['Folder']):
-    makedirs(self.conf['server']['Folder'])
 
 liste = dict()
 
@@ -20,6 +15,9 @@ photo_count = 0
 
 conf = configparser.ConfigParser()
 conf.read("../config.ini")
+
+if not path.exists(conf['server']['Folder']):
+    makedirs(conf['server']['Folder'])
 
 leds = [int(v) for v in conf['server']['leds'].split(",")]
 pixel_pin = board.D18
