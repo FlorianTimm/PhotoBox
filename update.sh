@@ -6,11 +6,6 @@ cd /home/photo/PhotoBox/
 # Git aktualisieren
 git pull
 
-rm /etc/systemd/system/PhotoBoxUpdate.service
-cp  /home/photo/PhotoBox/PhotoBoxUpdate.service /etc/systemd/system/PhotoBoxUpdate.service
-systemctl daemon-reload
-systemctl enable PhotoBoxUpdate.service || /bin/true
-
 FILE=/etc/systemd/system/PhotoBoxMaster.service
 if test -f "$FILE"; then
     rm /etc/systemd/system/PhotoBoxMaster.service

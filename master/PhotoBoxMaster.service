@@ -6,6 +6,7 @@ After=network-online.target
 [Service]
 User=root
 WorkingDirectory=/home/photo/PhotoBox/master
+ExecStartPre=/home/photo/PhotoBox/update.sh
 ExecStart=/home/photo/PhotoBox/master/.venv/bin/python3 master.py
 Restart=always
 RestartSec=3
