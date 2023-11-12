@@ -12,7 +12,6 @@ if test -f "$FILE"; then
     cp  /home/photo/PhotoBox/master/PhotoBoxMaster.service /etc/systemd/system/PhotoBoxMaster.service
     systemctl daemon-reload
     systemctl enable PhotoBoxMaster.service || /bin/true
-    systemctl restart PhotoBoxMaster.service || /bin/true
 fi
 
 FILE=/etc/systemd/system/PhotoBoxKamera.service
@@ -20,7 +19,7 @@ if test -f "$FILE"; then
     rm /etc/systemd/system/PhotoBoxKamera.service
     cp  /home/photo/PhotoBox/kameras/PhotoBoxKamera.service /etc/systemd/system/PhotoBoxKamera.service
     systemctl daemon-reload
-    systemctl restart PhotoBoxKamera.service || /bin/true
+    systemctl enable PhotoBoxKamera.service || /bin/true
 fi
 
 
