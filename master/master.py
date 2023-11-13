@@ -223,7 +223,7 @@ def status_led(val=0):
                     pixels[led] = (0, 25, 0)
     if val > 0:
         sleep(float(val))
-        light()
+        photo_light()
     return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
 
 
