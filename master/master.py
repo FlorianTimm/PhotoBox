@@ -230,6 +230,23 @@ def start_web():
     app.run('0.0.0.0', 8080)
 
 
+def found_camera(hostname, ip):
+    liste[hostname] = ip
+    n = re.findall("\d{2}", hostname)
+    if len(n) > 0:
+        t = int(n[0])
+        for led, pi in enumerate(leds):
+            if t != pi:
+                continue
+            pixels[led] = (0, 25, 0)
+
+
+def receive_photo():
+    photo_count = photo_count - 1
+    if photo_count == 0:
+        status_led()
+
+
 def listen_to_port():
     socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -240,19 +257,9 @@ def listen_to_port():
         data = data.decode("utf-8")
         print(addr[0] + ": " + data)
         if data[:4] == 'Moin':
-            hostname = data[5:]
-            liste[hostname] = addr[0]
-            n = re.findall("\d{2}", hostname)
-            if len(n) > 0:
-                t = int(n[0])
-                for led, pi in enumerate(leds):
-                    if t != pi:
-                        continue
-                    pixels[led] = (0, 25, 0)
+            found_camera(data[5:], addr[0])
         elif data[:5] == 'photo':
-            photo_count = photo_count - 1
-            if photo_count == 0:
-                status_led()
+            receive_photo()
         elif data[:5] == 'light':
             photo_light()
 
@@ -260,7 +267,8 @@ def listen_to_port():
 if __name__ == '__main__':
     w = Thread(target=start_web)
     w.start()
-    s = Thread(target=listen_to_port)
+    global receiver
+    receiver = Thread(target=listen_to_port)
     sleep(5)
-    s.start()
+    receiver.start()
     search()
