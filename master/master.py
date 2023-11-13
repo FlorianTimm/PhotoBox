@@ -268,7 +268,7 @@ def listen_to_port():
         data = data.decode("utf-8")
         print(addr[0] + ": " + data)
         if data[:4] == 'Moin':
-            found_camera(data[5:], addr[0])
+            Thread(target=found_camera, args=(data[5:], addr[0])).start()
         elif data[:5] == 'photo':
             receive_photo()
         elif data[:5] == 'light':
