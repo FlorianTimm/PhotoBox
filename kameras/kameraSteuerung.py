@@ -189,7 +189,7 @@ def focus(focus=-1):
 
 @app.route('/aruco/')
 def aruco():
-    return dumps(ks.aruco())
+    return dumps(ks.aruco(), indent=2)
 
 
 def start_web(conf):
