@@ -30,9 +30,14 @@ pixels = neopixel.NeoPixel(
 pixels.fill((0, 0, 25))
 
 
-socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-socket_rec.bind(("0.0.0.0", int(conf['both']['BroadCastPort'])))
+def connect_socket():
+    socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    socket_rec.bind(("0.0.0.0", int(conf['both']['BroadCastPort'])))
+    return socket_rec
+
+
+sock = connect_socket()
 
 
 # web control
@@ -121,9 +126,11 @@ def overview():
 
 @app.route("/search")
 def search():
-    global liste
+    global liste, sock
     msg = b'search'
     liste = dict()
+    sock.close()
+    sock = connect_socket()
     pixels.fill((0, 0, 25))
     send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
@@ -244,7 +251,7 @@ if __name__ == '__main__':
     search()
     while True:
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
-        data, addr = socket_rec.recvfrom(1024)
+        data, addr = sock.recvfrom(1024)
         data = data.decode("utf-8")
         print(addr[0] + ": " + data)
         if data[:4] == 'Moin':
