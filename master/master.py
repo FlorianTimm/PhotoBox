@@ -29,6 +29,8 @@ pixels = neopixel.NeoPixel(
 
 pixels.fill((0, 0, 25))
 
+licht = False
+
 # web control
 app = Flask(__name__)
 
@@ -198,14 +200,19 @@ def reboot():
 
 @app.route("/light")
 @app.route("/light/<val>")
-def photo_light(val=1):
+def photo_light(val=0):
+    licht = True
     pixels.fill((255, 255, 255))
-    sleep(float(val))
-    status_led()
+    if (val > 0):
+        sleep(float(val))
+        status_led()
     return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
 
 
-def status_led():
+@app.route("/status")
+@app.route("/status/<val>")
+def status_led(val=0):
+    licht = False
     for led, pi in enumerate(leds):
         pixels[led] = (25, 0, 0)
         for hostname, ip in liste.items():
@@ -214,6 +221,10 @@ def status_led():
                 t = int(n[0])
                 if t == pi:
                     pixels[led] = (0, 25, 0)
+    if val > 0:
+        sleep(float(val))
+        licht()
+    return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
 
 
 def send_to_all(msg):
@@ -231,20 +242,16 @@ def start_web():
 
 
 def found_camera(hostname, ip):
+    if hostname in liste:
+        return
     liste[hostname] = ip
-    n = re.findall("\d{2}", hostname)
-    if len(n) > 0:
-        t = int(n[0])
-        for led, pi in enumerate(leds):
-            if t != pi:
-                continue
-            pixels[led] = (0, 25, 0)
+    status_led(5)
 
 
 def receive_photo():
     photo_count = photo_count - 1
     if photo_count == 0:
-        status_led()
+        status_led(5)
 
 
 def listen_to_port():
