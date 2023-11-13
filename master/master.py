@@ -203,10 +203,12 @@ def reboot():
 def photo_light(val=0):
     licht = True
     pixels.fill((255, 255, 255))
-    if (val > 0):
-        sleep(float(val))
-        status_led()
-    return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
+    try:
+        return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
+    finally:
+        if (val > 0):
+            sleep(float(val))
+            status_led()
 
 
 @app.route("/status")
@@ -221,10 +223,12 @@ def status_led(val=0):
                 t = int(n[0])
                 if t == pi:
                     pixels[led] = (0, 25, 0)
-    if val > 0:
-        sleep(float(val))
-        photo_light()
-    return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
+    try:
+        return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
+    finally:
+        if val > 0:
+            sleep(float(val))
+            photo_light()
 
 
 def send_to_all(msg):
