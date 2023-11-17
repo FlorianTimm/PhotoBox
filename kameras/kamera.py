@@ -16,6 +16,7 @@ class Kamera(object):
         ctrl = {
             "AwbMode": controls.AwbModeEnum.Fluorescent,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+            "AeExposureMode": controls.AeExposureModeEnum.Long,
             "AfMetering": controls.AfMeteringEnum.Windows,
             "AfWindows": [rect],
             "AfMode": controls.AfModeEnum.Continuous
