@@ -63,12 +63,15 @@ def index():
     <body>
         <a href="/overview">Overview</a><br>
         <a href="/search">Search</a><br>
-        <a href="/shutdown">Shutdown</a><br>
-        <a href="/reboot">Reboot</a><br>
+
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
-        <a href="/light">Light</a><br>
+        <a href="/light">Light</a>/<a href="/status">Status</a><br>
         <a href="/restart">Restart</a><br>
+
+        <br><br>
+        <a href="/shutdown">Shutdown</a><br>
+        <a href="/reboot">Reboot</a><br>
     </body>
     </html>"""
 
