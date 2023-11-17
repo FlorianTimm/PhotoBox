@@ -97,6 +97,10 @@ class KameraSteuerung:
                 system("sleep 5s; sudo reboot")
                 print("Reboot Raspberry...")
                 exit(0)
+            elif data == 'restart':
+                system("systemctl restart PhotoBoxKamera.service")
+                print("Restart Script...")
+                exit(1)
             else:
                 print("Unknown command: " + data)
 

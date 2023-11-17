@@ -68,6 +68,7 @@ def index():
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
         <a href="/light">Light</a><br>
+        <a href="/restart">Restart</a><br>
     </body>
     </html>"""
 
@@ -196,6 +197,16 @@ def reboot():
     system("sleep 5s; sudo reboot")
     print("Reboot Raspberry...")
     exit(0)
+
+
+@app.route("/restart")
+def restart():
+    """ Restart Skript """
+    send_to_all('restart')
+    pixels.fill((255, 255, 0))
+    system("systemctl restart PhotoBoxMaster.service")
+    print("Restart Skript...")
+    exit(1)
 
 
 @app.route("/light")
