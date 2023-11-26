@@ -303,6 +303,7 @@ def buttons():
 
 
 if __name__ == '__main__':
+    buttons()
     w = Thread(target=start_web)
     w.start()
     global receiver
@@ -310,4 +311,3 @@ if __name__ == '__main__':
     sleep(5)
     receiver.start()
     search()
-    buttons()
