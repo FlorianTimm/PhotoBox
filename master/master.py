@@ -289,6 +289,17 @@ def listen_to_port():
             photo_light()
 
 
+def buttons():
+    button_blue = Button(24, pull_up=True)
+    button_blue.when_pressed = photo
+
+    button_red = Button(23, pull_up=True)
+    button_red.when_pressed = shutdown
+
+    button_green = Button(25, pull_up=True)
+    button_green.when_pressed = status_led
+
+
 if __name__ == '__main__':
     w = Thread(target=start_web)
     w.start()
@@ -297,3 +308,4 @@ if __name__ == '__main__':
     sleep(5)
     receiver.start()
     search()
+    buttons()
