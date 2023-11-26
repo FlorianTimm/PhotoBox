@@ -52,6 +52,7 @@ def collect_photos(liste, id):
         except Exception as e:
             print("Error collecting photo from " + hostname + ":", e)
     print("Collecting photos done!")
+    photo_light()
 
 
 @app.route("/")
@@ -269,6 +270,7 @@ def found_camera(hostname, ip):
 
 
 def receive_photo():
+    global photo_count
     photo_count = photo_count - 1
     if photo_count == 0:
         status_led(10)
