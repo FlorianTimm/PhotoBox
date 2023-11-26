@@ -265,13 +265,13 @@ def found_camera(hostname, ip):
     if hostname in liste:
         return
     liste[hostname] = ip
-    status_led(5)
+    status_led(10)
 
 
 def receive_photo():
     photo_count = photo_count - 1
     if photo_count == 0:
-        status_led(5)
+        status_led(10)
 
 
 def listen_to_port():
@@ -303,7 +303,7 @@ def photo_button():
 
 def status_led_button():
     print("Status LED pressed...")
-    status_led()
+    status_led(10)
 
 
 print("Buttons are starting...")
