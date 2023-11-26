@@ -292,14 +292,28 @@ def listen_to_port():
 
 
 def buttons():
+
+    def shutdown_button():
+        print("Shutdown pressed...")
+        shutdown()
+
+    def photo_button():
+        print("Photo pressed...")
+        photo()
+
+    def status_led_button():
+        print("Status LED pressed...")
+        status_led()
+
+    print("Buttons are starting...")
     button_blue = Button(24, pull_up=True, bounce_time=0.1)
-    button_blue.when_pressed = photo
+    button_blue.when_pressed = photo_button
 
-    button_red = Button(25, pull_up=True, hold_time=2, bounce_time=0.1)
-    button_red.when_held = shutdown
+    button_red = Button(23, pull_up=True, hold_time=2, bounce_time=0.1)
+    button_red.when_held = shutdown_button
 
-    button_green = Button(23, pull_up=True, bounce_time=0.1)
-    button_green.when_pressed = status_led
+    button_green = Button(25, pull_up=True, bounce_time=0.1)
+    button_green.when_pressed = status_led_button
 
 
 if __name__ == '__main__':
