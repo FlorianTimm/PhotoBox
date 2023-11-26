@@ -9,7 +9,7 @@ from time import sleep
 import uuid
 from os import system, makedirs, path
 import requests
-from gpiozero import LED, Button
+from gpiozero import Button
 
 liste = dict()
 
@@ -232,7 +232,8 @@ def status_led(val=0):
     licht = False
     for led, pi in enumerate(leds):
         pixels[led] = (25, 0, 0)
-        for hostname, ip in liste.items():
+        liste_aktuell = list(liste.items())
+        for hostname, ip in liste_aktuell:
             n = re.findall("\d{2}", hostname)
             if len(n) > 0:
                 t = int(n[0])
@@ -294,8 +295,8 @@ def buttons():
     button_blue = Button(24, pull_up=True)
     button_blue.when_pressed = photo
 
-    button_red = Button(23, pull_up=True)
-    button_red.when_pressed = shutdown
+    button_red = Button(23, pull_up=True, hold_time=2)
+    button_red.when_held = shutdown
 
     button_green = Button(25, pull_up=True)
     button_green.when_pressed = status_led
