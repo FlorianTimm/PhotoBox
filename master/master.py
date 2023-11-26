@@ -292,13 +292,13 @@ def listen_to_port():
 
 
 def buttons():
-    button_blue = Button(24, pull_up=True)
+    button_blue = Button(24, pull_up=True, bounce_time=0.3)
     button_blue.when_pressed = photo
 
-    button_red = Button(23, pull_up=True, hold_time=2)
+    button_red = Button(23, pull_up=True, hold_time=2, bounce_time=0.3)
     button_red.when_held = shutdown
 
-    button_green = Button(25, pull_up=True)
+    button_green = Button(25, pull_up=True, bounce_time=0.3)
     button_green.when_pressed = status_led
 
 
