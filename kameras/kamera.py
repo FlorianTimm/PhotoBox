@@ -4,6 +4,8 @@ from io import BytesIO
 from picamera2 import Picamera2
 from libcamera import controls
 from time import sleep
+import piexif
+from socket import gethostname
 
 
 class Kamera(object):
@@ -43,13 +45,29 @@ class Kamera(object):
         data.seek(0)
         return data.read()
 
+    import piexif
+
     def save_picture(self, filename, focus) -> memoryview:
         data = BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
-        self.cam.capture_file(self.folder + filename)
+        metadata = self.cam.capture_file(self.folder + filename)
+        focus = 1./metadata["LensPosition"]
+        focus = int(focus*100)
+
+        # Add focal length to EXIF data
+        exif_dict = piexif.load(self.folder + filename)
+        exif_dict["Exif"][piexif.ExifIFD.FocalLength] = (474, 100)
+        exif_dict["Exif"][piexif.ExifIFD.SubjectDistance] = (focus, 100)
+        exif.dict["Exif"][piexif.ExifIFD.BodySerialNumber] = gethostname()
+        exif_bytes = piexif.dump(exif_dict)
+        piexif.insert(exif_bytes, self.folder + filename)
+
         print("Bild " + filename + " gemacht!")
         return "fertig"
+
+    def meta(self):
+        return self.cam.capture_file('/tmp/unwichtig.jpg')
 
     def focus(self, focus):
         if (focus == -2):

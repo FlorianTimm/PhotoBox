@@ -196,6 +196,11 @@ def aruco():
     return dumps(ks.aruco(), indent=2)
 
 
+@app.route('/meta/')
+def meta():
+    return dumps(ks.meta(), indent=2)
+
+
 def start_web(conf):
     """ start web control """
     print("Web server is starting...")
