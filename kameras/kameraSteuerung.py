@@ -69,6 +69,9 @@ class KameraSteuerung:
     def aruco(self):
         return self.cam.aruco()
 
+    def meta(self):
+        return self.cam.meta()
+
     def receive_broadcast(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
