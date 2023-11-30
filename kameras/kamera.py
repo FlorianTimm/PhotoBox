@@ -51,7 +51,7 @@ class Kamera(object):
         data = BytesIO()
         print("Kamera aktiviert!")
         self.focus(focus)
-        metadata = self.cam.capture_file(self.folder + filename)
+        metadata = self.cam.capture_file(self.folder + filename, wait=True)
         focus = 1./metadata["LensPosition"]
         focus = int(focus*100)
 
