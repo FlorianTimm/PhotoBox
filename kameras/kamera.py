@@ -6,7 +6,7 @@ from libcamera import controls
 from time import sleep
 import piexif
 from socket import gethostname
-from types import CamSettings, CamSettingsWithFilename
+from typen import CamSettings, CamSettingsWithFilename
 
 
 class Kamera(object):

@@ -15,7 +15,7 @@ from kamera import Kamera
 import socket
 from time import sleep
 from json import dumps, loads as json_loads
-from types import CamSettings, CamSettingsWithFilename
+from typen import CamSettings, CamSettingsWithFilename
 
 conf = ConfigParser()
 conf.read("../config.ini")
