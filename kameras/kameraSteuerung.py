@@ -90,6 +90,7 @@ class KameraSteuerung:
             data, addr = self.sock.recvfrom(1024)
             data = data.decode("utf-8")
             print(addr)
+            print(data)
             if data[:4] == 'Moin':
                 pass
             elif data == 'search':
@@ -103,7 +104,7 @@ class KameraSteuerung:
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
-                print(photo)
+                print("Einstellung", data[6:])
                 try:
                     json = json_loads(data[6:])
                     print("Erfolgreich geparst", json)
