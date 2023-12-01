@@ -46,7 +46,7 @@ class Kamera(object):
         data.seek(0)
         return data.read()
 
-    def save_picture(self, filename, settings: CamSettingsWithFilename) -> memoryview:
+    def save_picture(self, settings: CamSettingsWithFilename) -> memoryview:
         data = BytesIO()
         print("Kamera aktiviert!")
         settings = self.set_settings(settings)
