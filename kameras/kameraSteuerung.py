@@ -55,7 +55,7 @@ class KameraSteuerung:
         self.cam = Kamera(self.conf['kameras']['Folder'])
         print("Moin")
 
-    def check_settings(self, settings: CamSettings | str = {}) -> CamSettings:
+    def check_settings(self, settings: CamSettings | str = {}) -> CamSettings | CamSettingsWithFilename:
         if type(settings) == str:
             settings = json_loads(settings)
         return settings
@@ -103,8 +103,10 @@ class KameraSteuerung:
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
+                print(photo)
                 try:
                     json = json_loads(data[6:])
+                    print("Erfolgreich geparst", json)
                 except:
                     json = {'filename': data[6:]}
                 self.save(json)
