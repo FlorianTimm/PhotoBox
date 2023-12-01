@@ -6,6 +6,7 @@ from libcamera import controls
 from time import sleep
 import piexif
 from socket import gethostname
+from types import CamSettings, CamSettingsWithFilename
 
 
 class Kamera(object):
@@ -31,10 +32,10 @@ class Kamera(object):
         self.cam.start()
         self.folder = folder
 
-    def make_picture(self, focus, preview=False) -> memoryview:
+    def make_picture(self, settings: CamSettings = {}, preview=False) -> memoryview:
         data = BytesIO()
         print("Kamera aktiviert!")
-        self.focus(focus)
+        self.set_settings(settings)
         if (preview):
             self.cam.capture_file(data, format='jpeg')
         else:
@@ -45,13 +46,13 @@ class Kamera(object):
         data.seek(0)
         return data.read()
 
-    import piexif
-
-    def save_picture(self, filename, focus) -> memoryview:
+    def save_picture(self, filename, settings: CamSettingsWithFilename) -> memoryview:
         data = BytesIO()
         print("Kamera aktiviert!")
-        self.focus(focus)
-        metadata = self.cam.capture_file(self.folder + filename, wait=True)
+        settings = self.set_settings(settings)
+
+        metadata = self.cam.capture_file(
+            self.folder + settings['filename'], wait=True)
         focus = 1./metadata["LensPosition"]
         focus = int(focus*100)
 
@@ -59,7 +60,7 @@ class Kamera(object):
         exif_dict = piexif.load(self.folder + filename)
         exif_dict["Exif"][piexif.ExifIFD.FocalLength] = (474, 100)
         exif_dict["Exif"][piexif.ExifIFD.SubjectDistance] = (focus, 100)
-        exif.dict["Exif"][piexif.ExifIFD.BodySerialNumber] = gethostname()
+        exif_dict["Exif"][piexif.ExifIFD.BodySerialNumber] = gethostname()
         exif_bytes = piexif.dump(exif_dict)
         piexif.insert(exif_bytes, self.folder + filename)
 
@@ -67,7 +68,16 @@ class Kamera(object):
         return "fertig"
 
     def meta(self):
-        return self.cam.capture_file('/tmp/unwichtig.jpg')
+        request = self.cam.capture_request()
+        return request.get_metadata()
+
+    def settings(self, settings: CamSettings):
+        if 'focus' in settings:
+            self.focus(settings['focus'])
+        if 'iso' in settings:
+            self.cam.set_controls({"AnalogueGain": settings['focus']/100})
+        if 'shutter_speed' in settings:
+            self.cam.set_controls({"ExposureTime": settings['shutter_speed']})
 
     def focus(self, focus):
         if (focus == -2):

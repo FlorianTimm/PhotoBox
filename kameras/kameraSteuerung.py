@@ -14,7 +14,8 @@ from sys import exit
 from kamera import Kamera
 import socket
 from time import sleep
-from json import dumps
+from json import dumps, loads as json_loads
+from types import CamSettings, CamSettingsWithFilename
 
 conf = ConfigParser()
 conf.read("../config.ini")
@@ -54,17 +55,29 @@ class KameraSteuerung:
         self.cam = Kamera(self.conf['kameras']['Folder'])
         print("Moin")
 
-    def photo(self, focus):
-        return self.cam.make_picture(focus)
+    def check_settings(self, settings: CamSettings | str = {}) -> CamSettings:
+        if type(settings) == str:
+            settings = json_loads(settings)
+        return settings
 
-    def save(self, filename, focus):
-        return self.cam.save_picture(filename, focus)
+    def photo(self, settings: cam_settings | str):
+        try:
+            settings = json_loads(settings)
+        except:
+            settings = {}
 
-    def preview(self, focus):
-        return self.cam.make_picture(focus, preview=True)
+        return self.cam.make_picture(settings)
+
+    def save(self, settings: CamSettingsWithFilename | str):
+        settings = self.check_settings(settings)
+        return self.cam.save_picture(settings)
+
+    def preview(self, settings: CamSettings | str = {}):
+        settings = self.check_settings(settings)
+        return self.cam.make_picture(cam_settings, preview=True)
 
     def focus(self, focus):
-        return self.cam.focus(focus)
+        return self.cam.focus()
 
     def aruco(self):
         return self.cam.aruco()
@@ -90,10 +103,14 @@ class KameraSteuerung:
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
-                self.save(data[6:], -2)
-                self.answer(addr[0], 'photo:' + data[6:])
+                try:
+                    json = json_loads(data[6:])
+                except:
+                    json = {filename: data[6:]}
+                self.save(filename, json)
+                self.answer(addr[0], 'photo: ' + json['filename'])
             elif data == 'preview':
-                self.preview(-2)  # preview
+                self.preview({focus: -2})  # preview
             elif data == 'shutdown':
                 self.shutdown()
             elif data == 'reboot':
@@ -171,7 +188,7 @@ def stream():
 @app.route('/photo/<focus>')
 def photo(focus=-1):
     focus = float(focus)
-    stream = ks.photo(focus)
+    stream = ks.photo({focus: focus})
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
@@ -181,7 +198,7 @@ def photo(focus=-1):
 @app.route('/preview/<focus>')
 def preview(focus=-2):
     focus = float(focus)
-    stream = ks.preview(focus)
+    stream = ks.preview({focus: focus})
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
