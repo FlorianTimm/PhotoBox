@@ -49,21 +49,21 @@ class Kamera(object):
     def save_picture(self, settings: CamSettingsWithFilename) -> str:
         print("Kamera aktiviert!")
         settings = self.set_settings(settings)
+        file = self.folder + settings['filename']
 
-        metadata = self.cam.capture_file(
-            self.folder + settings['filename'], wait=True)
+        metadata = self.cam.capture_file(file, wait=True)
         focus = 1./metadata["LensPosition"]
         focus = int(focus*100)
 
         # Add focal length to EXIF data
-        exif_dict = piexif.load(self.folder + filename)
+        exif_dict = piexif.load(file)
         exif_dict["Exif"][piexif.ExifIFD.FocalLength] = (474, 100)
         exif_dict["Exif"][piexif.ExifIFD.SubjectDistance] = (focus, 100)
         exif_dict["Exif"][piexif.ExifIFD.BodySerialNumber] = gethostname()
         exif_bytes = piexif.dump(exif_dict)
-        piexif.insert(exif_bytes, self.folder + filename)
+        piexif.insert(exif_bytes, file)
 
-        print("Bild " + filename + " gemacht!")
+        print("Bild " + file + " gemacht!")
         return "fertig"
 
     def meta(self):
