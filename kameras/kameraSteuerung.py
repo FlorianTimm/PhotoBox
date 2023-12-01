@@ -60,7 +60,7 @@ class KameraSteuerung:
             settings = json_loads(settings)
         return settings
 
-    def photo(self, settings: cam_settings | str):
+    def photo(self, settings: CamSettings | str):
         try:
             settings = json_loads(settings)
         except:
@@ -74,7 +74,7 @@ class KameraSteuerung:
 
     def preview(self, settings: CamSettings | str = {}):
         settings = self.check_settings(settings)
-        return self.cam.make_picture(cam_settings, preview=True)
+        return self.cam.make_picture(settings, preview=True)
 
     def focus(self, focus):
         return self.cam.focus()
