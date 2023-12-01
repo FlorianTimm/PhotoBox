@@ -89,8 +89,7 @@ class KameraSteuerung:
         while True:
             data, addr = self.sock.recvfrom(1024)
             data = data.decode("utf-8")
-            print(addr)
-            print(data)
+            print(addr, data)
             if data[:4] == 'Moin':
                 pass
             elif data == 'search':
@@ -107,10 +106,8 @@ class KameraSteuerung:
                 print("Einstellung", data[6:])
                 try:
                     json = json_loads(data[6:])
-                    print("Erfolgreich geparst", json)
                 except:
                     json = {'filename': data[6:]}
-                print("JSON", json)
                 self.save(json)
                 self.answer(addr[0], 'photo: ' + json['filename'])
             elif data == 'preview':
