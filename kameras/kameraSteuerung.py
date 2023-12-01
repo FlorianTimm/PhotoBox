@@ -106,11 +106,11 @@ class KameraSteuerung:
                 try:
                     json = json_loads(data[6:])
                 except:
-                    json = {filename: data[6:]}
-                self.save(filename, json)
+                    json = {'filename': data[6:]}
+                self.save(json)
                 self.answer(addr[0], 'photo: ' + json['filename'])
             elif data == 'preview':
-                self.preview({focus: -2})  # preview
+                self.preview({'focus': -2})  # preview
             elif data == 'shutdown':
                 self.shutdown()
             elif data == 'reboot':
@@ -188,7 +188,7 @@ def stream():
 @app.route('/photo/<focus>')
 def photo(focus=-1):
     focus = float(focus)
-    stream = ks.photo({focus: focus})
+    stream = ks.photo({'focus': focus})
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
@@ -198,7 +198,7 @@ def photo(focus=-1):
 @app.route('/preview/<focus>')
 def preview(focus=-2):
     focus = float(focus)
-    stream = ks.preview({focus: focus})
+    stream = ks.preview({'focus': focus})
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
