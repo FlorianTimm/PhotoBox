@@ -71,7 +71,7 @@ class Kamera(object):
         request = self.cam.capture_request()
         return request.get_metadata()
 
-    def settings(self, settings: CamSettings):
+    def set_settings(self, settings: CamSettings):
         if 'focus' in settings:
             self.focus(settings['focus'])
         if 'iso' in settings:
