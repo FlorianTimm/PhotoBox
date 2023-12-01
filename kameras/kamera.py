@@ -49,7 +49,6 @@ class Kamera(object):
     def save_picture(self, settings: CamSettingsWithFilename) -> str:
         print("Kamera aktiviert!")
         settings = self.set_settings(settings)
-        print(settings)
 
         metadata = self.cam.capture_file(
             self.folder + settings['filename'], wait=True)
@@ -71,13 +70,14 @@ class Kamera(object):
         request = self.cam.capture_request()
         return request.get_metadata()
 
-    def set_settings(self, settings: CamSettings):
+    def set_settings(self, settings: CamSettings | CamSettingsWithFilename) -> CamSettings | CamSettingsWithFilename:
         if 'focus' in settings:
             self.focus(settings['focus'])
         if 'iso' in settings:
             self.cam.set_controls({"AnalogueGain": settings['focus']/100})
         if 'shutter_speed' in settings:
             self.cam.set_controls({"ExposureTime": settings['shutter_speed']})
+        return settings
 
     def focus(self, focus):
         if (focus == -2):
