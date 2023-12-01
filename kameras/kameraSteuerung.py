@@ -110,6 +110,7 @@ class KameraSteuerung:
                     print("Erfolgreich geparst", json)
                 except:
                     json = {'filename': data[6:]}
+                print("JSON", json)
                 self.save(json)
                 self.answer(addr[0], 'photo: ' + json['filename'])
             elif data == 'preview':
