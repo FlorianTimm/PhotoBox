@@ -81,16 +81,16 @@ class Kamera(object):
                 print("focus: ", settings['focus'])
                 focus_value = 1/settings['focus']
                 self.focus(focus_value)
-            if 'iso' in settings:
-                print("AnalogueGain", settings['iso']/100.)
-                self.cam.set_controls({"AnalogueGain": settings['iso']/100.})
-            if 'shutter_speed' in settings:
-                print("ExposureTime", settings['shutter_speed'])
-                self.cam.set_controls(
-                    {"ExposureTime": settings['shutter_speed']})
-            if 'white_balance' in settings:
-                self.cam.set_controls(
-                    {"AwbMode": settings['white_balance']})
+            with self.cam.controls as controls:
+                if 'iso' in settings:
+                    print("iso: ", settings['iso'])
+                    controls.AnalogueGain = settings['iso']/100.
+                if 'shutter_speed' in settings:
+                    print("shutter_speed: ", settings['shutter_speed'])
+                    controls.ExposureTime = settings['shutter_speed']
+                if 'white_balance' in settings:
+                    print("white_balance: ", settings['white_balance'])
+                    controls.AwbMode = settings['white_balance']
         return settings
 
     def focus(self, focus: float) -> str:
