@@ -217,9 +217,9 @@ def preview():
             hostname + """</option>"""
 
     t += """</select><br />
-    <input type="slider" id="focus" value="0" min="10" max="100" step="5" onchange="lade_bild()" /><br />
-    <input type="slider" id="iso" value="0" min="50" max="800" step="50" onchange="lade_bild()" /><br />
-    <input type="slider" id="shutter_speed" value="0" min="100" max="1000000" step="100" onchange="lade_bild()" /><br />
+    <input type="slider" id="focus" value="30" min="10" max="100" step="5" onchange="lade_bild()" /><br />
+    <input type="slider" id="iso" value="100" min="50" max="800" step="50" onchange="lade_bild()" /><br />
+    <input type="slider" id="shutter_speed" value="1" min="1" max="1000" step="10" onchange="lade_bild()" /><br />
     <input type="button" value="Photo" onclick="lade_bild()" />    
     </body></html>"""
     response.data = t
