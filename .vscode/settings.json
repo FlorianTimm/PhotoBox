@@ -1,6 +1,22 @@
 {
     "[python]": {
-        "editor.defaultFormatter": "ms-python.autopep8"
+        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
     },
-    "python.formatting.provider": "none"
+    "python.analysis.typeCheckingMode": "basic",
+    "python.autoComplete.extraPaths": [
+        "./.venv/lib/python3.11/site-packages",
+        "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "./.venv/lib/python3.11/site-packages",
+        "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
+    ]
 }

@@ -1,38 +1,41 @@
 # stream: https://github.com/raspberrypi/picamera2/issues/366#issuecomment-1285888051
 
 from io import BytesIO
+from typing import Any, TypeVar
 from picamera2 import Picamera2
-from libcamera import controls
+from libcamera import controls  # type: ignore
 from time import sleep
 import piexif
 from socket import gethostname
 from typen import CamSettings, CamSettingsWithFilename
+from typing import Dict, Tuple, List
 
 
 class Kamera(object):
-    def __init__(self, folder):
-        self.cam = Picamera2()
-        scm = self.cam.camera_properties['ScalerCropMaximum']
-        h = scm[3]-scm[1]
-        w = scm[2]-scm[0]
-        rect = (scm[0]+w//3, scm[1]+w//3, w//3, h//3)
-        ctrl = {
-            "AwbMode": controls.AwbModeEnum.Fluorescent,
-            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
-            "AeExposureMode": controls.AeExposureModeEnum.Long,
-            "AfMetering": controls.AfMeteringEnum.Windows,
+    def __init__(self, folder: str):
+        self.cam: Picamera2 = Picamera2()
+        scm: List[int] = self.cam.camera_properties['ScalerCropMaximum']
+        h: int = scm[3]-scm[1]
+        w: int = scm[2]-scm[0]
+        rect: Tuple[int, int, int, int] = (
+            scm[0]+w//3, scm[1]+w//3, w//3, h//3)
+        ctrl: Dict[str, Any] = {
+            "AwbMode": controls.AwbModeEnum.Fluorescent.value,
+            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
+            "AeExposureMode": controls.AeExposureModeEnum.Long.value,
+            "AfMetering": controls.AfMeteringEnum.Windows.value,
             "AfWindows": [rect],
-            "AfMode": controls.AfModeEnum.Continuous
+            "AfMode": controls.AfModeEnum.Continuous.value
         }
         self.preview_config = self.cam.create_preview_configuration(
             controls=ctrl)
         self.still_config = self.cam.create_still_configuration(
             controls=ctrl)
-        self.cam.configure(self.still_config)
+        self.cam.configure(self.still_config)  # type: ignore
         self.cam.start()
         self.folder = folder
 
-    def make_picture(self, settings: CamSettings = {}, preview=False) -> memoryview:
+    def make_picture(self, settings: CamSettings = {}, preview=False) -> bytes:
         data = BytesIO()
         print("Kamera aktiviert!")
         self.set_settings(settings)
@@ -41,7 +44,7 @@ class Kamera(object):
         else:
             req = self.cam.switch_mode_and_capture_image(
                 self.still_config)
-            req.save(data, format='jpeg')
+            req.save(data, format='jpeg')  # type: ignore
         print("Bild gemacht!")
         data.seek(0)
         return data.read()
@@ -66,20 +69,25 @@ class Kamera(object):
         print("Bild " + file + " gemacht!")
         return "fertig"
 
-    def meta(self):
+    def meta(self) -> dict[str, Any]:
         request = self.cam.capture_request()
-        return request.get_metadata()
+        return request.get_metadata()  # type: ignore
 
-    def set_settings(self, settings: CamSettings | CamSettingsWithFilename) -> CamSettings | CamSettingsWithFilename:
-        if 'focus' in settings:
-            self.focus(settings['focus'])
-        if 'iso' in settings:
-            self.cam.set_controls({"AnalogueGain": settings['focus']/100})
-        if 'shutter_speed' in settings:
-            self.cam.set_controls({"ExposureTime": settings['shutter_speed']})
+    CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
+
+    def set_settings(self, settings: CamSet) -> CamSet:
+        if isinstance(settings, dict):
+            if 'focus' in settings:
+                focus_value = settings['focus']
+                self.focus(focus_value)
+            if 'iso' in settings:
+                self.cam.set_controls({"AnalogueGain": settings['iso']/100})
+            if 'shutter_speed' in settings:
+                self.cam.set_controls(
+                    {"ExposureTime": settings['shutter_speed']})
         return settings
 
-    def focus(self, focus):
+    def focus(self, focus: float) -> str:
         if (focus == -2):
             pass
         elif (focus == -1):
@@ -91,10 +99,10 @@ class Kamera(object):
             sleep(0.5)
         return "Fokus"
 
-    def get_status(self):
+    def get_status(self) -> dict[str, Any]:
         return self.cam.camera_properties
 
-    def aruco(self):
+    def aruco(self) -> list[dict[str, int | float]]:
         from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
         self.aruco_dict = Dictionary_create(32, 3)
         self.parameter = DetectorParameters.create()

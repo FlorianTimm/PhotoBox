@@ -8,3 +8,23 @@ class CamSettings(TypedDict):
 
 class CamSettingsWithFilename(CamSettings):
     filename: str
+
+
+class ConfigServer(TypedDict):
+    folder: str
+    leds: str
+
+
+class ConfigKamera(TypedDict):
+    WebPort: int
+    Folder: str
+
+
+class ConfigBoth(TypedDict):
+    BroadCastPort: int
+
+
+class Config(TypedDict):
+    kameras: ConfigKamera
+    both: ConfigBoth
+    server: ConfigServer
