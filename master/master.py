@@ -192,7 +192,15 @@ def preview():
             iso: document.getElementById("iso").value,
             shutter_speed: document.getElementById("shutter_speed").value
         }
-        fetch (url).then(function(response) {
+        data = JSON.stringify(data);
+        fetch (url,  {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            body: data
+        }).then(function(response) {
             return response.blob();
         }).then(function(blob) {
             img.src = URL.createObjectURL(blob);
