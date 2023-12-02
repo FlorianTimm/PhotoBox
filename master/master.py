@@ -26,7 +26,7 @@ pixel_pin = board.D18
 num_pixels = len(leds)
 
 pixels = neopixel.NeoPixel(
-    pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)
+    pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
 
 pixels.fill((0, 0, 25))
 
@@ -65,6 +65,7 @@ def index():
     <body>
         <a href="/overview">Overview</a><br>
         <a href="/search">Search</a><br>
+        <a href="/preview">Preview</a><br>
 
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
@@ -174,6 +175,45 @@ def photo(id=""):
         output = output + """</body>
         </html>"""
         return output
+
+
+@app.route("/preview")
+def preview():
+    """ preview """
+    t = """<html><head><title>Preview</title></head><body>
+    <script>
+    function lade_bild() {
+        var img = document.getElementsByTagName("img")[0];
+        url = document.getElementById("camera").value;
+        data = {
+            focus: document.getElementById("focus").value,
+            iso: document.getElementById("iso").value,
+            shutter_speed: document.getElementById("shutter_speed").value
+        }
+        fetch (url).then(function(response) {
+            return response.blob();
+        }).then(function(blob) {
+            img.src = URL.createObjectURL(blob);
+        });
+    }
+    </script>
+    <img width="640" height="480" />
+    <textarea id="log" rows="10" cols="50"></textarea>
+    <select onchange="lade_bild()" id="camera">"""
+
+    for hostname, ip in liste.items():
+        t = t + """<option value="http://""" + ip + """:8080/preview/-2">""" + \
+            hostname + """</option>"""
+
+    t += """</select>
+    <input type="slider" id="focus" value="0" min="10" max="100" step="5" onchange="lade_bild()'" />
+    <input type="slider" id="iso" value="0" min="50" max="800" step="50" onchange="lade_bild()'" />
+    <input type="slider" id="shutter_speed" value="0" min="100" max="1000000" step="100" onchange="lade_bild()'" />
+    <input type="button" value="Photo" onclick="lade_bild()'" />
+    
+    
+    </body></html>"""
+    return t
 
 
 @app.route("/shutdown")

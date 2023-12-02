@@ -6,7 +6,7 @@
 @version: 2023.09.21
 """
 
-from flask import Flask, make_response
+from flask import Flask, make_response, request
 from threading import Thread
 from configparser import ConfigParser
 from os import system, makedirs, path
@@ -65,13 +65,15 @@ class KameraSteuerung:
             settingR = settings
         return settingR
 
-    def photo(self, settings: str):
+    def photo(self, settings: CamSettings | str):
         settingR: CamSettings
-        try:
-            settingR = json_loads(settings)
-        except:
-            settingR = {}
-
+        if isinstance(settings, CamSettings):
+            settingR = settings
+        else:
+            try:
+                settingR = json_loads(settings)
+            except:
+                settingR = {}
         return self.cam.make_picture(settingR)
 
     def save(self, settings: CamSettingsWithFilename | str):
@@ -89,10 +91,10 @@ class KameraSteuerung:
     def focus(self, focus: float) -> str:
         return self.cam.focus(focus)
 
-    def aruco(self) -> str:
+    def aruco(self) -> list[dict[str, int | float]]:
         return self.cam.aruco()
 
-    def meta(self) -> str:
+    def meta(self) -> dict[str, int]:
         return self.cam.meta()
 
     def receive_broadcast(self):
@@ -196,11 +198,20 @@ def stream():
 """
 
 
-@app.route('/photo/')
+@app.route('/photo/', methods=['GET'])
 @app.route('/photo/<focus>')
 def photo(focus: float = -1):
     focus = float(focus)
     stream = ks.photo({'focus': focus})
+    response = make_response(stream)
+    response.headers.set('Content-Type', 'image/jpeg')
+    return response
+
+
+@app.route('/photo/', methods=['POST'])
+def photo_post():
+    settings = request.get_json()
+    stream = ks.photo(settings)
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response

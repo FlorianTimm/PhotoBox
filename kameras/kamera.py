@@ -20,7 +20,7 @@ class Kamera(object):
         rect: Tuple[int, int, int, int] = (
             scm[0]+w//3, scm[1]+w//3, w//3, h//3)
         ctrl: Dict[str, Any] = {
-            "AwbMode": controls.AwbModeEnum.Fluorescent.value,
+            "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
             "AfMetering": controls.AfMeteringEnum.Windows.value,
@@ -85,6 +85,9 @@ class Kamera(object):
             if 'shutter_speed' in settings:
                 self.cam.set_controls(
                     {"ExposureTime": settings['shutter_speed']})
+            if 'white_balance' in settings:
+                self.cam.set_controls(
+                    {"AwbMode": settings['white_balance']})
         return settings
 
     def focus(self, focus: float) -> str:
