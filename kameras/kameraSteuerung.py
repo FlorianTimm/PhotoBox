@@ -198,20 +198,17 @@ def stream():
 """
 
 
-@app.route('/photo/', methods=['GET'])
+@app.route('/photo/', methods=['GET', 'POST'])
 @app.route('/photo/<focus>')
 def photo(focus: float = -1):
+    if request.method == 'POST':
+        settings = request.get_json()
+        stream = ks.photo(settings)
+        response = make_response(stream)
+        response.headers.set('Content-Type', 'image/jpeg')
+        return response
     focus = float(focus)
     stream = ks.photo({'focus': focus})
-    response = make_response(stream)
-    response.headers.set('Content-Type', 'image/jpeg')
-    return response
-
-
-@app.route('/photo/', methods=['POST'])
-def photo_post():
-    settings = request.get_json()
-    stream = ks.photo(settings)
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
