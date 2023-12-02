@@ -183,7 +183,6 @@ def photo(id=""):
 def preview():
     """ preview """
     response = Response()
-    response.headers.add('Access-Control-Allow-Origin', '*')
     t = """<html><head><title>Preview</title></head><body>
     <script>
     function lade_bild() {

@@ -16,6 +16,7 @@ import socket
 from json import dumps, loads as json_loads
 from typen import CamSettings, CamSettingsWithFilename, Config
 from typing import TypeVar
+from flask_cors import CORS
 
 conf = ConfigParser()
 conf.read("../config.ini")
@@ -148,6 +149,7 @@ class KameraSteuerung:
 # web control
 app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['kameras']['Folder'])
+CORS(app)
 
 
 @app.route("/")
@@ -206,7 +208,6 @@ def photo(focus: float = -1):
         stream = ks.photo(settings)
         response = make_response(stream)
         response.headers.set('Content-Type', 'image/jpeg')
-        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
     focus = float(focus)
     stream = ks.photo({'focus': focus})
