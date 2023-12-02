@@ -1,5 +1,6 @@
 import socket
 from flask import Flask, Response
+from flask_cors import CORS
 from threading import Thread
 import configparser
 import neopixel
@@ -34,6 +35,7 @@ licht = False
 
 # web control
 app = Flask(__name__)
+CORS(app)
 
 
 def collect_photos(liste, id):
@@ -181,7 +183,7 @@ def photo(id=""):
 def preview():
     """ preview """
     response = Response()
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    # response.headers.add('Access-Control-Allow-Origin', '*')
     t = """<html><head><title>Preview</title></head><body>
     <script>
     function lade_bild() {
