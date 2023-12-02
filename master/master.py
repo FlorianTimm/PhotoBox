@@ -189,9 +189,9 @@ def preview():
         var img = document.getElementsByTagName("img")[0];
         url = document.getElementById("camera").value;
         data = {
-            focus: document.getElementById("focus").value,
-            iso: document.getElementById("iso").value,
-            shutter_speed: document.getElementById("shutter_speed").value
+            focus: parseInt(document.getElementById("focus").value),
+            iso: parseInt(document.getElementById("iso").value),
+            shutter_speed: parseInt(document.getElementById("shutter_speed").value)
         }
         data = JSON.stringify(data);
         fetch (url,  {
