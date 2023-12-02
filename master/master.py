@@ -197,21 +197,19 @@ def preview():
         });
     }
     </script>
-    <img width="640" height="480" />
-    <textarea id="log" rows="10" cols="50"></textarea>
+    <img width="640" height="480" /><br />
+    <textarea id="log" rows="10" cols="50"></textarea><br />
     <select onchange="lade_bild()" id="camera">"""
 
     for hostname, ip in liste.items():
         t = t + """<option value="http://""" + ip + """:8080/preview/-2">""" + \
             hostname + """</option>"""
 
-    t += """</select>
-    <input type="slider" id="focus" value="0" min="10" max="100" step="5" onchange="lade_bild()" />
-    <input type="slider" id="iso" value="0" min="50" max="800" step="50" onchange="lade_bild()" />
-    <input type="slider" id="shutter_speed" value="0" min="100" max="1000000" step="100" onchange="lade_bild()" />
-    <input type="button" value="Photo" onclick="lade_bild()" />
-    
-    
+    t += """</select><br />
+    <input type="slider" id="focus" value="0" min="10" max="100" step="5" onchange="lade_bild()" /><br />
+    <input type="slider" id="iso" value="0" min="50" max="800" step="50" onchange="lade_bild()" /><br />
+    <input type="slider" id="shutter_speed" value="0" min="100" max="1000000" step="100" onchange="lade_bild()" /><br />
+    <input type="button" value="Photo" onclick="lade_bild()" />    
     </body></html>"""
     return t
 
