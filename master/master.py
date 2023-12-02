@@ -1,5 +1,5 @@
 import socket
-from flask import Flask
+from flask import Flask, Response
 from threading import Thread
 import configparser
 import neopixel
@@ -180,6 +180,8 @@ def photo(id=""):
 @app.route("/preview")
 def preview():
     """ preview """
+    response = Response()
+    response.headers.add('Access-Control-Allow-Origin', '*')
     t = """<html><head><title>Preview</title></head><body>
     <script>
     function lade_bild() {
@@ -202,7 +204,7 @@ def preview():
     <select onchange="lade_bild()" id="camera">"""
 
     for hostname, ip in liste.items():
-        t = t + """<option value="http://""" + ip + """:8080/preview/-2">""" + \
+        t = t + """<option value="http://""" + ip + """:8080/photo/">""" + \
             hostname + """</option>"""
 
     t += """</select><br />
@@ -211,7 +213,8 @@ def preview():
     <input type="slider" id="shutter_speed" value="0" min="100" max="1000000" step="100" onchange="lade_bild()" /><br />
     <input type="button" value="Photo" onclick="lade_bild()" />    
     </body></html>"""
-    return t
+    response.data = t
+    return response
 
 
 @app.route("/shutdown")
