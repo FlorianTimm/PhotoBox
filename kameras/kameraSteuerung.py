@@ -67,7 +67,7 @@ class KameraSteuerung:
 
     def photo(self, settings: CamSettings | str):
         settingR: CamSettings
-        if isinstance(settings, CamSettings):
+        if isinstance(settings, dict:
             settingR = settings
         else:
             try:
