@@ -58,6 +58,7 @@ executing                        2.0.1
 fastjsonschema                   2.18.1
 feedparser                       6.0.10
 Flask                            3.0.0
+Flask-Cors                       4.0.0
 fonttools                        4.44.0
 fs                               2.4.16
 gast                             0.5.2
