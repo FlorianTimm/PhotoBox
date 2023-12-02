@@ -206,6 +206,7 @@ def photo(focus: float = -1):
         stream = ks.photo(settings)
         response = make_response(stream)
         response.headers.set('Content-Type', 'image/jpeg')
+        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
     focus = float(focus)
     stream = ks.photo({'focus': focus})
