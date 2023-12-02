@@ -189,7 +189,7 @@ def preview():
         var img = document.getElementsByTagName("img")[0];
         url = document.getElementById("camera").value;
         data = {
-            focus: parseInt(document.getElementById("focus").value),
+            focus: parseFloat(document.getElementById("focus").value),
             iso: parseInt(document.getElementById("iso").value),
             shutter_speed: parseInt(document.getElementById("shutter_speed").value)
         }
@@ -208,8 +208,8 @@ def preview():
         });
     }
     </script>
-    <img width="640" height="480" /><br />
-    <textarea id="log" rows="10" cols="50"></textarea><br />
+    4608 × 2592
+    <img width="1152" height="648" /><br />
     <select onchange="lade_bild()" id="camera">"""
 
     for hostname, ip in liste.items():
@@ -217,7 +217,7 @@ def preview():
             hostname + """</option>"""
 
     t += """</select><br />
-    Focus: <input type="range" id="focus" value="30" min="10" max="100" step="5" onchange="lade_bild()" /><br />
+    Focus: <input type="range" id="focus" value="0.3" min="0.10" max="1" step="0.05" onchange="lade_bild()" /><br />
     ISO: <input type="range" id="iso" value="100" min="50" max="800" step="50" onchange="lade_bild()" /><br />
     ShutterSpeed: <input type="range" id="shutter_speed" value="1" min="1" max="1000" step="10" onchange="lade_bild()" /><br />
     <input type="button" value="Photo" onclick="lade_bild()" />    
