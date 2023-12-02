@@ -78,11 +78,14 @@ class Kamera(object):
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
             if 'focus' in settings and settings['focus'] != 0:
+                print("focus: ", settings['focus'])
                 focus_value = 1/settings['focus']
                 self.focus(focus_value)
             if 'iso' in settings:
-                self.cam.set_controls({"AnalogueGain": settings['iso']/100})
+                print("AnalogueGain", settings['iso']/100.)
+                self.cam.set_controls({"AnalogueGain": settings['iso']/100.})
             if 'shutter_speed' in settings:
+                print("ExposureTime", settings['shutter_speed'])
                 self.cam.set_controls(
                     {"ExposureTime": settings['shutter_speed']})
             if 'white_balance' in settings:
