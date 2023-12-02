@@ -13,19 +13,21 @@ from os import system, makedirs, path
 from sys import exit
 from kamera import Kamera
 import socket
-from time import sleep
 from json import dumps, loads as json_loads
-from typen import CamSettings, CamSettingsWithFilename
+from typen import CamSettings, CamSettingsWithFilename, Config
+from typing import TypeVar
 
 conf = ConfigParser()
 conf.read("../config.ini")
+
+CamSet = TypeVar("CamSet", CamSettings, CamSettingsWithFilename)
 
 
 class KameraSteuerung:
 
     """ main script for automatic start """
 
-    def __init__(self, conf):
+    def __init__(self, conf: ConfigParser):
         """
         Constructor
         """
@@ -55,34 +57,42 @@ class KameraSteuerung:
         self.cam = Kamera(self.conf['kameras']['Folder'])
         print("Moin")
 
-    def check_settings(self, settings: CamSettings | str = {}) -> CamSettings | CamSettingsWithFilename:
-        if type(settings) == str:
-            settings = json_loads(settings)
-        return settings
+    def check_settings(self, settings: CamSet | str) -> CamSet:
+        settingR: CamSet
+        if isinstance(settings, str):
+            settingR = json_loads(settings)
+        else:
+            settingR = settings
+        return settingR
 
-    def photo(self, settings: CamSettings | str):
+    def photo(self, settings: str):
+        settingR: CamSettings
         try:
-            settings = json_loads(settings)
+            settingR = json_loads(settings)
         except:
-            settings = {}
+            settingR = {}
 
-        return self.cam.make_picture(settings)
+        return self.cam.make_picture(settingR)
 
     def save(self, settings: CamSettingsWithFilename | str):
-        settings = self.check_settings(settings)
-        return self.cam.save_picture(settings)
+        settingsR: CamSettingsWithFilename
+        if isinstance(settings, str):
+            settingsR = json_loads(settings)
+        else:
+            settingsR = settings
+        return self.cam.save_picture(settingsR)
 
     def preview(self, settings: CamSettings | str = {}):
         settings = self.check_settings(settings)
         return self.cam.make_picture(settings, preview=True)
 
-    def focus(self, focus):
-        return self.cam.focus()
+    def focus(self, focus: float) -> str:
+        return self.cam.focus(focus)
 
-    def aruco(self):
+    def aruco(self) -> str:
         return self.cam.aruco()
 
-    def meta(self):
+    def meta(self) -> str:
         return self.cam.meta()
 
     def receive_broadcast(self):
@@ -104,6 +114,7 @@ class KameraSteuerung:
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
                 print("Einstellung", data[6:])
+                json: CamSettingsWithFilename
                 try:
                     json = json_loads(data[6:])
                 except:
@@ -125,7 +136,7 @@ class KameraSteuerung:
             else:
                 print("Unknown command: " + data)
 
-    def answer(self, addr, msg):
+    def answer(self, addr: str, msg: str):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto((msg).encode("utf-8"), (addr, int(
@@ -187,7 +198,7 @@ def stream():
 
 @app.route('/photo/')
 @app.route('/photo/<focus>')
-def photo(focus=-1):
+def photo(focus: float = -1):
     focus = float(focus)
     stream = ks.photo({'focus': focus})
     response = make_response(stream)
@@ -197,7 +208,7 @@ def photo(focus=-1):
 
 @app.route('/preview/')
 @app.route('/preview/<focus>')
-def preview(focus=-2):
+def preview(focus: float = -2):
     focus = float(focus)
     stream = ks.preview({'focus': focus})
     response = make_response(stream)
@@ -207,7 +218,7 @@ def preview(focus=-2):
 
 @app.route('/focus/')
 @app.route('/focus/<focus>')
-def focus(focus=-1):
+def focus(focus: float = -1):
     focus = float(focus)
     return ks.focus(focus)
 
@@ -222,7 +233,7 @@ def meta():
     return dumps(ks.meta(), indent=2)
 
 
-def start_web(conf):
+def start_web(conf: Config):
     """ start web control """
     print("Web server is starting...")
     app.run('0.0.0.0', conf['kameras']['WebPort'])
