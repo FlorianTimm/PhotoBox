@@ -77,8 +77,8 @@ class Kamera(object):
 
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
-            if 'focus' in settings:
-                focus_value = settings['focus']
+            if 'focus' in settings and settings['focus'] != 0:
+                focus_value = 1/settings['focus']
                 self.focus(focus_value)
             if 'iso' in settings:
                 self.cam.set_controls({"AnalogueGain": settings['iso']/100})
