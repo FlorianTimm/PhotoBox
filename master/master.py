@@ -205,7 +205,6 @@ def preview():
     function lade_bild() {
         let img = document.getElementsByTagName("img")[0];
         let url = document.getElementById("camera").value + 'photo/';
-        data = JSON.stringify(data);
         fetch (url,  {
             headers: {
                 'Accept': 'application/json, text/plain, */*',
