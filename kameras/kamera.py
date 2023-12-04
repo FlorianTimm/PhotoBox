@@ -55,7 +55,10 @@ class Kamera(object):
         file = self.folder + settings['filename']
 
         metadata = self.cam.capture_file(file, wait=True)
-        focus = 1./metadata["LensPosition"]
+        if metadata["LensPosition"] != 0:
+            focus = 1./metadata["LensPosition"]
+        else:
+            focus = 0
         focus = int(focus*100)
 
         # Add focal length to EXIF data
