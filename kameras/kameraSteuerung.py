@@ -77,6 +77,17 @@ class KameraSteuerung:
                 settingR = {}
         return self.cam.make_picture(settingR)
 
+    def set_settings(self, settings: CamSettings | str):
+        settingR: CamSettings
+        if isinstance(settings, dict):
+            settingR = settings
+        else:
+            try:
+                settingR = json_loads(settings)
+            except:
+                settingR = {}
+        return self.cam.set_settings(settingR)
+
     def save(self, settings: CamSettingsWithFilename | str):
         settingsR: CamSettingsWithFilename
         if isinstance(settings, str):
@@ -116,14 +127,22 @@ class KameraSteuerung:
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
+                print("Einstellung", data[9:])
+                jsonWF: CamSettingsWithFilename
+                try:
+                    jsonWF = json_loads(data[9:])
+                except:
+                    jsonWF = {'filename': data[9:]}
+                self.save(jsonWF)
+                self.answer(addr[0], 'photo: ' + jsonWF['filename'])
+            elif data[:8] == 'settings':
                 print("Einstellung", data[6:])
-                json: CamSettingsWithFilename
+                json: CamSettings
                 try:
                     json = json_loads(data[6:])
                 except:
-                    json = {'filename': data[6:]}
-                self.save(json)
-                self.answer(addr[0], 'photo: ' + json['filename'])
+                    json = {}
+                self.set_settings(json)
             elif data == 'preview':
                 self.preview({'focus': -2})  # preview
             elif data == 'shutdown':
@@ -214,6 +233,18 @@ def photo(focus: float = -1):
     response = make_response(stream)
     response.headers.set('Content-Type', 'image/jpeg')
     return response
+
+
+@app.route('/settings/', methods=['GET', 'POST'])
+@app.route('/settings/<focus>')
+def settings(focus: float = -1):
+    if request.method == 'POST':
+        settings = request.get_json()
+        ks.set_settings(settings)
+        return 'ok'
+    focus = float(focus)
+    ks.focus(focus)
+    return 'ok'
 
 
 @app.route('/preview/')

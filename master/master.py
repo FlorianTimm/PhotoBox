@@ -185,10 +185,9 @@ def preview():
     response = Response()
     t = """<html><head><title>Preview</title></head><body>
     <script>
-    function lade_bild() {
-        var img = document.getElementsByTagName("img")[0];
-        url = document.getElementById("camera").value;
-        data = {
+    function settings() {
+        let url = document.getElementById("camera").value + 'settings/';
+        let data = {
             focus: parseFloat(document.getElementById("focus").value),
             iso: parseInt(document.getElementById("iso").value),
             shutter_speed: parseInt(document.getElementById("shutter_speed").value)
@@ -201,6 +200,17 @@ def preview():
                 'Content-Type': 'application/json'
             },
             body: data
+        })
+    }
+    function lade_photo() {
+        let img = document.getElementsByTagName("img")[0];
+        let url = document.getElementById("camera").value + 'photo/';
+        data = JSON.stringify(data);
+        fetch (url,  {
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
         }).then(function(response) {
             return response.blob();
         }).then(function(blob) {
@@ -213,13 +223,13 @@ def preview():
     <select onchange="lade_bild()" id="camera">"""
 
     for hostname, ip in liste.items():
-        t = t + """<option value="http://""" + ip + """:8080/photo/">""" + \
+        t = t + """<option value="http://""" + ip + """:8080/">""" + \
             hostname + """</option>"""
 
     t += """</select><br />
-    Focus: <input type="range" id="focus" value="0.3" min="0.10" max="1" step="0.05" onchange="lade_bild()" /><br />
-    ISO: <input type="range" id="iso" value="100" min="50" max="2000" step="50" onchange="lade_bild()" /><br />
-    ShutterSpeed: <input type="range" id="shutter_speed" value="1" min="1000" max="50000" step="1000" onchange="lade_bild()" /><br />
+    Focus: <input type="range" id="focus" value="0.3" min="0.10" max="1" step="0.05" onchange="settings()" /><br />
+    ISO: <input type="range" id="iso" value="100" min="50" max="2000" step="50" onchange="settings()" /><br />
+    ShutterSpeed: <input type="range" id="shutter_speed" value="1" min="1000" max="50000" step="1000" onchange="settings()" /><br />
     <input type="button" value="Photo" onclick="lade_bild()" />    
     </body></html>"""
     response.data = t
