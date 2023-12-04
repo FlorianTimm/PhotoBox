@@ -219,7 +219,7 @@ def preview():
     t += """</select><br />
     Focus: <input type="range" id="focus" value="0.3" min="0.10" max="1" step="0.05" onchange="lade_bild()" /><br />
     ISO: <input type="range" id="iso" value="100" min="50" max="2000" step="50" onchange="lade_bild()" /><br />
-    ShutterSpeed: <input type="range" id="shutter_speed" value="1" min="1" max="1000000" step="10" onchange="lade_bild()" /><br />
+    ShutterSpeed: <input type="range" id="shutter_speed" value="1" min="1000" max="50000" step="1000" onchange="lade_bild()" /><br />
     <input type="button" value="Photo" onclick="lade_bild()" />    
     </body></html>"""
     response.data = t
