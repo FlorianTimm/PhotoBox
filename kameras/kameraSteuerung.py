@@ -127,22 +127,22 @@ class KameraSteuerung:
                 print("Focus: " + str(z))
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
-                print("Einstellung", data[9:])
-                jsonWF: CamSettingsWithFilename
-                try:
-                    jsonWF = json_loads(data[9:])
-                except:
-                    jsonWF = {'filename': data[9:]}
-                self.save(jsonWF)
-                self.answer(addr[0], 'photo: ' + jsonWF['filename'])
-            elif data[:8] == 'settings':
                 print("Einstellung", data[6:])
-                json: CamSettings
+                json: CamSettingsWithFilename
                 try:
                     json = json_loads(data[6:])
                 except:
-                    json = {}
-                self.set_settings(json)
+                    json = {'filename': data[6:]}
+                self.save(json)
+                self.answer(addr[0], 'photo: ' + json['filename'])
+            elif data[:8] == 'settings':
+                print("Einstellung", data[9:])
+                jsonSettings: CamSettings
+                try:
+                    jsonSettings = json_loads(data[9:])
+                except:
+                    jsonSettings = {}
+                self.set_settings(jsonSettings)
             elif data == 'preview':
                 self.preview({'focus': -2})  # preview
             elif data == 'shutdown':
