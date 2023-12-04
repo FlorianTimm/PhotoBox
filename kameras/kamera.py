@@ -73,8 +73,11 @@ class Kamera(object):
         return "fertig"
 
     def meta(self) -> dict[str, Any]:
-        request = self.cam.capture_request()
-        return request.get_metadata()  # type: ignore
+        # request = self.cam.capture_request(wait=None)
+        # if request is not None:
+        #    return request.metadata
+        # else:
+        return {}
 
     CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
