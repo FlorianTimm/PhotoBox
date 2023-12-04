@@ -202,7 +202,7 @@ def preview():
             body: data
         })
     }
-    function lade_photo() {
+    function lade_bild() {
         let img = document.getElementsByTagName("img")[0];
         let url = document.getElementById("camera").value + 'photo/';
         data = JSON.stringify(data);
