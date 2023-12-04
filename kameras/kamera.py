@@ -39,12 +39,12 @@ class Kamera(object):
         data = BytesIO()
         print("Kamera aktiviert!")
         self.set_settings(settings)
-        if (preview):
-            self.cam.capture_file(data, format='jpeg')
-        else:
-            req = self.cam.switch_mode_and_capture_image(
-                self.still_config)
-            req.save(data, format='jpeg')  # type: ignore
+        # if (preview):
+        self.cam.capture_file(data, format='jpeg')
+        # else:
+        #    req = self.cam.switch_mode_and_capture_image(
+        #        self.still_config)
+        #    req.save(data, format='jpeg')  # type: ignore
         print("Bild gemacht!")
         data.seek(0)
         return data.read()
