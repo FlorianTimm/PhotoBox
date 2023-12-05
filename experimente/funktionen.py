@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import sqlite3
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from random import choices
 from typing import List, Any
 from numpy.typing import NDArray

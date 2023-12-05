@@ -39,12 +39,21 @@ class Kamera(object):
         data = BytesIO()
         print("Kamera aktiviert!")
         self.set_settings(settings)
-        # if (preview):
-        self.cam.capture_file(data, format='jpeg')
-        # else:
-        #    req = self.cam.switch_mode_and_capture_image(
-        #        self.still_config)
-        #    req.save(data, format='jpeg')  # type: ignore
+        metadata = self.cam.capture_file(data, format='jpeg', wait=True)
+
+        if metadata["LensPosition"] != 0:
+            focus = 1./metadata["LensPosition"]
+        else:
+            focus = 0
+        focus = int(focus*100)
+
+        exif_dict = piexif.load(data)
+        exif_dict["Exif"][piexif.ExifIFD.FocalLength] = (474, 100)
+        exif_dict["Exif"][piexif.ExifIFD.SubjectDistance] = (focus, 100)
+        exif_dict["Exif"][piexif.ExifIFD.BodySerialNumber] = gethostname()
+        exif_bytes = piexif.dump(exif_dict)
+        piexif.insert(exif_bytes, data)
+
         print("Bild gemacht!")
         data.seek(0)
         return data.read()
@@ -103,9 +112,11 @@ class Kamera(object):
         if (focus == -2):
             pass
         elif (focus == -1):
-            self.cam.set_controls({"AfMode": controls.AfModeEnum.Auto})
-            self.cam.autofocus_cycle()
+            print("Autofokus")
+            self.cam.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+            # self.cam.autofocus_cycle()
         else:
+            print("Fokus: ", focus)
             self.cam.set_controls(
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
             sleep(0.5)
