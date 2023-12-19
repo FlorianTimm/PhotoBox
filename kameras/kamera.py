@@ -34,6 +34,7 @@ class Kamera(object):
         self.cam.configure(self.still_config)  # type: ignore
         self.cam.start()
         self.folder = folder
+        self.aruco_dict = None
 
     def make_picture(self, settings: CamSettings = {}, preview=False) -> bytes:
         data = BytesIO()
@@ -129,9 +130,10 @@ class Kamera(object):
 
     def aruco(self) -> list[dict[str, int | float]]:
         from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
-        self.aruco_dict = Dictionary_create(32, 3)
-        self.parameter = DetectorParameters.create()
-        self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
+        if self.aruco_dict is None:
+            self.aruco_dict = Dictionary_create(32, 3)
+            self.parameter = DetectorParameters.create()
+            self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
 
         im = self.cam.capture_array()
         corners, ids, _ = detectMarkers(
