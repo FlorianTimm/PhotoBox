@@ -112,7 +112,8 @@ class KameraSteuerung:
         def aruco_pic():
             self.answer(addr[0], 'arucoImg:' + id + ':' + socket.gethostname())
         m = self.cam.aruco(aruco_pic)
-        open(id + '.json', 'w').write(dumps(m, indent=2))
+        open(conf['kameras']['Folder'] + id +
+             '.json', 'w').write(dumps(m, indent=2))
         self.answer(addr[0], 'arucoReady:' + id + ':' + socket.gethostname())
 
     def meta(self) -> dict[str, int]:
