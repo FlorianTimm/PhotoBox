@@ -129,7 +129,6 @@ class Kamera(object):
         return self.cam.camera_properties
 
     def aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
-        print("Aruco")
         from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
         if self.aruco_dict is None:
             self.aruco_dict = Dictionary_create(32, 3)
@@ -151,5 +150,4 @@ class Kamera(object):
                                    'ecke': eid,
                                    'x': float(x),
                                    'y': float(y)})
-        print("Aruco: ", marker)
         return marker
