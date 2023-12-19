@@ -112,6 +112,8 @@ class KameraSteuerung:
         def aruco_pic():
             self.answer(addr[0], 'arucoImg:' + id + ':' + socket.gethostname())
         m = self.cam.aruco(aruco_pic)
+        print(m)
+        print(socket.gethostname())
         self.answer(addr[0], 'arucoMarker:' + id + ':' +
                     socket.gethostname() + ':' + dumps(m))
 
