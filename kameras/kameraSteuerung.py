@@ -112,10 +112,8 @@ class KameraSteuerung:
         def aruco_pic():
             self.answer(addr[0], 'arucoImg:' + id + ':' + socket.gethostname())
         m = self.cam.aruco(aruco_pic)
-        print(m)
-        print(socket.gethostname())
-        self.answer(addr[0], 'arucoMarker:' + id + ':' +
-                    socket.gethostname() + ':' + dumps(m))
+        open(id + '.json', 'w').write(dumps(m, indent=2))
+        self.answer(addr[0], 'arucoReady:' + id + ':' + socket.gethostname())
 
     def meta(self) -> dict[str, int]:
         return self.cam.meta()
@@ -280,7 +278,10 @@ def focus(focus: float = -1):
 
 
 @app.route('/aruco/')
-def aruco():
+@app.route('/aruco/<id>')
+def aruco(id=""):
+    if id != "":
+        return ""
     return dumps(ks.aruco(), indent=2)
 
 
