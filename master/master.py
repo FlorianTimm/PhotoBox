@@ -11,8 +11,10 @@ import uuid
 from os import system, makedirs, path
 import requests
 from gpiozero import Button
+from json import loads as json_loads, dumps as json_dumps
 
 liste = dict()
+marker = dict()
 
 photo_count = 0
 
@@ -68,6 +70,7 @@ def index():
         <a href="/overview">Overview</a><br>
         <a href="/search">Search</a><br>
         <a href="/preview">Preview</a><br>
+        <a href="/aruco">Aruco</a><br>
 
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
@@ -276,6 +279,7 @@ def restart():
 @app.route("/light")
 @app.route("/light/<val>")
 def photo_light(val=0):
+    global licht
     licht = True
     pixels.fill((255, 255, 255))
     try:
@@ -286,9 +290,23 @@ def photo_light(val=0):
             status_led()
 
 
+@app.route("/aruco")
+def aruco():
+    """ Aruco """
+    send_to_all('aruco:' + str(uuid.uuid4()))
+    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Erfasse...</title></head><body>Erfasse...</body></html>"""
+
+
+@app.route("/arucoErg")
+def aruco_erg():
+    """ Aruco """
+    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Aruco</title></head><body>""" + json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;") + """</body></html>"""
+
+
 @app.route("/status")
 @app.route("/status/<val>")
 def status_led(val=0):
+    global licht
     licht = False
     for led, pi in enumerate(leds):
         pixels[led] = (25, 0, 0)
@@ -335,6 +353,16 @@ def receive_photo():
         status_led(10)
 
 
+def receive_aruco(data):
+    global marker
+    i1 = data.find(":")
+    i2 = data[i1+1:].find(":")
+    id = data[:i1]
+
+    hostname = data[i1+1:i1+i2+1]
+    marker[hostname][id] = json_loads(data[i1+i2+2:])
+
+
 def listen_to_port():
     socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -348,6 +376,8 @@ def listen_to_port():
             Thread(target=found_camera, args=(data[5:], addr[0])).start()
         elif data[:5] == 'photo':
             receive_photo()
+        elif data[:9] == 'arucoErg:':
+            receive_aruco(data[9:])
         elif data[:5] == 'light':
             photo_light()
 
