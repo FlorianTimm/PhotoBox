@@ -8,7 +8,7 @@ from time import sleep
 import piexif
 from socket import gethostname
 from typen import CamSettings, CamSettingsWithFilename
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Callable
 
 
 class Kamera(object):
@@ -128,7 +128,7 @@ class Kamera(object):
     def get_status(self) -> dict[str, Any]:
         return self.cam.camera_properties
 
-    def aruco(self) -> list[dict[str, int | float]]:
+    def aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
         from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
         if self.aruco_dict is None:
             self.aruco_dict = Dictionary_create(32, 3)
@@ -136,6 +136,8 @@ class Kamera(object):
             self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
 
         im = self.cam.capture_array()
+        if inform_after_picture != None:
+            inform_after_picture()
         corners, ids, _ = detectMarkers(
             im, self.aruco_dict, parameters=self.parameter)
         marker = []

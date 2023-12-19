@@ -106,6 +106,13 @@ class KameraSteuerung:
     def aruco(self) -> list[dict[str, int | float]]:
         return self.cam.aruco()
 
+    def aruco_broadcast(self, addr, id):
+        def aruco_pic():
+            self.answer(addr[0], 'arucoImg:' + id + ':' + socket.gethostname())
+        m = self.cam.aruco(aruco_pic)
+        self.answer(addr[0], 'arucoMarker:' + id + ':' +
+                    socket.gethostname() + ':' + dumps(m))
+
     def meta(self) -> dict[str, int]:
         return self.cam.meta()
 
@@ -118,6 +125,8 @@ class KameraSteuerung:
                 pass
             elif data == 'search':
                 self.answer(addr[0], 'Moin:'+socket.gethostname())
+            elif data[0:6] == 'aruco:':
+                self.aruco_broadcast(addr, data[6:])
             elif data[0:5] == 'focus':
                 z = -1
                 try:
