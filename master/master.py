@@ -139,7 +139,7 @@ def search():
     global liste
     msg = b'search'
     liste = dict()
-    pixels.fill(conf['colors']['blue'])
+    pixels.fill(BLUE)
     send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
