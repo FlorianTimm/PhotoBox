@@ -124,6 +124,7 @@ class KameraSteuerung:
 
     def resume(self):
         self.cam.resume()
+        say_moin()
 
     def receive_broadcast(self):
         while True:
@@ -307,6 +308,13 @@ def start_web(conf: Config):
     app.run('0.0.0.0', conf['kameras']['WebPort'])
 
 
+def say_moin():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(('Moin:'+socket.gethostname()).encode("utf-8"), ('255.255.255.255', int(
+            ks.conf['both']['BroadCastPort'])))
+
+
 if __name__ == '__main__':
 
     ks = KameraSteuerung(conf)
@@ -314,7 +322,4 @@ if __name__ == '__main__':
     w.start()
     ks.run()
 
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.sendto(('Moin:'+socket.gethostname()).encode("utf-8"), ('255.255.255.255', int(
-            ks.conf['both']['BroadCastPort'])))
+    say_moin()
