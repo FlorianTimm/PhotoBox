@@ -31,7 +31,7 @@ num_pixels = len(leds)
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
 
-pixels.fill((0, 0, 25))
+pixels.fill(conf['colors']['blue'])
 
 licht = False
 
@@ -132,7 +132,7 @@ def search():
     global liste
     msg = b'search'
     liste = dict()
-    pixels.fill((0, 0, 25))
+    pixels.fill(conf['colors']['blue'])
     send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
