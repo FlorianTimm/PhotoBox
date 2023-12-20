@@ -19,6 +19,7 @@ GREEN = (100, 255, 100)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 YELLOW = (255, 255, 100)
+LIGHTRED = (50, 0, 0)
 
 liste = dict()
 marker = dict()
@@ -412,7 +413,7 @@ def running_light():
     while not cams_started:
         for j in range(num_pixels//8):
             for i in range(8):
-                pixels[j+num_pixels//8*i] = RED
+                pixels[j+num_pixels//8*i] = LIGHTRED
             sleep(0.5)
             for i in range(8):
                 pixels[j+num_pixels//8*i] = BLACK
