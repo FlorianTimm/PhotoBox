@@ -13,6 +13,13 @@ import requests
 from gpiozero import Button
 from json import loads as json_loads, dumps as json_dumps
 
+RED = (255, 200, 200)
+BLUE = (200, 200, 255)
+GREEN = (200, 255, 200)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+YELLOW = (255, 255, 200)
+
 liste = dict()
 marker = dict()
 
@@ -31,7 +38,7 @@ num_pixels = len(leds)
 pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
 
-pixels.fill(conf['colors']['blue'])
+pixels.fill(BLUE)
 
 licht = False
 
@@ -142,7 +149,7 @@ def search():
 def photo(id=""):
     global photo_count
     if id == "":
-        pixels.fill((255, 255, 255))
+        pixels.fill(WHITE)
         id = str(uuid.uuid4()) + '.jpg'
         sleep(2)
         photo_count = photo_count + len(liste)
@@ -242,7 +249,7 @@ def preview():
 def shutdown():
     """ Shutdown Raspberry Pi """
     send_to_all('shutdown')
-    pixels.fill((0, 0, 0))
+    pixels.fill(BLACK)
     system("sleep 5s; sudo shutdown -h now")
     print("Shutdown Raspberry...")
     exit(0)
@@ -260,7 +267,7 @@ def focus(val=-1):
 def reboot():
     """ Reboot Raspberry Pi """
     send_to_all('reboot')
-    pixels.fill((0, 0, 0))
+    pixels.fill(BLACK)
     system("sleep 5s; sudo reboot")
     print("Reboot Raspberry...")
     exit(0)
@@ -270,7 +277,7 @@ def reboot():
 def restart():
     """ Restart Skript """
     send_to_all('restart')
-    pixels.fill((255, 255, 0))
+    pixels.fill(YELLOW)
     system("systemctl restart PhotoBoxMaster.service")
     print("Restart Skript...")
     exit(1)
@@ -281,7 +288,7 @@ def restart():
 def photo_light(val=0):
     global licht
     licht = True
-    pixels.fill((255, 255, 255))
+    pixels.fill(WHITE)
     try:
         return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
     finally:
@@ -309,14 +316,14 @@ def status_led(val=0):
     global licht
     licht = False
     for led, pi in enumerate(leds):
-        pixels[led] = (25, 0, 0)
+        pixels[led] = RED
         liste_aktuell = list(liste.items())
         for hostname, ip in liste_aktuell:
             n = re.findall("\d{2}", hostname)
             if len(n) > 0:
                 t = int(n[0])
                 if t == pi:
-                    pixels[led] = (0, 25, 0)
+                    pixels[led] = GREEN
     try:
         return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
     finally:
