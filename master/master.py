@@ -407,12 +407,13 @@ def pause():
 
 def running_light():
     global cams_started
+    pixels.fill(BLACK)
     while not cams_started:
-        for i in range(num_pixels):
-            pixels[i] = RED
-            sleep(0.1)
-            pixels[i] = BLACK
-            sleep(0.1)
+        for i in range(num_pixels//8):
+            pixels[::num_pixels//8] = RED
+            sleep(0.5)
+            pixels[::num_pixels//8] = BLACK
+            sleep(0.5)
     pixels.fill(WHITE)
 
 
