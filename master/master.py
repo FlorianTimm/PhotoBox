@@ -389,43 +389,71 @@ def listen_to_port():
             photo_light()
 
 
+# Buttons
+
 def red_button_held():
+    global button_red_was_held
+    button_red_was_held = False
     print("Shutdown pressed...")
     shutdown()
 
 
-def blue_button_pressed():
-    print("Photo pressed...")
-    photo()
+def red_button_released():
+    global button_red_was_held
+    if not button_red_was_held:
+        print("Red pressed...")
+        pass
+    button_red_was_held = False
+
+
+def blue_button_released():
+    global button_blue_was_held
+    if not button_blue_was_held:
+        print("Photo pressed...")
+        photo()
+    button_blue_was_held = False
 
 
 def blue_button_held():
+    global button_blue_was_held
+    button_blue_was_held = False
     print("Calibration pressed...")
     pass
 
 
-def green_button_pressed():
-    print("Status LED pressed...")
-    status_led(10)
+def green_button_released():
+    global button_green_was_held
+    if not button_green_was_held:
+        print("Status LED pressed...")
+        status_led(10)
+    button_green_was_held = False
 
 
 def green_button_held():
+    global button_green_was_held
+    button_green_was_held = False
     print("Search pressed...")
     search()
 
 
 print("Buttons are starting...")
 button_blue = Button(24, pull_up=True, hold_time=2, bounce_time=0.1)
-button_blue.when_pressed = blue_button_pressed
-button_blue.when_held = blue_button_pressed
+button_blue.when_released = blue_button_released
+button_blue.when_held = blue_button_held
+button_blue_was_held = False
 
 button_red = Button(23, pull_up=True, hold_time=2, bounce_time=0.1)
 button_red.when_held = red_button_held
+button_red.when_released = red_button_released
+button_red_was_held = False
 
 button_green = Button(25, pull_up=True, hold_time=2, bounce_time=0.1)
-button_green.when_pressed = green_button_pressed
+button_green.when_released = green_button_released
 button_green.when_held = green_button_held
+button_green_was_held = False
 
+
+# Start
 
 if __name__ == '__main__':
     w = Thread(target=start_web)
