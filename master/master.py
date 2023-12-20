@@ -13,12 +13,12 @@ import requests
 from gpiozero import Button
 from json import loads as json_loads, dumps as json_dumps
 
-RED = (255, 200, 200)
-BLUE = (200, 200, 255)
-GREEN = (200, 255, 200)
+RED = (255, 100, 100)
+BLUE = (100, 100, 255)
+GREEN = (100, 255, 100)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-YELLOW = (255, 255, 200)
+YELLOW = (255, 255, 100)
 
 liste = dict()
 marker = dict()
