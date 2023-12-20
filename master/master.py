@@ -136,12 +136,13 @@ def overview():
 
 
 @app.route("/search")
-def search():
+def search(send_search=True):
     global liste
     msg = b'search'
     liste = dict()
     pixels.fill(BLUE)
-    send_to_all('search')
+    if send_search:
+        send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
@@ -417,13 +418,14 @@ def running_light():
                 pixels[j+num_pixels//8*i] = BLACK
             if cams_started:
                 break
-    pixels.fill(WHITE)
+    pixels.fill(BLUE)
 
 
 def resume():
     global cams_started
     if not cams_started:
         cams_started = True
+        search(False)
         send_to_all('resume')
 
 
