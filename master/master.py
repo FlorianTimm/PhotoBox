@@ -357,7 +357,7 @@ def receive_photo():
     global photo_count
     photo_count = photo_count - 1
     if photo_count == 0:
-        status_led(10)
+        status_led(5)
 
 
 def receive_aruco(data):
@@ -389,7 +389,41 @@ def listen_to_port():
             photo_light()
 
 
+def switch_pause_resume():
+    global cams_started
+    if cams_started:
+        pause()
+    else:
+        resume()
+
+
+def pause():
+    global cams_started
+    cams_started = False
+    send_to_all('pause')
+    Thread(target=running_light).start()
+
+
+def running_light():
+    global cams_started
+    while not cams_started:
+        for i in range(num_pixels):
+            pixels[i] = RED
+            sleep(0.1)
+            pixels[i] = BLACK
+            sleep(0.1)
+    pixels.fill(WHITE)
+
+
+def resume():
+    global cams_started
+    if not cams_started:
+        cams_started = True
+        send_to_all('resume')
+
+
 # Buttons
+
 
 def red_button_held():
     global button_red_was_held
@@ -402,6 +436,7 @@ def red_button_released():
     global button_red_was_held
     if not button_red_was_held:
         print("Red pressed...")
+        switch_pause_resume()
         pass
     button_red_was_held = False
 

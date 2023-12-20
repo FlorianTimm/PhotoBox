@@ -151,3 +151,9 @@ class Kamera(object):
                                    'x': float(x),
                                    'y': float(y)})
         return marker
+
+    def pause(self):
+        self.cam.stop()
+
+    def resume(self):
+        self.cam.start()

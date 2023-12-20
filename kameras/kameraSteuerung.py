@@ -119,6 +119,12 @@ class KameraSteuerung:
     def meta(self) -> dict[str, int]:
         return self.cam.meta()
 
+    def pause(self):
+        self.cam.pause()
+
+    def resume(self):
+        self.cam.resume()
+
     def receive_broadcast(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
@@ -161,6 +167,10 @@ class KameraSteuerung:
                 self.preview({'focus': -2})  # preview
             elif data == 'shutdown':
                 self.shutdown()
+            elif data == 'pause':
+                self.pause()
+            elif data == 'resume':
+                self.resume()
             elif data == 'reboot':
                 system("sleep 5s; sudo reboot")
                 print("Reboot Raspberry...")
