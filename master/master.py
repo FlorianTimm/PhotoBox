@@ -24,6 +24,7 @@ liste = dict()
 marker = dict()
 
 photo_count = 0
+cams_started = True
 
 conf = configparser.ConfigParser()
 conf.read("../config.ini")
