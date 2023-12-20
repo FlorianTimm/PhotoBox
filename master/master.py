@@ -350,7 +350,7 @@ def found_camera(hostname, ip):
     if hostname in liste:
         return
     liste[hostname] = ip
-    status_led(10)
+    status_led(5)
 
 
 def receive_photo():
@@ -393,7 +393,7 @@ def listen_to_port():
 
 def red_button_held():
     global button_red_was_held
-    button_red_was_held = False
+    button_red_was_held = True
     print("Shutdown pressed...")
     shutdown()
 
@@ -416,7 +416,7 @@ def blue_button_released():
 
 def blue_button_held():
     global button_blue_was_held
-    button_blue_was_held = False
+    button_blue_was_held = True
     print("Calibration pressed...")
     pass
 
@@ -425,13 +425,13 @@ def green_button_released():
     global button_green_was_held
     if not button_green_was_held:
         print("Status LED pressed...")
-        status_led(10)
+        status_led(5)
     button_green_was_held = False
 
 
 def green_button_held():
     global button_green_was_held
-    button_green_was_held = False
+    button_green_was_held = True
     print("Search pressed...")
     search()
 
