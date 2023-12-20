@@ -409,12 +409,13 @@ def running_light():
     global cams_started
     pixels.fill(BLACK)
     while not cams_started:
-        for i in range(8):
-            for j in range(num_pixels//8):
-                pixels[j*i] = RED
-                sleep(0.5)
-                pixels[j*i] = BLACK
-                sleep(0.5)
+        for j in range(num_pixels//8):
+            for i in range(8):
+                pixels[j+8*i] = RED
+            sleep(0.5)
+            for i in range(8):
+                pixels[j+8*i] = BLACK
+            sleep(0.5)
     pixels.fill(WHITE)
 
 
