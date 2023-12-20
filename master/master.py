@@ -418,7 +418,6 @@ def running_light():
                 pixels[j+num_pixels//8*i] = BLACK
             if cams_started:
                 break
-    pixels.fill(BLUE)
 
 
 def resume():
