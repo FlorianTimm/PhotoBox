@@ -12,6 +12,8 @@ from os import system, makedirs, path
 import requests
 from gpiozero import Button
 from json import loads as json_loads, dumps as json_dumps
+from shutil import make_archive
+from glob import glob
 
 RED = (255, 100, 100)
 BLUE = (100, 100, 255)
@@ -45,7 +47,8 @@ pixels.fill(BLUE)
 licht = False
 
 # web control
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/bilder',
+            static_folder=conf['server']['Folder'])
 CORS(app)
 
 
@@ -65,6 +68,7 @@ def collect_photos(liste, id):
         except Exception as e:
             print("Error collecting photo from " + hostname + ":", e)
     print("Collecting photos done!")
+    make_archive(conf['server']['Folder'] + id + '.zip', 'zip', folder)
     photo_light()
 
 
@@ -80,17 +84,35 @@ def index():
         <a href="/search">Search</a><br>
         <a href="/preview">Preview</a><br>
         <a href="/aruco">Aruco</a><br>
-
+        <a href="/bilderUebersicht">Bilder</a><br>
+        <br>
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
         <a href="/light">Light</a>/<a href="/status">Status</a><br>
         <a href="/restart">Restart</a><br>
-
         <br><br>
         <a href="/shutdown">Shutdown</a><br>
         <a href="/reboot">Reboot</a><br>
     </body>
     </html>"""
+
+
+@app.route("/bilderUebersicht")
+def bilderUebersicht():
+    output = """<html>
+    <head>
+        <title>Kamera</title>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+    </head>
+    <body>"""
+
+    for file in sorted(glob(conf['server']['Folder'] + "*.zip")):
+        file = file.replace(conf['server']['Folder'], "")
+        output = output + """<div><a href="/bilder/""" + file + """"><img id="img" src="/bilder/""" + file + """" /></a><br>""" + \
+            file + """</div>"""
+    output = output + """<br></body>
+    </html>"""
+    return output
 
 
 @app.route("/overview")
