@@ -14,6 +14,7 @@ from gpiozero import Button
 from json import loads as json_loads, dumps as json_dumps
 from shutil import make_archive
 from glob import glob
+from datetime import datetime
 
 RED = (255, 100, 100)
 BLUE = (100, 100, 255)
@@ -68,7 +69,7 @@ def collect_photos(liste, id):
         except Exception as e:
             print("Error collecting photo from " + hostname + ":", e)
     print("Collecting photos done!")
-    make_archive(conf['server']['Folder'] + id + '.zip', 'zip', folder)
+    make_archive(conf['server']['Folder'] + id, 'zip', folder)
     photo_light()
 
 
@@ -104,12 +105,14 @@ def bilderUebersicht():
         <title>Kamera</title>
         <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
     </head>
-    <body>"""
+    <body><table>"""
 
     for file in sorted(glob(conf['server']['Folder'] + "*.zip")):
+        t = path.getmtime(file)
         file = file.replace(conf['server']['Folder'], "")
-        output = output + """<div><a href="/bilder/""" + file + """"><img id="img" src="/bilder/""" + file + """" /></a><br>""" + \
-            file + """</div>"""
+        output = output + """<tr><td><a href="/bilder/""" + file + """">""" + file + """</a></td><td>""" + \
+            datetime.utcfromtimestamp(t).strftime(
+                '%Y-%m-%d %H:%M:%S') + """</td></tr>"""
     output = output + """<br></body>
     </html>"""
     return output
