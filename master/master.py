@@ -16,9 +16,9 @@ from shutil import make_archive
 from glob import glob
 from datetime import datetime
 
-RED = (255, 100, 100)
-BLUE = (100, 100, 255)
-GREEN = (100, 255, 100)
+RED = (255, 50, 50)
+BLUE = (50, 50, 255)
+GREEN = (50, 255, 50)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 YELLOW = (255, 255, 100)
