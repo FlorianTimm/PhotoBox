@@ -1,0 +1,4 @@
+https://github.com/raspberrypi/libcamera/blob/main/src/ipa/rpi/vc4/data/imx708.json
+
+LICENSE:
+https://github.com/raspberrypi/libcamera/tree/main?tab=License-1-ov-file#readme

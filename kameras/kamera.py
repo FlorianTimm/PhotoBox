@@ -13,7 +13,8 @@ from typing import Dict, Tuple, List, Callable
 
 class Kamera(object):
     def __init__(self, folder: str):
-        self.cam: Picamera2 = Picamera2()
+        tuning = Picamera2.load_tuning_file("imx708.json", dir='./tuning/')
+        self.cam: Picamera2 = Picamera2(tuning=tuning)
         scm: List[int] = self.cam.camera_properties['ScalerCropMaximum']
         h: int = scm[3]-scm[1]
         w: int = scm[2]-scm[0]
@@ -25,7 +26,8 @@ class Kamera(object):
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
             "AfMetering": controls.AfMeteringEnum.Windows.value,
             "AfWindows": [rect],
-            "AfMode": controls.AfModeEnum.Continuous.value
+            "AfMode": controls.AfModeEnum.Continuous.value,
+            "AfRange": controls.AfRangeEnum.Macro.value
         }
         self.preview_config = self.cam.create_preview_configuration(
             controls=ctrl)
