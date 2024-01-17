@@ -214,7 +214,8 @@ def photo(id=""):
                 ip + """:8080/bilder/""" + id + """"><img id="img" src="http://""" + \
                 ip + """:8080/bilder/""" + id + """" /></a><br>""" + \
                 hostname + """</div>"""
-        output = output + """</body>
+        output = output + """<br /><br />
+        <a href="/bilder/""" + id + """.zip">Download as ZIP</a></body>
         </html>"""
         return output
 
