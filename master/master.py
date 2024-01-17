@@ -107,7 +107,9 @@ def bilderUebersicht():
     </head>
     <body><table>"""
 
-    for file in sorted(glob(conf['server']['Folder'] + "*.zip")):
+    files = glob(conf['server']['Folder'] + "*.zip")
+    files.sort(key=lambda x: path.getmtime(x))
+    for file in files:
         t = path.getmtime(file)
         file = file.replace(conf['server']['Folder'], "")
         output = output + """<tr><td><a href="/bilder/""" + file + """">""" + file + """</a></td><td>""" + \
