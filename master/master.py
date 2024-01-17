@@ -6,7 +6,7 @@ import configparser
 import neopixel
 import board
 import re
-from time import sleep
+from time import sleep, clock_settime, CLOCK_REALTIME
 import uuid
 from os import system, makedirs, path
 import requests
@@ -79,6 +79,11 @@ def index():
     <head>
         <title>Kamera</title>
         <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+
+        <script>
+            const time = new Date();
+            fetch('/time/?' + time.getTime());');
+        </script>
     </head>
     <body>
         <a href="/overview">Overview</a><br>
@@ -96,6 +101,13 @@ def index():
         <a href="/reboot">Reboot</a><br>
     </body>
     </html>"""
+
+
+@app.route("/time/<int:time>")
+def time(time):
+    clk_id = CLOCK_REALTIME
+    clock_settime(clk_id, float(time))
+    return str(time)
 
 
 @app.route("/bilderUebersicht")
