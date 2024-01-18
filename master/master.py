@@ -488,7 +488,6 @@ def resume():
 
 # Buttons
 
-
 def red_button_held():
     global button_red_was_held
     button_red_was_held = True
