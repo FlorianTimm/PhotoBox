@@ -82,7 +82,7 @@ def index():
 
         <script>
             const time = new Date();
-            fetch('/time/?' + time.getTime());
+            fetch('/time/' + time.getTime());
         </script>
     </head>
     <body>
@@ -106,7 +106,7 @@ def index():
 @app.route("/time/<int:time>")
 def time(time):
     clk_id = CLOCK_REALTIME
-    clock_settime(clk_id, float(time))
+    clock_settime(clk_id, float(time)/1000.)
     return str(time)
 
 
