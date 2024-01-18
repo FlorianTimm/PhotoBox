@@ -338,8 +338,8 @@ def update():
     pixels.fill(YELLOW)
     print("Update Skript...")
     system("sudo git pull")
-    system("systemctl restart PhotoBoxMaster.service")
     print("Restart Skript...")
+    system("systemctl restart PhotoBoxMaster.service")
     exit(1)
 
 
