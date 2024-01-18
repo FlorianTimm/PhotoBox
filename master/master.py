@@ -82,7 +82,7 @@ def index():
 
         <script>
             const time = new Date();
-            fetch('/time/?' + time.getTime());');
+            fetch('/time/?' + time.getTime());
         </script>
     </head>
     <body>
