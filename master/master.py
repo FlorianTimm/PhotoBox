@@ -6,7 +6,7 @@ import configparser
 import neopixel
 import board
 import re
-from time import sleep, clock_settime, CLOCK_REALTIME
+from time import sleep, clock_settime, clock_gettime, CLOCK_REALTIME
 import uuid
 from os import system, makedirs, path
 import requests
@@ -106,8 +106,12 @@ def index():
 @app.route("/time/<int:time>")
 def time(time):
     clk_id = CLOCK_REALTIME
-    clock_settime(clk_id, float(time)/1000.)
-    return str(time)
+    alt = clock_gettime(clk_id)
+    neu = float(time)/1000.
+    if neu-alt > 10:
+        clock_settime(clk_id, neu)
+        return "updated: " + str(neu)
+    return "keeped: " + str(alt)
 
 
 @app.route("/bilderUebersicht")
