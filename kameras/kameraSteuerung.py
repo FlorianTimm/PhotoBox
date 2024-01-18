@@ -180,6 +180,12 @@ class KameraSteuerung:
                 system("systemctl restart PhotoBoxKamera.service")
                 print("Restart Script...")
                 exit(1)
+            elif data == 'update':
+                print("Update Script...")
+                system("git pull")
+                print("Restart Script...")
+                system("systemctl restart PhotoBoxKamera.service")
+                exit(1)
             else:
                 print("Unknown command: " + data)
 
