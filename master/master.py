@@ -337,10 +337,8 @@ def update():
     send_to_all('update')
     pixels.fill(YELLOW)
     print("Update Skript...")
-    system("sudo git pull")
-    print("Restart Skript...")
-    system("systemctl restart PhotoBoxMaster.service")
-    exit(1)
+    system("sudo git -C /home/photo/PhotoBox pull")
+    return "Updated"
 
 
 @app.route("/light")

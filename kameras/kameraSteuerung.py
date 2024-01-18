@@ -182,10 +182,7 @@ class KameraSteuerung:
                 exit(1)
             elif data == 'update':
                 print("Update Script...")
-                system("git pull")
-                print("Restart Script...")
-                system("systemctl restart PhotoBoxKamera.service")
-                exit(1)
+                system("sudo git -C /home/photo/PhotoBox pull")
             else:
                 print("Unknown command: " + data)
 
