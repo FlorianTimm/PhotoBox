@@ -4,7 +4,7 @@
 cd /home/photo/PhotoBox/
 
 # Git aktualisieren
-git pull
+sudo git -C /home/photo/PhotoBox pull
 
 FILE=/etc/systemd/system/PhotoBoxMaster.service
 if test -f "$FILE"; then
