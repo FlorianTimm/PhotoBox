@@ -337,7 +337,7 @@ def update():
     send_to_all('update')
     pixels.fill(YELLOW)
     print("Update Skript...")
-    system("git pull")
+    system("sudo git pull")
     system("systemctl restart PhotoBoxMaster.service")
     print("Restart Skript...")
     exit(1)
