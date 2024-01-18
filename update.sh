@@ -2,6 +2,9 @@
 
 # Wechsel in das Git-Verzeichnis
 cd /home/photo/PhotoBox/
+git config --global --add safe.directory /home/photo/PhotoBox
+sudo git config --global --add safe.directory /home/photo/PhotoBox
+
 
 # Git aktualisieren
 sudo git -C /home/photo/PhotoBox pull
