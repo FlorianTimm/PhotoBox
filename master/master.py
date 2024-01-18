@@ -95,6 +95,7 @@ def index():
         <a href="/photo">Photo</a><br>
         <a href="/focus/-1">Autofocus</a><br>
         <a href="/light">Light</a>/<a href="/status">Status</a><br>
+        <a href="/update">Update (pull from git)</a><br>
         <a href="/restart">Restart</a><br>
         <br><br>
         <a href="/shutdown">Shutdown</a><br>
@@ -325,6 +326,18 @@ def restart():
     """ Restart Skript """
     send_to_all('restart')
     pixels.fill(YELLOW)
+    system("systemctl restart PhotoBoxMaster.service")
+    print("Restart Skript...")
+    exit(1)
+
+
+@app.route("/update")
+def update():
+    """ Update Skript """
+    send_to_all('update')
+    pixels.fill(YELLOW)
+    print("Update Skript...")
+    system("git pull")
     system("systemctl restart PhotoBoxMaster.service")
     print("Restart Skript...")
     exit(1)
