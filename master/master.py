@@ -326,9 +326,13 @@ def restart():
     """ Restart Skript """
     send_to_all('restart')
     pixels.fill(YELLOW)
-    system("systemctl restart PhotoBoxMaster.service")
+
+    def restart_skript():
+        system("sleep 5s; sudo systemctl restart PhotoBoxMaster.service")
+        exit(1)
+    Thread(target=restart_skript).start()
     print("Restart Skript...")
-    exit(1)
+    return "Restarting..."
 
 
 @app.route("/update")
