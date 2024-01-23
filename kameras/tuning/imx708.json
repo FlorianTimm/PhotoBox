@@ -1803,12 +1803,12 @@
             "rpi.af": {
                 "ranges": {
                     "normal": {
-                        "min": 0.0,
-                        "max": 12.0,
-                        "default": 1.0
+                        "min": 1.0,
+                        "max": 10.0,
+                        "default": 4.0
                     },
                     "macro": {
-                        "min": 1.0,
+                        "min": 1.6,
                         "max": 10.0,
                         "default": 4.0
                     }

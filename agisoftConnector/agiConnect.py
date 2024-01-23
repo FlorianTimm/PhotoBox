@@ -9,8 +9,8 @@ from Metashape import Calibration
 
 root = Tk()
 root.withdraw()
-folder_selected = '/mnt/ssd_daten/Studium/MScGeodaesieGeoinformatik/4_Thesis/bilderserien/Masstab'
-# folder_selected = filedialog.askdirectory()
+# folder_selected = '/mnt/ssd_daten/Studium/MScGeodaesieGeoinformatik/4_Thesis/bilderserien/Masstab'
+folder_selected = filedialog.askdirectory()
 print(folder_selected)
 
 doc = Metashape.Document()
@@ -83,9 +83,9 @@ for i in keys:
 chunk.importReference(folder_selected+"/marker.txt",
                       format=Metashape.ReferenceFormatCSV, columns="nxyz", delimiter=";", skip_rows=2)
 
-chunk.matchPhotos(downscale=3, generic_preselection=True,
-                  reference_preselection=False)
-chunk.alignCameras()
+# chunk.matchPhotos(downscale=3, generic_preselection=True,
+#                  reference_preselection=False)
+# chunk.alignCameras()
 
 
 """
