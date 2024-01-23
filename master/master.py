@@ -338,6 +338,7 @@ def update():
     pixels.fill(YELLOW)
     print("Update Skript...")
     system("sudo git -C /home/photo/PhotoBox pull")
+    pixels.fill(WHITE)
     return "Updated"
 
 
