@@ -335,6 +335,13 @@ def restart():
     return "Restarting..."
 
 
+@app.route('/proxy/<host>/<path>')
+def proxy(host, path):
+    import requests
+    r = requests.get("http://"+host+"/"+path)
+    return r.content
+
+
 @app.route("/update")
 def update():
     """ Update Skript """
