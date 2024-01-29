@@ -19,7 +19,7 @@ class Kamera(object):
         h: int = scm[3]-scm[1]
         w: int = scm[2]-scm[0]
         rect: Tuple[int, int, int, int] = (
-            scm[0]+3*w//7, scm[1]+3*w//7, w//7, h//7)
+            scm[0]+3*w//7, scm[1]+3*h//7, w//7, h//7)
         ctrl: Dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
