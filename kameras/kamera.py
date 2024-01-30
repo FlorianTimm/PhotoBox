@@ -24,6 +24,7 @@ class Kamera(object):
             "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
+            "AnalogueGain": 1.0,
             "AfMetering": controls.AfMeteringEnum.Windows.value,
             "AfWindows": [rect],
             "AfMode": controls.AfModeEnum.Continuous.value,
