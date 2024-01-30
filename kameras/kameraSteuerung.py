@@ -301,7 +301,7 @@ def stream():
 
 @app.route('/photo/', methods=['GET', 'POST'])
 @app.route('/photo/<focus>')
-def photo(focus: float = -1):
+def photo(focus: float = -2):
     if request.method == 'POST':
         settings = request.get_json()
         stream = ks.photo(settings)
