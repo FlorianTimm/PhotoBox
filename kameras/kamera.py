@@ -130,7 +130,7 @@ class Kamera(object):
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
             for i in range(10):
                 m = self.cam.capture_metadata()
-                if m["LensPosition"] == focus:
+                if abs(m["LensPosition"] - focus) < 0.01:
                     print("Fokus erreicht nach ", i*0.1, "s")
                     break
                 sleep(0.1)
