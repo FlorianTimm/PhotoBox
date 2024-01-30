@@ -128,7 +128,12 @@ class Kamera(object):
             print("Fokus (soll): ", focus)
             self.cam.set_controls(
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
-            sleep(0.5)
+            for i in range(10):
+                m = self.cam.capture_metadata()
+                if m["LensPosition"] == focus:
+                    print("Fokus erreicht nach ", i*0.1, "s")
+                    break
+                sleep(0.1)
         return "Fokus"
 
     def get_status(self) -> dict[str, Any]:
