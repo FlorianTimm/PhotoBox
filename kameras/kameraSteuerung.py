@@ -208,6 +208,58 @@ def web_index():
         <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
     </head>
     <body>
+    <a href="./photo_view">Foto</a>
+    <a href="./pause">Standby</a>
+
+    </body>
+    </html>"""
+
+    return output
+
+
+@app.route("/pause")
+def web_pause():
+    """ index page of web control """
+    ks.pause()
+    output = """<html>
+    <head>
+        <title>Kamera</title>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+    </head>
+    <body>
+    <a href="./resume">Resume</a>
+    </body>
+    </html>"""
+
+    return output
+
+
+@app.route("/resume")
+def web_resume():
+    """ index page of web control """
+    ks.resume()
+    output = """<html>
+    <head>
+        <title>Kamera</title>
+        <meta http-equiv="refresh" content="0; URL=/">
+    </head>
+    <body>
+    <a href="./">Index</a>
+    </body>
+    </html>"""
+
+    return output
+
+
+@app.route("/photo_view")
+def photo_view():
+    """ index page of web control """
+    output = """<html>
+    <head>
+        <title>Kamera</title>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+    </head>
+    <body>
     <script>
         window.onload = function() {
             let image = document.getElementById("img");
@@ -215,7 +267,7 @@ def web_index():
             function updateImage() {
                 image.src = "preview/-2?" + new Date().getTime();
             }
-            setInterval(updateImage, 1000);
+            setInterval(updateImage, 10000);
 
             let focus = document.getElementById("focus");
             focus.onclick= function() {

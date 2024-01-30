@@ -1,0 +1,12 @@
+sudo apt install git python3-flask python3-flask-cors
+
+# Kamera
+sudo apt install python3-picamera2 --no-install-recommends
+
+# Master
+
+
+git clone https://github.com/FlorianTimm/PhotoBox.git
+cd PhotoBox
+sudo ./install.sh
+
