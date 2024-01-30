@@ -45,6 +45,7 @@ class Kamera(object):
         req = self.cam.capture_request(wait=True, flush=True)
         req.save("main", data, format="jpeg")
         metadata = req.get_metadata()
+        print("Fokus (real): ", metadata["LensPosition"])
         req.release()
         """
         if metadata["LensPosition"] != 0:
@@ -73,6 +74,7 @@ class Kamera(object):
 
         req = self.cam.capture_request(wait=True, flush=True)
         metadata = req.get_metadata()
+        print("Fokus (real): ", metadata["LensPosition"])
         req.save("main", file)
         req.release()
         if metadata["LensPosition"] != 0:
@@ -116,13 +118,14 @@ class Kamera(object):
 
     def focus(self, focus: float) -> str:
         if (focus == -2):
+            print("Fokus nicht verändern")
             pass
         elif (focus == -1):
             print("Autofokus")
             self.cam.set_controls({"AfMode": controls.AfModeEnum.Continuous})
             # self.cam.autofocus_cycle()
         else:
-            print("Fokus: ", focus)
+            print("Fokus (soll): ", focus)
             self.cam.set_controls(
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
             sleep(0.5)
