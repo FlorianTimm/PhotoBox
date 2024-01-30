@@ -45,6 +45,7 @@ class Kamera(object):
         req = self.cam.capture_request(wait=True, flush=True)
         req.save("main", data, format="jpeg")
         metadata = req.get_metadata()
+        req.release()
         """
         if metadata["LensPosition"] != 0:
             focus = 1./metadata["LensPosition"]
@@ -73,6 +74,7 @@ class Kamera(object):
         req = self.cam.capture_request(wait=True, flush=True)
         metadata = req.get_metadata()
         req.save("main", file)
+        req.release()
         if metadata["LensPosition"] != 0:
             focus = 1./metadata["LensPosition"]
         else:
@@ -91,12 +93,8 @@ class Kamera(object):
         return "fertig"
 
     def meta(self) -> dict[str, Any]:
-        # request = self.cam.capture_request(wait=None, flush=True)
-        # if request is not None:
-        #    return request.metadata
-        # else:
-        return {}
-
+        m = self.cam.capture_metadata()
+        return m
     CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
     def set_settings(self, settings: CamSet) -> CamSet:
@@ -143,6 +141,7 @@ class Kamera(object):
 
         req = self.cam.capture_request(flush=True)
         im = req.make_array("main")
+        req.release()
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
             inform_after_picture()
