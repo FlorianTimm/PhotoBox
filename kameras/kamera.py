@@ -43,7 +43,7 @@ class Kamera(object):
         print("Kamera aktiviert!")
         self.set_settings(settings)
         req = self.cam.capture_request(wait=True, flush=True)
-        req.save("main", data, type="jpeg")
+        req.save("main", data, format="jpeg")
         metadata = req.get_metadata()
         """
         if metadata["LensPosition"] != 0:
