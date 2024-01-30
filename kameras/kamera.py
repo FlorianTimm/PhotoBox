@@ -20,16 +20,18 @@ class Kamera(object):
         w: int = scm[2]-scm[0]
         rect: Tuple[int, int, int, int] = (
             scm[0]+3*w//7, scm[1]+3*h//7, w//7, h//7)
-        ctrl: Dict[str, Any] = {
+        print("Fokus-Fenster: ", rect)
+        self.DEFAULT_CTRL: Dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
-            "AnalogueGain": 1.0,
             "AfMetering": controls.AfMeteringEnum.Windows.value,
             "AfWindows": [rect],
             "AfMode": controls.AfModeEnum.Continuous.value,
             "AfRange": controls.AfRangeEnum.Macro.value
         }
+        ctrl = self.DEFAULT_CTRL.copy()
+        ctrl["AnalogueGain"] = 1.0
         self.preview_config = self.cam.create_preview_configuration(
             controls=ctrl)
         self.still_config = self.cam.create_still_configuration(
@@ -127,7 +129,7 @@ class Kamera(object):
             pass
         elif (focus == -1):
             print("Autofokus")
-            self.cam.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+            self.cam.set_controls(self.DEFAULT_CTRL)
             # self.cam.autofocus_cycle()
         else:
             print("Fokus (soll): ", focus)
