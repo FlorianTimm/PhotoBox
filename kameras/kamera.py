@@ -101,8 +101,7 @@ class Kamera(object):
         if isinstance(settings, dict):
             if 'focus' in settings and settings['focus'] != 0:
                 print("focus: ", settings['focus'])
-                focus_value = 1/settings['focus']
-                self.focus(focus_value)
+                self.focus(settings['focus'])
             with self.cam.controls as controls:
                 if 'iso' in settings:
                     print("iso: ", settings['iso'])
