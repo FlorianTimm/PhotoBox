@@ -192,6 +192,9 @@ class KameraSteuerung:
             sock.sendto((msg).encode("utf-8"), (addr, int(
                 self.conf['both']['BroadCastPort'])))
 
+    def focusstack(self):
+        self.cam.focusStack()
+
 
 # web control
 app = Flask(__name__, static_url_path='/bilder',
@@ -215,6 +218,12 @@ def web_index():
     </html>"""
 
     return output
+
+
+@app.route("/focusstack")
+def focusstack():
+    ks.focusstack()
+    return "ok"
 
 
 @app.route("/pause")

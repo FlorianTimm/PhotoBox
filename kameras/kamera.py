@@ -99,6 +99,10 @@ class Kamera(object):
         return m
     CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
+    def focusStack(self):
+        for f in [1, 3, 4, 5]:
+            self.save_picture({'focus': f, 'filename': 'fokus'+str(f)+'.jpg'})
+
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
             if 'focus' in settings and settings['focus'] != 0:
