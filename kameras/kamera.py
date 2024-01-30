@@ -15,7 +15,11 @@ class Kamera(object):
     def __init__(self, folder: str):
         tuning = Picamera2.load_tuning_file("imx708.json", dir='./tuning/')
         self.cam: Picamera2 = Picamera2(tuning=tuning)
+        self.still_config = self.cam.create_still_configuration()
+        self.cam.configure(self.still_config)  # type: ignore
+        self.cam.start()
         scm: List[int] = self.cam.camera_properties['ScalerCropMaximum']
+        self.cam.stop()
         h: int = scm[3]-scm[1]
         w: int = scm[2]-scm[0]
         rect: Tuple[int, int, int, int] = (
