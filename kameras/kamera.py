@@ -12,6 +12,8 @@ from typing import Dict, Tuple, List, Callable
 
 
 class Kamera(object):
+    CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
+
     def __init__(self, folder: str):
         tuning = Picamera2.load_tuning_file("imx708.json", dir='./tuning/')
         self.cam: Picamera2 = Picamera2(tuning=tuning)
@@ -48,10 +50,8 @@ class Kamera(object):
     def make_picture(self, settings: CamSettings = {}, preview=False) -> bytes:
         data = BytesIO()
         print("Kamera aktiviert!")
-        self.set_settings(settings)
-        req = self.cam.capture_request(wait=True, flush=True)
+        req, metadata, settings = self.capture_photo(settings)
         req.save("main", data, format="jpeg")
-        metadata = req.get_metadata()
         print("Fokus (real): ", metadata["LensPosition"])
         req.release()
         """
@@ -74,13 +74,19 @@ class Kamera(object):
         data.seek(0)
         return data.read()
 
+    def capture_photo(self, settings: CamSet) -> Tuple[Picamera2.CaptureRequest, Dict[str, Any], CamSet]:
+        self.resume()
+        if settings:
+            settings = self.set_settings(settings)
+        req: Picamera2.CaptureRequest = self.cam.capture_request(  # type: ignore
+            wait=True, flush=True)
+        metadata = req.get_metadata()
+        return req, metadata, settings
+
     def save_picture(self, settings: CamSettingsWithFilename) -> str:
         print("Kamera aktiviert!")
-        settings = self.set_settings(settings)
+        req, metadata, settings = self.capture_photo(settings)
         file = self.folder + settings['filename']
-
-        req = self.cam.capture_request(wait=True, flush=True)
-        metadata = req.get_metadata()
         print("Fokus (real): ", metadata["LensPosition"])
         req.save("main", file)
         req.release()
@@ -102,9 +108,9 @@ class Kamera(object):
         return "fertig"
 
     def meta(self) -> dict[str, Any]:
+        self.resume()
         m = self.cam.capture_metadata()
         return m
-    CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
     def focusStack(self):
         for f in [1, 3, 4, 5]:
@@ -156,8 +162,8 @@ class Kamera(object):
             self.aruco_dict = Dictionary_create(32, 3)
             self.parameter = DetectorParameters.create()
             self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
-
-        req = self.cam.capture_request(flush=True)
+        cs: CamSettings = {}
+        req, _, _ = self.capture_photo(cs)
         im = req.make_array("main")
         req.release()
         print("Aruco Bild gemacht!")
@@ -177,7 +183,9 @@ class Kamera(object):
         return marker
 
     def pause(self):
-        self.cam.stop()
+        if self.cam.started:
+            self.cam.stop()
 
     def resume(self):
-        self.cam.start()
+        if not self.cam.started:
+            self.cam.start()
