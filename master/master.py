@@ -12,6 +12,7 @@ from json import loads as json_loads, dumps as json_dumps
 from shutil import make_archive
 from glob import glob
 from datetime import datetime
+from typing import Literal
 
 try:
     import neopixel
@@ -39,6 +40,7 @@ marker = dict()
 
 photo_count: dict[str, int] = {}
 download_count: dict[str, int] = {}
+photo_type: dict[str, Literal["photo", "stack"]] = {}
 cams_started = True
 
 conf = configparser.ConfigParser()
@@ -188,13 +190,14 @@ def search(send_search=True):
 @app.route("/photo")
 @app.route("/photo/<id>")
 def photo(id=""):
-    global photo_count, download_count
+    global photo_count, download_count, photo_type
     if id == "":
         if gpio_available:
             pixels.fill(WHITE)  # type: ignore
         id = str(uuid.uuid4())
         photo_count[id] = len(liste)
         download_count[id] = len(liste)
+        photo_type[id] = "photo"
         send_to_all('photo:' + id)
         sleep(1)
         status_led()
@@ -222,8 +225,8 @@ def photo(id=""):
 
         for hostname, ip in hnames.items():
             output = output + """<div><a href="http://""" + \
-                ip + """:8080/bilder/""" + id + """"><img id="img" src="http://""" + \
-                ip + """:8080/bilder/""" + id + """" /></a><br>""" + \
+                ip + """:8080/bilder/""" + id + """.jpg"><img id="img" src="http://""" + \
+                ip + """:8080/bilder/""" + id + """.jpg" /></a><br>""" + \
                 hostname + """</div>"""
         output = output + """<br /><br />
         <a href="/bilder/""" + id + """.zip">Download as ZIP</a></body>
@@ -233,12 +236,13 @@ def photo(id=""):
 
 @app.route("/stack")
 def stack():
-    global photo_count, download_count
+    global photo_count, download_count, photo_type
     if gpio_available:
         pixels.fill(WHITE)  # type: ignore
     id = str(uuid.uuid4())
-    photo_count[id] = len(liste) * 5
-    download_count[id] = len(liste) * 5
+    photo_count[id] = len(liste) * 4
+    download_count[id] = len(liste) * 4
+    photo_type[id] = "stack"
     send_to_all('stack:' + id)
     sleep(5)
     status_led()
@@ -455,6 +459,7 @@ def receive_photo(ip, name):
     Thread(target=download_photo, args=(ip, id, name, hostname)).start()
     if photo_count[id] == 0:
         status_led()
+        del photo_count[id]
         print("All photos taken!")
 
 
@@ -463,19 +468,26 @@ def download_photo(ip, id, name, hostname):
     global download_count
     print("Downloading photo...")
     folder = conf['server']['Folder'] + id + "/"
-    makedirs(folder)
+    if not path.exists(folder):
+        makedirs(folder)
 
     print("Collecting photo from " + hostname + "...")
     try:
         url = "http://" + ip + ":8080/bilder/" + name
         print(url)
         r = requests.get(url, allow_redirects=True)
-        open(folder + hostname + '.jpg', 'wb').write(r.content)
+        open(folder + hostname + name[36:], 'wb').write(r.content)
     except Exception as e:
         print("Error collecting photo from " + hostname + ":", e)
     download_count[id] -= 1
     if download_count[id] == 0:
         print("Collecting photos done!")
+        del download_count[id]
+        if photo_type[id] == "stack":
+            pass
+            # import FocusStack
+            # FocusStack(folder, conf['server']['Folder'] + id + ".jpg")
+        del photo_type[id]
         make_archive(conf['server']['Folder'] + id, 'zip', folder)
         photo_light()
 
