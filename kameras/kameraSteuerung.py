@@ -157,7 +157,7 @@ class KameraSteuerung:
                 self.save(json)
                 self.answer(addr[0], 'photo: ' + json['filename'])
             elif data[:5] == 'stack':
-                print("Einstellung", data[6:])
+                print("Fokusstack: ", data[6:])
                 filename = data[6:]
                 self.focusstack(filename)
                 self.answer(addr[0], 'photo: ' + filename)
@@ -223,12 +223,6 @@ def web_index():
     </html>"""
 
     return output
-
-
-@app.route("/focusstack")
-def focusstack():
-    ks.focusstack()
-    return "ok"
 
 
 @app.route("/pause")
