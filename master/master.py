@@ -436,6 +436,8 @@ def found_camera(hostname, ip):
 
 
 def get_hostname(ip):
+    print(liste)
+    print(ip)
     return [k for k, v in liste.items() if v == ip]
 
 
@@ -444,18 +446,20 @@ def receive_photo(ip, name):
     print("Photo received: " + name)
     id = name[:36]
     photo_count[id] -= 1
+    hostname = get_hostname(ip)[0]
+    Thread(target=download_photo, args=(ip, id, name, hostname)).start()
     if photo_count[id] == 0:
         status_led()
         print("All photos taken!")
 
 
-def download_photo(ip, id, name):
+def download_photo(ip, id, name, hostname):
     """ collect photos """
     global download_count
     print("Downloading photo...")
     folder = conf['server']['Folder'] + id + "/"
     makedirs(folder)
-    hostname = get_hostname(ip)[0]
+
     print("Collecting photo from " + hostname + "...")
     try:
         url = "http://" + ip + ":8080/bilder/" + name
@@ -488,6 +492,8 @@ def listen_to_port():
     while True:
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
         data, addr = socket_rec.recvfrom(1024)
+        print("received message: %s" % data)
+        print(addr)
         data = data.decode("utf-8")
         print(addr[0] + ": " + data)
         if data[:4] == 'Moin':

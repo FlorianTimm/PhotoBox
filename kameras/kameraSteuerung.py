@@ -155,12 +155,12 @@ class KameraSteuerung:
                 except:
                     json = {'filename': data[6:] + '.jpg'}
                 self.save(json)
-                self.answer(addr[0], 'photo: ' + json['filename'])
+                self.answer(addr[0], 'photo:' + json['filename'])
             elif data[:5] == 'stack':
                 print("Fokusstack: ", data[6:])
                 filename = data[6:]
                 self.focusstack(filename)
-                self.answer(addr[0], 'photo: ' + filename)
+                self.answer(addr[0], 'photo:' + filename)
             elif data[:8] == 'settings':
                 print("Einstellung", data[9:])
                 jsonSettings: CamSettings
