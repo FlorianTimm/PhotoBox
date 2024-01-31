@@ -454,6 +454,7 @@ def listen_to_port():
         elif data[:5] == 'photo':
             receive_photo()
         elif data[:9] == 'arucoReady:':
+            print(data)
             receive_aruco(data[9:])
         elif data[:5] == 'light':
             photo_light()
