@@ -3,18 +3,28 @@ from flask import Flask, Response
 from flask_cors import CORS
 from threading import Thread
 import configparser
-import neopixel
-import board
 import re
 from time import sleep, clock_settime, clock_gettime, CLOCK_REALTIME
 import uuid
 from os import system, makedirs, path
 import requests
-from gpiozero import Button
 from json import loads as json_loads, dumps as json_dumps
 from shutil import make_archive
 from glob import glob
 from datetime import datetime
+
+try:
+    import neopixel
+    import board
+    from gpiozero import Button
+    gpio_available = True
+except ImportError:
+    print("GPIO not available")
+    gpio_available = False
+except NotImplementedError:
+    print("GPIO not available")
+    gpio_available = False
+
 
 RED = (255, 75, 75)
 BLUE = (75, 75, 255)
@@ -27,7 +37,7 @@ LIGHTRED = (50, 0, 0)
 liste = dict()
 marker = dict()
 
-photo_count = 0
+photo_count: dict[str, int] = {}
 cams_started = True
 
 conf = configparser.ConfigParser()
@@ -36,14 +46,15 @@ conf.read("../config.ini")
 if not path.exists(conf['server']['Folder']):
     makedirs(conf['server']['Folder'])
 
-leds = [int(v) for v in conf['server']['leds'].split(",")]
-pixel_pin = board.D18
-num_pixels = len(leds)
+if gpio_available:
+    leds = [int(v) for v in conf['server']['leds'].split(",")]
+    pixel_pin = board.D18
+    num_pixels = len(leds)
 
-pixels = neopixel.NeoPixel(
-    pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
+    pixels = neopixel.NeoPixel(
+        pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
 
-pixels.fill(BLUE)
+    pixels.fill(BLUE)
 
 licht = False
 
@@ -186,7 +197,8 @@ def search(send_search=True):
     global liste
     msg = b'search'
     liste = dict()
-    pixels.fill(BLUE)
+    if gpio_available:
+        pixels.fill(BLUE)  # type: ignore
     if send_search:
         send_to_all('search')
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
@@ -197,13 +209,13 @@ def search(send_search=True):
 def photo(id=""):
     global photo_count
     if id == "":
-        pixels.fill(WHITE)
-        id = str(uuid.uuid4()) + '.jpg'
-        photo_count = photo_count + len(liste)
+        if gpio_available:
+            pixels.fill(WHITE)  # type: ignore
+        id = str(uuid.uuid4())
+        photo_count[id] = len(liste)
         send_to_all('photo:' + id)
         sleep(1)
         status_led()
-        Thread(target=collect_photos, args=(liste, id)).start()
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
         output = """<html>
@@ -240,9 +252,10 @@ def photo(id=""):
 @app.route("/stack")
 def stack():
     global photo_count
-    pixels.fill(WHITE)
-    id = str(uuid.uuid4()) + '.jpg'
-    photo_count = photo_count + len(liste)
+    if gpio_available:
+        pixels.fill(WHITE)  # type: ignore
+    id = str(uuid.uuid4())
+    photo_count[id] = len(liste) * 5
     send_to_all('stack:' + id)
     sleep(5)
     status_led()
@@ -310,7 +323,7 @@ def preview():
 def shutdown():
     """ Shutdown Raspberry Pi """
     send_to_all('shutdown')
-    pixels.fill(BLACK)
+    pixels.fill(BLACK)  # type: ignore
     system("sleep 5s; sudo shutdown -h now")
     print("Shutdown Raspberry...")
     exit(0)
@@ -328,7 +341,7 @@ def focus(val=-1):
 def reboot():
     """ Reboot Raspberry Pi """
     send_to_all('reboot')
-    pixels.fill(BLACK)
+    pixels.fill(BLACK)  # type: ignore
     system("sleep 5s; sudo reboot")
     print("Reboot Raspberry...")
     exit(0)
@@ -338,7 +351,7 @@ def reboot():
 def restart():
     """ Restart Skript """
     send_to_all('restart')
-    pixels.fill(YELLOW)
+    pixels.fill(YELLOW)  # type: ignore
 
     def restart_skript():
         system("sleep 5s; sudo systemctl restart PhotoBoxMaster.service")
@@ -359,10 +372,12 @@ def proxy(host, path):
 def update():
     """ Update Skript """
     send_to_all('update')
-    pixels.fill(YELLOW)
+    if gpio_available:
+        pixels.fill(YELLOW)  # type: ignore
     print("Update Skript...")
     system("sudo git -C /home/photo/PhotoBox pull")
-    pixels.fill(WHITE)
+    if gpio_available:
+        pixels.fill(WHITE)  # type: ignore
     return "Updated"
 
 
@@ -371,7 +386,8 @@ def update():
 def photo_light(val=0):
     global licht
     licht = True
-    pixels.fill(WHITE)
+    if gpio_available:
+        pixels.fill(WHITE)
     try:
         return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
     finally:
@@ -398,15 +414,16 @@ def aruco_erg():
 def status_led(val=0):
     global licht
     licht = False
-    for led, pi in enumerate(leds):
-        pixels[led] = RED
-        liste_aktuell = list(liste.items())
-        for hostname, ip in liste_aktuell:
-            n = re.findall("\d{2}", hostname)
-            if len(n) > 0:
-                t = int(n[0])
-                if t == pi:
-                    pixels[led] = GREEN
+    if gpio_available:
+        for led, pi in enumerate(leds):
+            pixels[led] = RED
+            liste_aktuell = list(liste.items())
+            for hostname, ip in liste_aktuell:
+                n = re.findall("\d{2}", hostname)
+                if len(n) > 0:
+                    t = int(n[0])
+                    if t == pi:
+                        pixels[led] = GREEN
     try:
         return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
     finally:
@@ -436,11 +453,14 @@ def found_camera(hostname, ip):
     status_led(5)
 
 
-def receive_photo():
+def receive_photo(name):
     global photo_count
-    photo_count = photo_count - 1
-    if photo_count == 0:
-        status_led(5)
+    print("Photo received: " + name)
+    id = name[:36]
+    photo_count[id] -= 1
+    if photo_count[id] == 0:
+        status_led()
+        print("All photos taken!")
 
 
 def receive_aruco(data):
@@ -464,11 +484,11 @@ def listen_to_port():
         print(addr[0] + ": " + data)
         if data[:4] == 'Moin':
             Thread(target=found_camera, args=(data[5:], addr[0])).start()
-        elif data[:5] == 'photo':
-            receive_photo()
-        elif data[:9] == 'arucoReady:':
+        elif data[:6] == 'photo:':
+            receive_photo(data[6:])
+        elif data[:11] == 'arucoReady:':
             print(data)
-            receive_aruco(data[9:])
+            receive_aruco(data[11:])
         elif data[:5] == 'light':
             photo_light()
 
@@ -558,21 +578,22 @@ def green_button_held():
     search()
 
 
-print("Buttons are starting...")
-button_blue = Button(24, pull_up=True, hold_time=2, bounce_time=0.1)
-button_blue.when_released = blue_button_released
-button_blue.when_held = blue_button_held
-button_blue_was_held = False
+if gpio_available:
+    print("Buttons are starting...")
+    button_blue = Button(24, pull_up=True, hold_time=2, bounce_time=0.1)
+    button_blue.when_released = blue_button_released
+    button_blue.when_held = blue_button_held
+    button_blue_was_held = False
 
-button_red = Button(23, pull_up=True, hold_time=2, bounce_time=0.1)
-button_red.when_held = red_button_held
-button_red.when_released = red_button_released
-button_red_was_held = False
+    button_red = Button(23, pull_up=True, hold_time=2, bounce_time=0.1)
+    button_red.when_held = red_button_held
+    button_red.when_released = red_button_released
+    button_red_was_held = False
 
-button_green = Button(25, pull_up=True, hold_time=2, bounce_time=0.1)
-button_green.when_released = green_button_released
-button_green.when_held = green_button_held
-button_green_was_held = False
+    button_green = Button(25, pull_up=True, hold_time=2, bounce_time=0.1)
+    button_green.when_released = green_button_released
+    button_green.when_held = green_button_held
+    button_green_was_held = False
 
 
 # Start
