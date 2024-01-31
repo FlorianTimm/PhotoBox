@@ -1,4 +1,4 @@
-from cv2.aruco import Dictionary_create, CORNER_REFINE_SUBPIX, detectMarkers, DetectorParameters
+from cv2.aruco import extendDictionary, CORNER_REFINE_SUBPIX, detectMarkers, DetectorParameters
 import pandas as pd
 import numpy as np
 from cv2 import cvtColor, COLOR_BGR2GRAY, imread
@@ -27,8 +27,8 @@ files.sort()
 
 chunk.addPhotos(files)
 
-aruco_dict = Dictionary_create(32, 3)
-parameter = DetectorParameters.create()
+aruco_dict = extendDictionary(32, 3)
+parameter = DetectorParameters()
 parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
 LUT_IN = [0, 158, 216, 255]
 LUT_OUT = [0, 22, 80, 176]
@@ -80,8 +80,8 @@ for i in keys:
     user_calib.p2 = 0.00179698
     c.sensor.user_calib = user_calib"""
 
-chunk.importReference(folder_selected+"/marker.txt",
-                      format=Metashape.ReferenceFormatCSV, columns="nxyz", delimiter=";", skip_rows=2)
+# chunk.importReference(folder_selected+"/marker.txt",
+#                      format=Metashape.ReferenceFormatCSV, columns="nxyz", delimiter=";", skip_rows=2)
 
 # chunk.matchPhotos(downscale=3, generic_preselection=True,
 #                  reference_preselection=False)
