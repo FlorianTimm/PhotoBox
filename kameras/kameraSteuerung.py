@@ -153,7 +153,7 @@ class KameraSteuerung:
                 try:
                     json = json_loads(data[6:])
                 except:
-                    json = {'filename': data[6:]}
+                    json = {'filename': data[6:] + '.jpg'}
                 self.save(json)
                 self.answer(addr[0], 'photo: ' + json['filename'])
             elif data[:5] == 'stack':
@@ -198,7 +198,7 @@ class KameraSteuerung:
                 self.conf['both']['BroadCastPort'])))
 
     def focusstack(self, path: str):
-        self.cam.focusStack(path)
+        self.cam.focus_stack(path)
 
 
 # web control

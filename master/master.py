@@ -38,6 +38,7 @@ liste = dict()
 marker = dict()
 
 photo_count: dict[str, int] = {}
+download_count: dict[str, int] = {}
 cams_started = True
 
 conf = configparser.ConfigParser()
@@ -62,26 +63,6 @@ licht = False
 app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['server']['Folder'])
 CORS(app)
-
-
-def collect_photos(liste, id):
-    """ collect photos """
-    print("Collecting photos...")
-    sleep(5)
-    folder = conf['server']['Folder'] + id + "/"
-    makedirs(folder)
-    for hostname, ip in liste.items():
-        print("Collecting photo from " + hostname + "...")
-        try:
-            url = "http://" + ip + ":8080/bilder/" + id
-            print(url)
-            r = requests.get(url, allow_redirects=True)
-            open(folder + hostname + '.jpg', 'wb').write(r.content)
-        except Exception as e:
-            print("Error collecting photo from " + hostname + ":", e)
-    print("Collecting photos done!")
-    make_archive(conf['server']['Folder'] + id, 'zip', folder)
-    photo_light()
 
 
 @app.route("/")
@@ -207,12 +188,13 @@ def search(send_search=True):
 @app.route("/photo")
 @app.route("/photo/<id>")
 def photo(id=""):
-    global photo_count
+    global photo_count, download_count
     if id == "":
         if gpio_available:
             pixels.fill(WHITE)  # type: ignore
         id = str(uuid.uuid4())
         photo_count[id] = len(liste)
+        download_count[id] = len(liste)
         send_to_all('photo:' + id)
         sleep(1)
         status_led()
@@ -251,15 +233,15 @@ def photo(id=""):
 
 @app.route("/stack")
 def stack():
-    global photo_count
+    global photo_count, download_count
     if gpio_available:
         pixels.fill(WHITE)  # type: ignore
     id = str(uuid.uuid4())
     photo_count[id] = len(liste) * 5
+    download_count[id] = len(liste) * 5
     send_to_all('stack:' + id)
     sleep(5)
     status_led()
-    Thread(target=collect_photos, args=(liste, id)).start()
     return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
 
 
@@ -453,7 +435,11 @@ def found_camera(hostname, ip):
     status_led(5)
 
 
-def receive_photo(name):
+def get_hostname(ip):
+    return [k for k, v in liste.items() if v == ip]
+
+
+def receive_photo(ip, name):
     global photo_count
     print("Photo received: " + name)
     id = name[:36]
@@ -461,6 +447,28 @@ def receive_photo(name):
     if photo_count[id] == 0:
         status_led()
         print("All photos taken!")
+
+
+def download_photo(ip, id, name):
+    """ collect photos """
+    global download_count
+    print("Downloading photo...")
+    folder = conf['server']['Folder'] + id + "/"
+    makedirs(folder)
+    hostname = get_hostname(ip)[0]
+    print("Collecting photo from " + hostname + "...")
+    try:
+        url = "http://" + ip + ":8080/bilder/" + name
+        print(url)
+        r = requests.get(url, allow_redirects=True)
+        open(folder + hostname + '.jpg', 'wb').write(r.content)
+    except Exception as e:
+        print("Error collecting photo from " + hostname + ":", e)
+    download_count[id] -= 1
+    if download_count[id] == 0:
+        print("Collecting photos done!")
+        make_archive(conf['server']['Folder'] + id, 'zip', folder)
+        photo_light()
 
 
 def receive_aruco(data):
@@ -485,7 +493,7 @@ def listen_to_port():
         if data[:4] == 'Moin':
             Thread(target=found_camera, args=(data[5:], addr[0])).start()
         elif data[:6] == 'photo:':
-            receive_photo(data[6:])
+            receive_photo(addr[0], data[6:])
         elif data[:11] == 'arucoReady:':
             print(data)
             receive_aruco(data[11:])
