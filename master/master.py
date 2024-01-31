@@ -453,7 +453,7 @@ def listen_to_port():
             Thread(target=found_camera, args=(data[5:], addr[0])).start()
         elif data[:5] == 'photo':
             receive_photo()
-        elif data[:9] == 'arucoErg:':
+        elif data[:9] == 'arucoReady:':
             receive_aruco(data[9:])
         elif data[:5] == 'light':
             photo_light()
