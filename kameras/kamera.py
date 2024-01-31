@@ -113,7 +113,7 @@ class Kamera(object):
         m = self.cam.capture_metadata()
         return m
 
-    def focusStack(self, filename: str):
+    def focus_stack(self, filename: str):
         img = []
         for f in [1, 3, 4, 5]:
             cs: CamSettingsWithFilename = {
