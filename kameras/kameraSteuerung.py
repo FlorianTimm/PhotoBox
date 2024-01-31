@@ -136,9 +136,9 @@ class KameraSteuerung:
             elif data == 'search':
                 self.answer(addr[0], 'Moin:'+socket.gethostname())
             elif data[0:6] == 'aruco:':
-                Thread(target=self.aruco_broadcast,
-                       args=(addr, data[6:])).start()
-                # self.aruco_broadcast(addr, data[6:])
+                # Thread(target=self.aruco_broadcast,
+                #       args=(addr, data[6:])).start()
+                self.aruco_broadcast(addr, data[6:])
             elif data[0:5] == 'focus':
                 z = -1
                 try:
