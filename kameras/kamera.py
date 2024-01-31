@@ -2,6 +2,7 @@
 
 from io import BytesIO
 from typing import Any, TypeVar
+from FocusStack import focus_stack
 from picamera2 import Picamera2
 from picamera2.request import CompletedRequest
 from libcamera import controls  # type: ignore
@@ -113,9 +114,14 @@ class Kamera(object):
         m = self.cam.capture_metadata()
         return m
 
-    def focusStack(self):
+    def focusStack(self, filename: str):
+        img = []
         for f in [1, 3, 4, 5]:
-            self.save_picture({'focus': f, 'filename': 'fokus'+str(f)+'.jpg'})
+            cs: CamSettings = {'focus': f}
+            req, _, _ = self.capture_photo(cs)
+            img.append(req.make_array("main"))
+            req.release()
+        focus_stack.focus_stack(self.folder + filename, img)
 
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
