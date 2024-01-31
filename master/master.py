@@ -446,7 +446,12 @@ def receive_photo(ip, name):
     print("Photo received: " + name)
     id = name[:36]
     photo_count[id] -= 1
-    hostname = get_hostname(ip)[0]
+    hostname = get_hostname(ip)
+    if len(hostname) > 0:
+        hostname = hostname[0]
+    else:
+        print("Error: Hostname not found!")
+        return
     Thread(target=download_photo, args=(ip, id, name, hostname)).start()
     if photo_count[id] == 0:
         status_led()

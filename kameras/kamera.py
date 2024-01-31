@@ -113,14 +113,6 @@ class Kamera(object):
         m = self.cam.capture_metadata()
         return m
 
-    def focus_stack(self, filename: str):
-        img = []
-        for f in [1, 3, 4, 5]:
-            cs: CamSettingsWithFilename = {
-                'focus': f,
-                'filename': filename + '_' + str(f) + '.jpg'}
-            self.save_picture(cs)
-
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
             if 'focus' in settings and settings['focus'] != 0:

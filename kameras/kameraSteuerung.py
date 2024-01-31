@@ -149,18 +149,11 @@ class KameraSteuerung:
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
                 print("Einstellung", data[6:])
-                json: CamSettingsWithFilename
-                try:
-                    json = json_loads(data[6:])
-                except:
-                    json = {'filename': data[6:] + '.jpg'}
-                self.save(json)
-                self.answer(addr[0], 'photo:' + json['filename'])
+                self.take_photo(data, addr)
             elif data[:5] == 'stack':
                 print("Fokusstack: ", data[6:])
                 filename = data[6:]
-                self.focusstack(filename)
-                self.answer(addr[0], 'photo:' + filename)
+                self.take_focusstack(filename, addr)
             elif data[:8] == 'settings':
                 print("Einstellung", data[9:])
                 jsonSettings: CamSettings
@@ -191,14 +184,28 @@ class KameraSteuerung:
             else:
                 print("Unknown command: " + data)
 
+    def take_focusstack(self, filename, addr):
+        for f in [1, 3, 4, 5]:
+            cs: CamSettingsWithFilename = {
+                'focus': f,
+                'filename': filename + '_' + str(f) + '.jpg'}
+            self.save(cs)
+            self.answer(addr[0], 'photo:' + cs['filename'])
+
+    def take_photo(self, data, addr):
+        json: CamSettingsWithFilename
+        try:
+            json = json_loads(data[6:])
+        except:
+            json = {'filename': data[6:] + '.jpg'}
+        self.save(json)
+        self.answer(addr[0], 'photo:' + json['filename'])
+
     def answer(self, addr: str, msg: str):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto((msg).encode("utf-8"), (addr, int(
                 self.conf['both']['BroadCastPort'])))
-
-    def focusstack(self, path: str):
-        self.cam.focus_stack(path)
 
 
 # web control
