@@ -93,6 +93,7 @@ def index():
         <a href="/bilderUebersicht">Bilder</a><br>
         <br>
         <a href="/photo">Photo</a><br>
+        <a href="/stack">Focus-Stack</a><br>
         <a href="/focus/-1">Autofocus</a><br>
         <a href="/light">Light</a>/<a href="/status">Status</a><br>
         <a href="/update">Update (pull from git)</a><br>

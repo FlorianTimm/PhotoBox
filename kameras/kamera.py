@@ -121,7 +121,7 @@ class Kamera(object):
             req, _, _ = self.capture_photo(cs)
             img.append(req.make_array("main"))
             req.release()
-        focus_stack.focus_stack(self.folder + filename, img)
+        focus_stack(self.folder + filename, img)
 
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
