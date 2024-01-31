@@ -23,7 +23,7 @@ class Kamera(object):
         h: int = scm[3]-scm[1]
         w: int = scm[2]-scm[0]
         rect: Tuple[int, int, int, int] = (
-            scm[0]+3*w//7, scm[1]+3*h//7, w//7, h//7)
+            scm[0]+2*w//5, scm[1]+2*h//5, w//5, h//5)
         print("Fokus-Fenster: ", rect)
         self.DEFAULT_CTRL: Dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
