@@ -3,6 +3,7 @@
 from io import BytesIO
 from typing import Any, TypeVar
 from picamera2 import Picamera2
+from picamera2.request import CompletedRequest
 from libcamera import controls  # type: ignore
 from time import sleep
 import piexif
@@ -74,11 +75,11 @@ class Kamera(object):
         data.seek(0)
         return data.read()
 
-    def capture_photo(self, settings: CamSet) -> Tuple[Picamera2.CaptureRequest, Dict[str, Any], CamSet]:
+    def capture_photo(self, settings: CamSet) -> Tuple[CompletedRequest, Dict[str, Any], CamSet]:
         self.resume()
         if settings:
             settings = self.set_settings(settings)
-        req: Picamera2.CaptureRequest = self.cam.capture_request(  # type: ignore
+        req: CompletedRequest = self.cam.capture_request(  # type: ignore
             wait=True, flush=True)
         metadata = req.get_metadata()
         return req, metadata, settings
