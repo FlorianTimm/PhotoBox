@@ -156,6 +156,11 @@ class KameraSteuerung:
                     json = {'filename': data[6:]}
                 self.save(json)
                 self.answer(addr[0], 'photo: ' + json['filename'])
+            elif data[:5] == 'stack':
+                print("Einstellung", data[6:])
+                filename = data[6:]
+                self.focusstack(filename)
+                self.answer(addr[0], 'photo: ' + filename)
             elif data[:8] == 'settings':
                 print("Einstellung", data[9:])
                 jsonSettings: CamSettings
@@ -192,8 +197,8 @@ class KameraSteuerung:
             sock.sendto((msg).encode("utf-8"), (addr, int(
                 self.conf['both']['BroadCastPort'])))
 
-    def focusstack(self):
-        self.cam.focusStack()
+    def focusstack(self, path: str):
+        self.cam.focusStack(path)
 
 
 # web control

@@ -198,10 +198,9 @@ def photo(id=""):
     if id == "":
         pixels.fill(WHITE)
         id = str(uuid.uuid4()) + '.jpg'
-        sleep(2)
         photo_count = photo_count + len(liste)
         send_to_all('photo:' + id)
-        sleep(0.5)
+        sleep(1)
         status_led()
         Thread(target=collect_photos, args=(liste, id)).start()
         return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
@@ -235,6 +234,19 @@ def photo(id=""):
         <a href="/bilder/""" + id + """.zip">Download as ZIP</a></body>
         </html>"""
         return output
+
+
+@app.route("/stack")
+def stack():
+    global photo_count
+    pixels.fill(WHITE)
+    id = str(uuid.uuid4()) + '.jpg'
+    photo_count = photo_count + len(liste)
+    send_to_all('stack:' + id)
+    sleep(5)
+    status_led()
+    Thread(target=collect_photos, args=(liste, id)).start()
+    return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
 
 
 @app.route("/preview")
