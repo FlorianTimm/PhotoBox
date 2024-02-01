@@ -13,6 +13,10 @@ from shutil import make_archive
 from glob import glob
 from datetime import datetime
 from typing import Literal
+from os.path import basename
+import FocusStack
+from numpy import ndarray
+from cv2 import imread, imwrite
 
 try:
     import neopixel
@@ -224,9 +228,8 @@ def photo(id=""):
         hnames = dict(sorted(liste.items()))
 
         for hostname, ip in hnames.items():
-            output = output + """<div><a href="http://""" + \
-                ip + """:8080/bilder/""" + id + """.jpg"><img id="img" src="http://""" + \
-                ip + """:8080/bilder/""" + id + """.jpg" /></a><br>""" + \
+            output = output + """<div><a href="/bilder/""" + id + """/""" + hostname + """.jpg">""" + \
+                """<img id="img" src="/bilder/""" + id + """/"""+hostname+""".jpg" /></a><br>""" + \
                 hostname + """</div>"""
         output = output + """<br /><br />
         <a href="/bilder/""" + id + """.zip">Download as ZIP</a></body>
@@ -488,11 +491,25 @@ def download_photo(ip, id, name, hostname):
         del download_count[id]
         if photo_type[id] == "stack":
             pass
-            # import FocusStack
-            # FocusStack(folder, conf['server']['Folder'] + id + ".jpg")
+            stack_photos(id)
         del photo_type[id]
         make_archive(conf['server']['Folder'] + id, 'zip', folder)
         photo_light()
+
+
+def stack_photos(id):
+    folder = conf['server']['Folder'] + id + "/"
+    imgs = glob(folder + "*.jpg")
+    groups: dict[str, list] = {}
+    imgs.sort()
+    for i in imgs:
+        name = basename(i)
+        name = name.split("_")[0]
+        if not name in groups:
+            groups[name] = []
+        groups[name].append(imread(i))
+    for camera, bilder in groups.items():
+        imwrite(folder + camera + ".jpg", FocusStack.focus_stack(bilder))
 
 
 def receive_aruco(data):
