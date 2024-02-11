@@ -12,11 +12,12 @@ from json import loads as json_loads, dumps as json_dumps
 from shutil import make_archive
 from glob import glob
 from datetime import datetime
-from typing import Literal
+from typing import Literal, NoReturn
 from os.path import basename
 import FocusStack
-from numpy import ndarray
 from cv2 import imread, imwrite
+from requests import get, Response as GetResponse
+
 
 try:
     import neopixel
@@ -180,9 +181,8 @@ def overview():
 
 
 @app.route("/search")
-def search(send_search=True):
+def search(send_search=True) -> str:
     global liste
-    msg = b'search'
     liste = dict()
     if gpio_available:
         pixels.fill(BLUE)  # type: ignore
@@ -191,21 +191,19 @@ def search(send_search=True):
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
-@app.route("/photo")
-@app.route("/photo/<id>")
-def photo(id=""):
+def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
     global photo_count, download_count, photo_type
     if id == "":
         if gpio_available:
             pixels.fill(WHITE)  # type: ignore
         id = str(uuid.uuid4())
-        photo_count[id] = len(liste)
-        download_count[id] = len(liste)
-        photo_type[id] = "photo"
-        send_to_all('photo:' + id)
-        sleep(1)
+        photo_count[id] = len(liste) * (4 if action == "stack" else 1)
+        download_count[id] = len(liste) * (4 if action == "stack" else 1)
+        photo_type[id] = action
+        send_to_all(f'{action}:{id}')
+        sleep(1 if action == "photo" else 5)
         status_led()
-        return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
+        return f"""<html><head><meta http-equiv="refresh" content="5; URL=/{action}/{id}"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
     else:
         output = """<html>
         <head>
@@ -237,24 +235,24 @@ def photo(id=""):
         return output
 
 
+@app.route("/photo")
+@app.route("/photo/<id>")
+def photo(id: str = "") -> str:
+    return capture("photo", id)
+
+
 @app.route("/stack")
 def stack():
-    global photo_count, download_count, photo_type
-    if gpio_available:
-        pixels.fill(WHITE)  # type: ignore
-    id = str(uuid.uuid4())
-    photo_count[id] = len(liste) * 4
-    download_count[id] = len(liste) * 4
-    photo_type[id] = "stack"
-    send_to_all('stack:' + id)
-    sleep(5)
-    status_led()
-    return """<html><head><meta http-equiv="refresh" content="5; URL=/photo/""" + id + """"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
+    return capture("stack")
 
 
 @app.route("/preview")
-def preview():
-    """ preview """
+def preview() -> Response:
+    """Renders a preview page with camera settings and a photo.
+
+    Returns:
+        Response: The HTTP response containing the preview page.
+    """
     response = Response()
     t = """<html><head><title>Preview</title></head><body>
     <script>
@@ -308,38 +306,42 @@ def preview():
     return response
 
 
-@app.route("/shutdown")
-def shutdown():
-    """ Shutdown Raspberry Pi """
-    send_to_all('shutdown')
-    if gpio_available:
-        pixels.fill(BLACK)  # type: ignore
-    system("sleep 5s; sudo shutdown -h now")
-    print("Shutdown Raspberry...")
-    exit(0)
-
-
 @app.route("/focus")
 @app.route("/focus/<val>")
-def focus(val=-1):
+def focus(val=-1) -> str:
     """ Focus """
     send_to_all('focus:' + str(val))
     return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Focus...</title></head><body>Fokussierung...</body></html>"""
 
 
-@app.route("/reboot")
-def reboot():
-    """ Reboot Raspberry Pi """
-    send_to_all('reboot')
+def system_control(action: Literal['shutdown', 'reboot']) -> NoReturn:
+    """ Controls the system based on the action """
+    send_to_all(action)
     if gpio_available:
         pixels.fill(BLACK)  # type: ignore
-    system("sleep 5s; sudo reboot")
-    print("Reboot Raspberry...")
+    if action == 'shutdown':
+        system("sleep 5s; sudo shutdown -h now")
+        print("Shutdown Raspberry...")
+    elif action == 'reboot':
+        system("sleep 5s; sudo reboot")
+        print("Reboot Raspberry...")
     exit(0)
 
 
+@app.route("/shutdown")
+def shutdown() -> NoReturn:
+    """ Shutdown Raspberry Pi """
+    return system_control('shutdown')
+
+
+@app.route("/reboot")
+def reboot() -> NoReturn:
+    """ Reboot Raspberry Pi """
+    return system_control('reboot')
+
+
 @app.route("/restart")
-def restart():
+def restart() -> str:
     """ Restart Skript """
     send_to_all('restart')
     if gpio_available:
@@ -354,9 +356,8 @@ def restart():
 
 
 @app.route('/proxy/<host>/<path>')
-def proxy(host, path):
-    import requests
-    r = requests.get("http://"+host+"/"+path)
+def proxy(host: str, path: str) -> bytes:
+    r: GetResponse = get("http://"+host+"/"+path)
     return r.content
 
 
@@ -371,6 +372,19 @@ def update():
     if gpio_available:
         pixels.fill(WHITE)  # type: ignore
     return "Updated"
+
+
+@app.route("/aruco")
+def aruco():
+    """ Aruco """
+    send_to_all('aruco:' + str(uuid.uuid4()))
+    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Erfasse...</title></head><body>Erfasse...</body></html>"""
+
+
+@app.route("/arucoErg")
+def aruco_erg():
+    """ Aruco """
+    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Aruco</title></head><body>""" + json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;") + """</body></html>"""
 
 
 @app.route("/light")
@@ -388,22 +402,9 @@ def photo_light(val=0):
             status_led()
 
 
-@app.route("/aruco")
-def aruco():
-    """ Aruco """
-    send_to_all('aruco:' + str(uuid.uuid4()))
-    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Erfasse...</title></head><body>Erfasse...</body></html>"""
-
-
-@app.route("/arucoErg")
-def aruco_erg():
-    """ Aruco """
-    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Aruco</title></head><body>""" + json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;") + """</body></html>"""
-
-
 @app.route("/status")
 @app.route("/status/<val>")
-def status_led(val=0):
+def status_led(val=0) -> str:
     global licht
     licht = False
     if gpio_available:
