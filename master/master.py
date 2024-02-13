@@ -1,4 +1,5 @@
 import socket
+from unittest.util import strclass
 from flask import Flask, Response
 from flask_cors import CORS
 from threading import Thread
@@ -23,6 +24,7 @@ try:
     import neopixel
     import board
     from gpiozero import Button
+    from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin
     gpio_available = True
 except ImportError:
     print("GPIO not available")
@@ -40,8 +42,8 @@ BLACK = (0, 0, 0)
 YELLOW = (255, 255, 100)
 LIGHTRED = (50, 0, 0)
 
-liste = dict()
-marker = dict()
+liste: dict[str, str] = dict()
+marker: dict[str, list] = dict()
 
 photo_count: dict[str, int] = {}
 download_count: dict[str, int] = {}
@@ -55,9 +57,9 @@ if not path.exists(conf['server']['Folder']):
     makedirs(conf['server']['Folder'])
 
 if gpio_available:
-    leds = [int(v) for v in conf['server']['leds'].split(",")]
-    pixel_pin = board.D18
-    num_pixels = len(leds)
+    leds: list[int] = [int(v) for v in conf['server']['leds'].split(",")]
+    pixel_pin: Pin = board.D18
+    num_pixels: int = len(leds)
 
     pixels = neopixel.NeoPixel(
         pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
@@ -73,7 +75,7 @@ CORS(app)
 
 
 @app.route("/")
-def index():
+def index() -> str:
     return """<html>
     <head>
         <title>Kamera</title>
@@ -105,10 +107,10 @@ def index():
 
 
 @app.route("/time/<int:time>")
-def time(time):
-    clk_id = CLOCK_REALTIME
-    alt = clock_gettime(clk_id)
-    neu = float(time)/1000.
+def time(time) -> str:
+    clk_id: int = CLOCK_REALTIME
+    alt: float = clock_gettime(clk_id)
+    neu: float = float(time)/1000.
     if neu-alt > 10:
         clock_settime(clk_id, neu)
         return "updated: " + str(neu)
@@ -116,7 +118,7 @@ def time(time):
 
 
 @app.route("/bilderUebersicht")
-def bilderUebersicht():
+def bilderUebersicht() -> str:
     output = """<html>
     <head>
         <title>Kamera</title>
@@ -138,7 +140,7 @@ def bilderUebersicht():
 
 
 @app.route("/overview")
-def overview():
+def overview() -> str:
     global liste
     output = """<html>
     <head>
@@ -172,7 +174,7 @@ def overview():
     hnames = dict(sorted(liste.items()))
 
     for hostname, ip in hnames.items():
-        output = output + """<div><a href="http://""" + ip + """:8080/photo"><img id="img" src="http://""" + \
+        output: str = output + """<div><a href="http://""" + ip + """:8080/photo"><img id="img" src="http://""" + \
             ip + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + \
             hostname + """</div>"""
     output = output + """<a href="/focus/-1">Autofocus</a><br></body>
@@ -242,7 +244,7 @@ def photo(id: str = "") -> str:
 
 
 @app.route("/stack")
-def stack():
+def stack() -> str:
     return capture("stack")
 
 
@@ -362,7 +364,7 @@ def proxy(host: str, path: str) -> bytes:
 
 
 @app.route("/update")
-def update():
+def update() -> str:
     """ Update Skript """
     send_to_all('update')
     if gpio_available:
@@ -375,21 +377,21 @@ def update():
 
 
 @app.route("/aruco")
-def aruco():
+def aruco() -> str:
     """ Aruco """
     send_to_all('aruco:' + str(uuid.uuid4()))
     return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Erfasse...</title></head><body>Erfasse...</body></html>"""
 
 
 @app.route("/arucoErg")
-def aruco_erg():
+def aruco_erg() -> str:
     """ Aruco """
     return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Aruco</title></head><body>""" + json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;") + """</body></html>"""
 
 
 @app.route("/light")
 @app.route("/light/<val>")
-def photo_light(val=0):
+def photo_light(val=0) -> str:
     global licht
     licht = True
     if gpio_available:
@@ -425,7 +427,7 @@ def status_led(val=0) -> str:
             photo_light()
 
 
-def send_to_all(msg):
+def send_to_all(msg) -> None:
     msg = msg.encode("utf-8")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -433,26 +435,28 @@ def send_to_all(msg):
             conf['both']['BroadCastPort'])))
 
 
-def start_web():
+def start_web() -> None:
     """ start web control """
     print("Web server is starting...")
     app.run('0.0.0.0', 8080)
 
 
-def found_camera(hostname, ip):
+def found_camera(hostname, ip) -> None:
+    global liste
     if hostname in liste:
         return
     liste[hostname] = ip
     status_led(5)
 
 
-def get_hostname(ip):
+def get_hostname(ip) -> list[str]:
+    global liste
     print(liste)
     print(ip)
     return [k for k, v in liste.items() if v == ip]
 
 
-def receive_photo(ip, name):
+def receive_photo(ip, name) -> None:
     global photo_count
     print("Photo received: " + name)
     id = name[:36]
@@ -470,7 +474,7 @@ def receive_photo(ip, name):
         print("All photos taken!")
 
 
-def download_photo(ip, id, name, hostname):
+def download_photo(ip, id, name, hostname) -> None:
     """ collect photos """
     global download_count
     print("Downloading photo...")
@@ -498,9 +502,9 @@ def download_photo(ip, id, name, hostname):
         photo_light()
 
 
-def stack_photos(id):
-    folder = conf['server']['Folder'] + id + "/"
-    imgs = glob(folder + "*.jpg")
+def stack_photos(id)_>None:
+    folder:str = conf['server']['Folder'] + id + "/"
+    imgs:list[str] = glob(folder + "*.jpg")
     groups: dict[str, list] = {}
     imgs.sort()
     for i in imgs:
@@ -513,13 +517,13 @@ def stack_photos(id):
         imwrite(folder + camera + ".jpg", FocusStack.focus_stack(bilder))
 
 
-def receive_aruco(data):
+def receive_aruco(data)->None:
     global marker
-    i1 = data.find(":")
-    i2 = data[i1+1:].find(":")
-    id = data[:i1]
+    i1:int = data.find(":")
+    i2:int = data[i1+1:].find(":")
+    id:int = data[:i1]
 
-    hostname = data[i1+1:i1+i2+1]
+    hostname:str = data[i1+1:i1+i2+1]
     marker[hostname][id] = json_loads(data[i1+i2+2:])
 
 
@@ -584,14 +588,14 @@ def resume():
 
 # Buttons
 
-def red_button_held():
+def red_button_held()->None:
     global button_red_was_held
     button_red_was_held = True
     print("Shutdown pressed...")
     shutdown()
 
 
-def red_button_released():
+def red_button_released()->None:
     global button_red_was_held
     if not button_red_was_held:
         print("Red pressed...")
@@ -600,7 +604,7 @@ def red_button_released():
     button_red_was_held = False
 
 
-def blue_button_released():
+def blue_button_released()->None:
     global button_blue_was_held
     if not button_blue_was_held:
         print("Photo pressed...")
@@ -608,14 +612,14 @@ def blue_button_released():
     button_blue_was_held = False
 
 
-def blue_button_held():
+def blue_button_held()->None:
     global button_blue_was_held
     button_blue_was_held = True
     print("Calibration pressed...")
     pass
 
 
-def green_button_released():
+def green_button_released()->None:
     global button_green_was_held
     if not button_green_was_held:
         print("Status LED pressed...")
