@@ -1,6 +1,5 @@
 import socket
-from unittest.util import strclass
-from flask import Flask, Response
+from flask import Flask, Response, render_template, send_from_directory
 from flask_cors import CORS
 from threading import Thread
 import configparser
@@ -70,40 +69,18 @@ licht = False
 
 # web control
 app = Flask(__name__, static_url_path='/bilder',
-            static_folder=conf['server']['Folder'])
+            static_folder=conf['server']['Folder'], template_folder='../template')
 CORS(app)
+
+
+@app.route("/static/<path:filename>")
+def static_file(filename) -> Response:
+    return send_from_directory("../template/static/", filename)
 
 
 @app.route("/")
 def index() -> str:
-    return """<html>
-    <head>
-        <title>Kamera</title>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-
-        <script>
-            const time = new Date();
-            fetch('/time/' + time.getTime());
-        </script>
-    </head>
-    <body>
-        <a href="/overview">Overview</a><br>
-        <a href="/search">Search</a><br>
-        <a href="/preview">Preview</a><br>
-        <a href="/aruco">Aruco</a><br>
-        <a href="/bilderUebersicht">Bilder</a><br>
-        <br>
-        <a href="/photo">Photo</a><br>
-        <a href="/stack">Focus-Stack</a><br>
-        <a href="/focus/-1">Autofocus</a><br>
-        <a href="/light">Light</a>/<a href="/status">Status</a><br>
-        <a href="/update">Update (pull from git)</a><br>
-        <a href="/restart">Restart</a><br>
-        <br><br>
-        <a href="/shutdown">Shutdown</a><br>
-        <a href="/reboot">Reboot</a><br>
-    </body>
-    </html>"""
+    return render_template('index.htm')
 
 
 @app.route("/time/<int:time>")
@@ -117,80 +94,42 @@ def time(time) -> str:
     return "keeped: " + str(alt)
 
 
-@app.route("/bilderUebersicht")
-def bilderUebersicht() -> str:
-    output = """<html>
-    <head>
-        <title>Kamera</title>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-    </head>
-    <body><table>"""
+@app.route("/overviewZip")
+def overviewZip() -> str:
+    '''Overview of all zip files with images.'''
+    filelist = glob(conf['server']['Folder'] + "*.zip")
+    filelist.sort(key=lambda x: path.getmtime(x))
 
-    files = glob(conf['server']['Folder'] + "*.zip")
-    files.sort(key=lambda x: path.getmtime(x))
-    for file in files:
-        t = path.getmtime(file)
-        file = file.replace(conf['server']['Folder'], "")
-        output = output + """<tr><td><a href="/bilder/""" + file + """">""" + file + """</a></td><td>""" + \
-            datetime.utcfromtimestamp(t).strftime(
-                '%Y-%m-%d %H:%M:%S') + """</td></tr>"""
-    output = output + """<br></body>
-    </html>"""
-    return output
+    def f2d(file):
+        time = path.getmtime(file)
+        p = file.replace(conf['server']['Folder'], "")
+        t = datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+        return {'path': p, 'time': t}
+    files = [f2d(file) for file in filelist]
+    return render_template('overviewZip.htm', files=files)
 
 
 @app.route("/overview")
 def overview() -> str:
     global liste
-    output = """<html>
-    <head>
-        <title>Kamera</title>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-        <script>
-        window.onload = function() {
-            function updateImage() {
-                let images = document.getElementsByTagName("img");
-                for (let i = 0; i< images.length; i++) {
-                    images[i].src = images[i].src.split("?")[0] + "?"+ new Date().getTime();
-                } 
-            }
-            setInterval(updateImage, 10000);
-        }   
-    </script>
-    <style>
-    div {
-        display: inline-block;
-        height: 20%;
-        width: 20%;
-    }
-    #img {
-        max-height: 90%;
-        max-width: 100%;
-    }
-    </style>
-    </head>
-    <body>"""
-
     hnames = dict(sorted(liste.items()))
-
-    for hostname, ip in hnames.items():
-        output: str = output + """<div><a href="http://""" + ip + """:8080/photo"><img id="img" src="http://""" + \
-            ip + """:8080/preview/-2?" width="640" height="480" /></a><br>""" + \
-            hostname + """</div>"""
-    output = output + """<a href="/focus/-1">Autofocus</a><br></body>
-    </html>"""
-    return output
+    hip = [{'hostname': hostname, 'ip': ip} for hostname, ip in hnames.items()]
+    return render_template('overview.htm', cameras=hip)
 
 
 @app.route("/search")
-def search(send_search=True) -> str:
+def search_html() -> str:
+    search()
+    return render_template('wait.htm', time=5, target_url="/overview", title="Search for cameras...")
+
+
+def search(send_search=True) -> None:
     global liste
     liste = dict()
     if gpio_available:
         pixels.fill(BLUE)  # type: ignore
     if send_search:
         send_to_all('search')
-    return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Suche...</title></head><body>Suche läuft...</body></html>"""
 
 
 def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
@@ -205,36 +144,11 @@ def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
         send_to_all(f'{action}:{id}')
         sleep(1 if action == "photo" else 5)
         status_led()
-        return f"""<html><head><meta http-equiv="refresh" content="5; URL=/{action}/{id}"><title>Photo...</title></head><body>Photo wird gemacht...</body></html>"""
+        return render_template('wait.htm', time=5,
+                               target_url=f"/{action}/{id}", title="Photo...")
     else:
-        output = """<html>
-        <head>
-            <title>Kamera</title>
-            <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-        <style>
-        div {
-            display: inline-block;
-            height: 20%;
-            width: 20%;
-        }
-        #img {
-            max-height: 90%;
-            max-width: 100%;
-        }
-        </style>
-        </head>
-        <body>"""
-
         hnames = dict(sorted(liste.items()))
-
-        for hostname, ip in hnames.items():
-            output = output + """<div><a href="/bilder/""" + id + """/""" + hostname + """.jpg">""" + \
-                """<img id="img" src="/bilder/""" + id + """/"""+hostname+""".jpg" /></a><br>""" + \
-                hostname + """</div>"""
-        output = output + """<br /><br />
-        <a href="/bilder/""" + id + """.zip">Download as ZIP</a></body>
-        </html>"""
-        return output
+        return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
 
 
 @app.route("/photo")
@@ -249,63 +163,15 @@ def stack() -> str:
 
 
 @app.route("/preview")
-def preview() -> Response:
+def preview() -> str:
     """Renders a preview page with camera settings and a photo.
 
     Returns:
         Response: The HTTP response containing the preview page.
     """
-    response = Response()
-    t = """<html><head><title>Preview</title></head><body>
-    <script>
-    function settings() {
-        let url = document.getElementById("camera").value + 'settings/';
-        let data = {
-            focus: parseFloat(document.getElementById("focus").value),
-            iso: parseInt(document.getElementById("iso").value),
-            shutter_speed: parseInt(document.getElementById("shutter_speed").value)
-        }
-        data = JSON.stringify(data);
-        fetch (url,  {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            },
-            body: data
-        })
-    }
-    function lade_bild() {
-        let img = document.getElementsByTagName("img")[0];
-        let url = document.getElementById("camera").value + 'photo/';
-        fetch (url,  {
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Content-Type': 'application/json'
-            },
-        }).then(function(response) {
-            return response.blob();
-        }).then(function(blob) {
-            img.src = URL.createObjectURL(blob);
-        });
-    }
-    </script>
-    4608 × 2592
-    <img width="1152" height="648" /><br />
-    <select onchange="lade_bild()" id="camera">"""
-
-    for hostname, ip in liste.items():
-        t = t + """<option value="http://""" + ip + """:8080/">""" + \
-            hostname + """</option>"""
-
-    t += """</select><br />
-    Focus: <input type="range" id="focus" value="0.3" min="0.10" max="1" step="0.05" onchange="settings()" /><br />
-    ISO: <input type="range" id="iso" value="100" min="50" max="2000" step="50" onchange="settings()" /><br />
-    ShutterSpeed: <input type="range" id="shutter_speed" value="1" min="1000" max="50000" step="1000" onchange="settings()" /><br />
-    <input type="button" value="Photo" onclick="lade_bild()" />    
-    </body></html>"""
-    response.data = t
-    return response
+    hnames = dict(sorted(liste.items()))
+    cameras = [{'hostname': k, 'ip': v} for k, v in hnames.items()]
+    return render_template('preview.htm', cameras=cameras)
 
 
 @app.route("/focus")
@@ -313,7 +179,7 @@ def preview() -> Response:
 def focus(val=-1) -> str:
     """ Focus """
     send_to_all('focus:' + str(val))
-    return """<html><head><meta http-equiv="refresh" content="5; URL=/overview"><title>Focus...</title></head><body>Fokussierung...</body></html>"""
+    return render_template('wait.htm', time=5, target_url="/overview", title="Focusing...")
 
 
 def system_control(action: Literal['shutdown', 'reboot']) -> NoReturn:
@@ -354,7 +220,7 @@ def restart() -> str:
         exit(1)
     Thread(target=restart_skript).start()
     print("Restart Skript...")
-    return "Restarting..."
+    return render_template('wait.htm', time=15, target_url="/", title="Restarting...")
 
 
 @app.route('/proxy/<host>/<path>')
@@ -380,13 +246,13 @@ def update() -> str:
 def aruco() -> str:
     """ Aruco """
     send_to_all('aruco:' + str(uuid.uuid4()))
-    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Erfasse...</title></head><body>Erfasse...</body></html>"""
+    return render_template('wait.htm', time=5, target_url="/arucoErg", title="Search for Aruco...")
 
 
 @app.route("/arucoErg")
 def aruco_erg() -> str:
     """ Aruco """
-    return """<html><head><meta http-equiv="refresh" content="10; URL=/arucoErg"><title>Aruco</title></head><body>""" + json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;") + """</body></html>"""
+    return render_template('aruco.htm', content=json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;"))
 
 
 @app.route("/light")
@@ -397,7 +263,7 @@ def photo_light(val=0) -> str:
     if gpio_available:
         pixels.fill(WHITE)
     try:
-        return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Light...</title></head><body>Light...</body></html>"""
+        return render_template('wait.htm', time=1, target_url="/", title="Light...")
     finally:
         if (val > 0):
             sleep(float(val))
@@ -420,7 +286,7 @@ def status_led(val=0) -> str:
                     if t == pi:
                         pixels[led] = GREEN
     try:
-        return """<html><head><meta http-equiv="refresh" content="1; URL=/"><title>Status...</title></head><body>Status...</body></html>"""
+        return render_template('wait.htm', time=1, target_url="/", title="Status...")
     finally:
         if val > 0:
             sleep(float(val))
@@ -502,9 +368,9 @@ def download_photo(ip, id, name, hostname) -> None:
         photo_light()
 
 
-def stack_photos(id)_>None:
-    folder:str = conf['server']['Folder'] + id + "/"
-    imgs:list[str] = glob(folder + "*.jpg")
+def stack_photos(id) -> None:
+    folder: str = conf['server']['Folder'] + id + "/"
+    imgs: list[str] = glob(folder + "*.jpg")
     groups: dict[str, list] = {}
     imgs.sort()
     for i in imgs:
@@ -517,13 +383,13 @@ def stack_photos(id)_>None:
         imwrite(folder + camera + ".jpg", FocusStack.focus_stack(bilder))
 
 
-def receive_aruco(data)->None:
+def receive_aruco(data) -> None:
     global marker
-    i1:int = data.find(":")
-    i2:int = data[i1+1:].find(":")
-    id:int = data[:i1]
+    i1: int = data.find(":")
+    i2: int = data[i1+1:].find(":")
+    id: int = data[:i1]
 
-    hostname:str = data[i1+1:i1+i2+1]
+    hostname: str = data[i1+1:i1+i2+1]
     marker[hostname][id] = json_loads(data[i1+i2+2:])
 
 
@@ -588,14 +454,14 @@ def resume():
 
 # Buttons
 
-def red_button_held()->None:
+def red_button_held() -> None:
     global button_red_was_held
     button_red_was_held = True
     print("Shutdown pressed...")
     shutdown()
 
 
-def red_button_released()->None:
+def red_button_released() -> None:
     global button_red_was_held
     if not button_red_was_held:
         print("Red pressed...")
@@ -604,7 +470,7 @@ def red_button_released()->None:
     button_red_was_held = False
 
 
-def blue_button_released()->None:
+def blue_button_released() -> None:
     global button_blue_was_held
     if not button_blue_was_held:
         print("Photo pressed...")
@@ -612,14 +478,14 @@ def blue_button_released()->None:
     button_blue_was_held = False
 
 
-def blue_button_held()->None:
+def blue_button_held() -> None:
     global button_blue_was_held
     button_blue_was_held = True
     print("Calibration pressed...")
     pass
 
 
-def green_button_released()->None:
+def green_button_released() -> None:
     global button_green_was_held
     if not button_green_was_held:
         print("Status LED pressed...")

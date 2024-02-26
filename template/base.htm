@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title1 %}{% endblock %} [PhotoBox]</title>
+    <link rel="stylesheet" href="/static/style.css">
+    {% block header %} {% endblock %}
+</head>
+
+<body>
+    <header>
+        <a href="/">
+            <h1>{% block title2 %}{% endblock %}</h1>
+        </a>
+    </header>
+
+    <!--<nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>-->
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>PhotoBox &copy; 2024 Florian Timm, HafenCity Universität Hamburg</p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Overview Zip-Archives{% endblock %}
+
+{% block title2 %}Overview Zip-Archives{% endblock %}
+
+{% block content %}
+<table>
+
+    {% for file in files %}
+    <tr>
+        <td><a href="/bilder/{{ file['path'] }}"">{{ file['path'] }}</a></td>
+        <td>{{ file['time'] }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}
