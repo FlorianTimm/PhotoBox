@@ -1,0 +1,45 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Overview Cameras{% endblock %}
+
+{% block title2 %}Overview Cameras{% endblock %}
+
+{% block header %}
+<script>
+    window.onload = function () {
+        function updateImage() {
+            let images = document.getElementsByTagName("img");
+            for (let i = 0; i < images.length; i++) {
+                images[i].src = images[i].src.split("?")[0] + "?" + new Date().getTime();
+            }
+        }
+        setInterval(updateImage, 10000);
+    }   
+</script>
+<style>
+    div {
+        display: inline-block;
+        height: 20%;
+        width: 20%;
+    }
+
+    #img {
+        max-height: 90%;
+        max-width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% for camera in cameras %}
+<div>
+    <a href="http://{{ camera.ip }}:8080/photo">
+        <img id="img" src="http://{{ camera.ip }}:8080/preview/-2?" width="640" height="480" />
+    </a>
+    <br>
+    {{ camera.hostname }}
+</div>
+{% endfor %}
+<a href="/focus/-1">Autofocus</a>
+{% endblock %}

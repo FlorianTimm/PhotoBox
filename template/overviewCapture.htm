@@ -1,0 +1,34 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Overview {{ id }}{% endblock %}
+
+{% block title2 %}Overview {{ id }}{% endblock %}
+
+{% block header %}
+<style>
+    div {
+        display: inline-block;
+        height: 20%;
+        width: 20%;
+    }
+
+    #img {
+        max-height: 90%;
+        max-width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% for camera in cameras %}
+<div>
+    <a href="/bilder/{{ id }}/{{ camera }}.jpg">
+        <img id="img" src="/bilder/{{ id }}/{{ camera }}.jpg" />
+    </a>
+    <br>
+    {{ camera }}
+</div>
+{% endfor %}
+<a href="/bilder/{{ id }}.zip">Download as ZIP</a>
+{% endblock %}
