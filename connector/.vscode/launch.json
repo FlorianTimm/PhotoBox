@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "Connector",
             "projectName": "connector_3847253a",
-            "args": "localhost:8080",
+            "args": "localhost:50267",
             //"vmArgs": "-Djava.library.path=${workspaceFolder}/lib/jniLibs/linux64"
         }
     ]

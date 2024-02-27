@@ -9,6 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/master/master.py",
+            "cwd": "${workspaceFolder}/master/",
             "console": "integratedTerminal",
             "justMyCode": true
         }

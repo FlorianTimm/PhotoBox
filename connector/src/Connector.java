@@ -1,5 +1,5 @@
 class Connector {
-    private int port = 8080;
+    private int port = 50267;
     private String host = "localhost";
     private ConnectorGUI gui;
     private boolean isConnected = false;
