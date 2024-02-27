@@ -23,6 +23,8 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
     private JButton connect;
     private JTextArea logArea;
     private ButtonGroup selectSfmSoftware;
+    private JRadioButton rODM;
+    private JRadioButton rMetashape;
 
     public ConnectorGUI(Connector connector) {
         super("PhotoBoxConnector");
@@ -59,15 +61,15 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
         this.textPort.setMaximumSize(new Dimension(300, 30));
         left.add(this.textPort);
 
-        JRadioButton rMetashape = new JRadioButton("Agisoft Metashape");
-        rMetashape.setActionCommand("Metashape");
-        rMetashape.setSelected(connector.getSoftware().equals("Metashape"));
-        left.add(rMetashape);
+        this.rMetashape = new JRadioButton("Agisoft Metashape");
+        this.rMetashape.setActionCommand("Metashape");
+        this.rMetashape.setSelected(connector.getSoftware().equals("Metashape"));
+        left.add(this.rMetashape);
 
-        JRadioButton rODM = new JRadioButton("OpenDroneMap");
-        rODM.setActionCommand("ODM");
-        rODM.setSelected(connector.getSoftware().equals("ODM"));
-        left.add(rODM);
+        this.rODM = new JRadioButton("OpenDroneMap");
+        this.rODM.setActionCommand("ODM");
+        this.rODM.setSelected(connector.getSoftware().equals("ODM"));
+        left.add(this.rODM);
 
         this.selectSfmSoftware = new ButtonGroup();
         this.selectSfmSoftware.add(rMetashape);
@@ -92,15 +94,20 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
     }
 
     public void setConnected() {
-        this.textHostname.setEnabled(false);
-        this.textPort.setEnabled(false);
+        toggleInput(false);
         this.connect.setText("Disconnect");
     }
 
     public void setDisconnected() {
-        this.textHostname.setEnabled(true);
-        this.textPort.setEnabled(true);
+        toggleInput(true);
         this.connect.setText("Connect");
+    }
+
+    private void toggleInput(boolean enabled) {
+        this.textHostname.setEnabled(enabled);
+        this.textPort.setEnabled(enabled);
+        this.rODM.setEnabled(enabled);
+        this.rMetashape.setEnabled(enabled);
     }
 
     @Override

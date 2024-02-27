@@ -1,3 +1,5 @@
+import atexit
+from queue import Queue
 import socket
 from flask import Flask, Response, render_template, send_from_directory
 from flask_cors import CORS
@@ -12,11 +14,13 @@ from json import loads as json_loads, dumps as json_dumps
 from shutil import make_archive
 from glob import glob
 from datetime import datetime
-from typing import Literal, NoReturn
+from typing import Literal, NoReturn, final
 from os.path import basename
 import FocusStack
 from cv2 import imread, imwrite
 from requests import get, Response as GetResponse
+
+from StoppableThread import StoppableThread
 
 
 try:
@@ -48,6 +52,8 @@ photo_count: dict[str, int] = {}
 download_count: dict[str, int] = {}
 photo_type: dict[str, Literal["photo", "stack"]] = {}
 cams_started = True
+
+desktop_message_queue: Queue[str] = Queue()
 
 conf = configparser.ConfigParser()
 conf.read("../config.ini")
@@ -257,22 +263,33 @@ def aruco_erg() -> str:
 
 @app.route("/light")
 @app.route("/light/<val>")
-def photo_light(val=0) -> str:
+def photo_light_html(val=0) -> str:
+    try:
+        return render_template('wait.htm', time=1, target_url="/", title="Light...")
+    finally:
+        photo_light(val)
+
+
+def photo_light(val=0) -> None:
     global licht
     licht = True
     if gpio_available:
         pixels.fill(WHITE)
-    try:
-        return render_template('wait.htm', time=1, target_url="/", title="Light...")
-    finally:
-        if (val > 0):
-            sleep(float(val))
-            status_led()
+    if (val > 0):
+        sleep(float(val))
+        status_led()
 
 
 @app.route("/status")
 @app.route("/status/<val>")
-def status_led(val=0) -> str:
+def status_led_html(val=0) -> str:
+    try:
+        return render_template('wait.htm', time=1, target_url="/", title="Status...")
+    finally:
+        status_led(val)
+
+
+def status_led(val=0) -> None:
     global licht
     licht = False
     if gpio_available:
@@ -285,12 +302,9 @@ def status_led(val=0) -> str:
                     t = int(n[0])
                     if t == pi:
                         pixels[led] = GREEN
-    try:
-        return render_template('wait.htm', time=1, target_url="/", title="Status...")
-    finally:
-        if val > 0:
-            sleep(float(val))
-            photo_light()
+    if val > 0:
+        sleep(float(val))
+        photo_light()
 
 
 def send_to_all(msg) -> None:
@@ -366,6 +380,7 @@ def download_photo(ip, id, name, hostname) -> None:
         del photo_type[id]
         make_archive(conf['server']['Folder'] + id, 'zip', folder)
         photo_light()
+        desktop_message_queue.put(f"Photo done: {id}.zip")
 
 
 def stack_photos(id) -> None:
@@ -518,13 +533,67 @@ if gpio_available:
     button_green_was_held = False
 
 
+def desktop_interface(queue):
+    di_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    di_socket.bind(("", int(conf['server']['DesktopPort'])))
+    di_socket.listen()
+    di_socket.settimeout(1)
+    while True:
+        try:
+            conn, addr = di_socket.accept()
+
+            data = conn.recv(1024).decode("utf-8")
+            print(addr, data)
+
+            if data[:4] == 'Moin':
+                print("Client connected")
+                conn.sendall(bytes("Moin\n", "utf-8"))
+            while True:
+
+                if queue.qsize() > 0:
+                    conn.sendall((queue.get()+"\n").encode("utf-8"))
+                sleep(0.5)
+
+                # from: https://stackoverflow.com/questions/48024720/python-how-to-check-if-socket-is-still-connected
+                try:
+                    # this will try to read bytes without blocking and also without removing them from buffer (peek only)
+                    data = conn.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
+                    if len(data) == 0:
+                        print("socket was closed")
+                        break
+                except BlockingIOError:
+                    pass  # socket is open and reading from it would block
+                except ConnectionResetError:
+                    print("socket was closed for some other reason")
+                    break
+                except Exception as e:
+                    print("unexpected exception when checking if a socket is closed")
+        except socket.timeout:
+            pass
+        except Exception as e:
+            print("Error in desktop interface:", e)
+            sleep(1)
+
+
 # Start
 
 if __name__ == '__main__':
-    w = Thread(target=start_web)
-    w.start()
+    thread_webinterface = StoppableThread(target=start_web)
+    thread_webinterface.start()
     global receiver
-    receiver = Thread(target=listen_to_port)
-    sleep(5)
-    receiver.start()
+    thread_camera_interface = StoppableThread(target=listen_to_port)
+    sleep(1)
+    thread_camera_interface.start()
+    thread_desktop_interface = StoppableThread(
+        target=desktop_interface, args=(desktop_message_queue,))
+    thread_desktop_interface.start()
     search()
+
+
+def exit_handler():
+    thread_desktop_interface.stop()
+    thread_webinterface.stop()
+    thread_camera_interface.stop()
+
+
+atexit.register(exit_handler)
