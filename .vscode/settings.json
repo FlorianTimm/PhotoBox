@@ -18,5 +18,11 @@
     "python.analysis.extraPaths": [
         "./.venv/lib/python3.11/site-packages",
         "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
-    ]
+    ],
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "connector/lib/metashape-java-api.jar",
+        "connector/lib/metashape-java-api-javadoc.jar",
+        "connector/lib/metashape-java-api-sources.jar"
+    ],
 }
