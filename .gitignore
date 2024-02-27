@@ -129,3 +129,8 @@ pytestdebug.log
 # End of https://www.toptal.com/developers/gitignore/api/python
 experimente/*.jpg
 experimente/Fokus/*.jpg
+connector/lib/**/*
+licence.lic
+connector/bin/Connector.class
+*.class
+*.jar

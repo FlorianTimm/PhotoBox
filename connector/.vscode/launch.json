@@ -5,12 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Master",
-            "type": "debugpy",
+            "type": "java",
+            "name": "PhotoBoxConnector",
             "request": "launch",
-            "program": "${workspaceFolder}/master/master.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
+            "mainClass": "Connector",
+            "projectName": "connector_3847253a",
+            "args": "localhost:8080",
+            //"vmArgs": "-Djava.library.path=${workspaceFolder}/lib/jniLibs/linux64"
         }
     ]
 }
