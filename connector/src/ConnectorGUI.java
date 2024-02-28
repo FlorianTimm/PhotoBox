@@ -2,10 +2,12 @@
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -26,6 +28,7 @@ public class ConnectorGUI extends JFrame {
     private JRadioButton rODM;
     private JRadioButton rMetashape;
     private JButton photoButton;
+    private JButton directoryButton;
 
     public ConnectorGUI(Connector connector) {
         super("PhotoBoxConnector");
@@ -84,6 +87,29 @@ public class ConnectorGUI extends JFrame {
         });
         left.add(this.connect);
 
+        JPanel top = new JPanel();
+        top.setLayout(new BoxLayout(top, javax.swing.BoxLayout.X_AXIS));
+        cp.add(top, BorderLayout.NORTH);
+
+        JTextField directoryTextField = new JTextField();
+        directoryTextField.setEditable(false);
+        directoryTextField.setText(connector.getDirectory().getAbsolutePath());
+        directoryTextField.setEnabled(false);
+        top.add(directoryTextField);
+
+        this.directoryButton = new JButton("Select Directory");
+        this.directoryButton.addActionListener((e) -> {
+            JFileChooser fileChooser = new JFileChooser(connector.getDirectory());
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int option = fileChooser.showOpenDialog(this);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                directoryTextField.setText(file.getAbsolutePath());
+                connector.setDirectory(file);
+            }
+        });
+        top.add(this.directoryButton);
+
         this.logArea = new JTextArea();
         this.logArea.setEditable(false);
         this.logArea.setLineWrap(true);
@@ -119,6 +145,7 @@ public class ConnectorGUI extends JFrame {
     }
 
     private void toggleInput(boolean enabled) {
+        this.directoryButton.setEnabled(enabled);
         this.textHostname.setEnabled(enabled);
         this.textPort.setEnabled(enabled);
         this.rODM.setEnabled(enabled);

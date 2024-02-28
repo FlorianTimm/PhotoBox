@@ -1,3 +1,5 @@
+import java.io.File;
+
 class Connector {
     private int port = 50267;
     private String host = "localhost";
@@ -6,6 +8,7 @@ class Connector {
     private PhotoBoxClient photoBox;
     private SfmClient sfmClient;
     private String software = "Metashape";
+    private File directory;
 
     public static void main(String[] args) {
         new Connector(args);
@@ -26,6 +29,8 @@ class Connector {
             }
             break;
         }
+
+        this.directory = new File(System.getProperty("user.home") + "/PhotoBox");
 
         this.gui = new ConnectorGUI(this);
 
@@ -74,8 +79,6 @@ class Connector {
     }
 
     public void disconnect() {
-        log("Disconnecting from " + this.host + ":" + this.port);
-
         if (!this.photoBox.disconnect()) {
             this.gui.log("Failed to disconnect from PhotoBox");
             return;
@@ -121,5 +124,13 @@ class Connector {
     public void log(String message) {
         System.out.println(message);
         this.gui.log(message);
+    }
+
+    public File getDirectory() {
+        return this.directory;
+    }
+
+    public void setDirectory(File directory) {
+        this.directory = directory;
     }
 }

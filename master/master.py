@@ -150,12 +150,14 @@ def search(send_search=True) -> None:
 def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
     global photo_count, download_count, photo_type
     if len(liste) == 0:
-        desktop_message_queue.put("No cameras found!")
+        send_to_desktop("No cameras found!")
         return "No cameras found!"
     if id == "":
         id = str(uuid.uuid4())
     if gpio_available:
         pixels.fill(WHITE)  # type: ignore
+
+    send_to_desktop(f"photoStart: {id}")
 
     def do_capture(action: Literal['photo', 'stack'], id: str):
         global photo_count, download_count, photo_type
@@ -167,6 +169,10 @@ def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
         status_led()
     Thread(target=do_capture, args=(action, id)).start()
     return id
+
+
+def send_to_desktop(message: str) -> None:
+    desktop_message_queue.put(message)
 
 
 @app.route("/photo")
@@ -287,7 +293,7 @@ def aruco_erg() -> str:
 def test() -> str:
     """ Test """
     send_to_all('test')
-    desktop_message_queue.put("Test")
+    send_to_desktop("test")
     return render_template('wait.htm', time=5, target_url="/overview", title="Test...")
 
 
@@ -348,7 +354,7 @@ def send_to_all(msg) -> None:
 def start_web() -> None:
     """ start web control """
     print("Web server is starting...")
-    app.run('0.0.0.0', 8080)
+    app.run('0.0.0.0', int(conf["server"]['WebPort']))
 
 
 def found_camera(hostname, ip) -> None:
@@ -394,7 +400,8 @@ def download_photo(ip, id, name, hostname) -> None:
 
     print("Collecting photo from " + hostname + "...")
     try:
-        url = "http://" + ip + ":8080/bilder/" + name
+        url = "http://" + ip + ":" + \
+            conf["kameras"]['WebPort'] + "/bilder/" + name
         print(url)
         r = requests.get(url, allow_redirects=True)
         open(folder + hostname + name[36:], 'wb').write(r.content)
@@ -410,7 +417,8 @@ def download_photo(ip, id, name, hostname) -> None:
         del photo_type[id]
         make_archive(conf['server']['Folder'] + id, 'zip', folder)
         photo_light()
-        desktop_message_queue.put(f"Photo done: {id}.zip")
+        send_to_desktop(
+            f"photoZip:{socket.gethostname()}:{conf['server']['WebPort']}/bilder/{id}.zip")
 
 
 def stack_photos(id) -> None:
@@ -587,13 +595,19 @@ def desktop_interface(queue: Queue[str]):
                     conn, addr = di_socket.accept()
                 except socket.timeout:
                     continue
-
+                conn.settimeout(0.1)
+                queue.queue.clear()
+                if hb:
+                    hb.cancel()
                 # Heartbeat-Signal to keep the connection alive
                 hb = Timer(10, heartbeat)
                 hb.start()
 
                 while stopping == False:
                     try:
+                        if queue.qsize() > 0:
+                            conn.sendall((queue.get()+"\n").encode("utf-8"))
+
                         data = conn.recv(1024).decode("utf-8")
                         print(addr, data)
 
@@ -605,8 +619,9 @@ def desktop_interface(queue: Queue[str]):
                             if len(data) > 5:
                                 id = data[6:]
                             capture('photo', id)
-                        if queue.qsize() > 0:
-                            conn.sendall((queue.get()+"\n").encode("utf-8"))
+
+                    except socket.timeout:
+                        continue
                     except:
                         print("Client disconnected")
                         if hb:
@@ -620,61 +635,6 @@ def desktop_interface(queue: Queue[str]):
     finally:
         if di_socket:
             di_socket.close()
-
-
-def desktop_interface_test(queue: Queue[str]):
-    print("starting to listen")
-
-    for res in socket.getaddrinfo(None, int(conf['server']['DesktopPort']), socket.AF_UNSPEC,
-                                  socket.SOCK_STREAM, 0, socket.AI_PASSIVE):
-        af, socktype, proto, canonname, sa = res
-        try:
-            s = socket.socket(af, socktype, proto)
-        except socket.error as msg:
-            s = None
-            continue
-        try:
-            s.bind(sa)
-            s.listen(1)
-        except socket.error as msg:
-            s.close()
-            s = None
-            continue
-        break
-    if s is None:
-        print('could not open socket')
-        sys.exit(1)
-    conn, addr = s.accept()
-    print('Connected by', addr)
-    while 1:
-        try:
-            data = conn.recv(1024)
-        except:
-            print("cannot recieve data")
-            break
-        if not data:
-            break
-        print(data)
-
-        message = ""
-
-        while message != "quit":
-            if queue.qsize() > 0:
-                message = queue.get()
-            else:
-                continue
-
-            message_bytes = (message+"\n").encode("utf-8")
-            try:
-                conn.sendall(message_bytes)
-            except Exception as exc:
-                # print exc # or something.
-                print("message could not be sent")
-                break
-        # conn.send("I got that, over!")
-
-    conn.close()
-    print("connection closed")
 
 
 # Start
