@@ -20,9 +20,13 @@
         "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
     ],
     "java.project.referencedLibraries": [
-        "lib/**/*.jar",
-        "connector/lib/metashape-java-api.jar",
-        "connector/lib/metashape-java-api-javadoc.jar",
-        "connector/lib/metashape-java-api-sources.jar"
+        "${workspaceFolder}/connector/lib/**/*.jar",
+        "${workspaceFolder}/connector/lib/metashape-java-api.jar",
+        "${workspaceFolder}/connector/lib/metashape-java-api-javadoc.jar",
+        "${workspaceFolder}/connector/lib/metashape-java-api-sources.jar"
     ],
+    "java.project.sourcePaths": [
+        "${workspaceFolder}/connector/src"
+    ],
+    "java.project.outputPath": "${workspaceFolder}/connector/bin",
 }

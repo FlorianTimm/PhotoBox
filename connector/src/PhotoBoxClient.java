@@ -40,6 +40,9 @@ public class PhotoBoxClient {
                         if (line != null) {
                             connector.log(line);
                         }
+                        if (Thread.interrupted()) {
+                            break;
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -71,8 +74,8 @@ public class PhotoBoxClient {
     public boolean disconnect() {
         this.connector.log("Disconnecting from " + this.host + ":" + this.port);
         try {
-            this.receiver.interrupt();
             this.socket.close();
+            this.receiver.interrupt();
             return true;
         } catch (IOException e) {
             e.printStackTrace();
