@@ -29,6 +29,7 @@ public class ConnectorGUI extends JFrame {
     private JRadioButton rMetashape;
     private JButton photoButton;
     private JButton directoryButton;
+    private JRadioButton rDownload;
 
     public ConnectorGUI(Connector connector) {
         super("PhotoBoxConnector");
@@ -65,6 +66,11 @@ public class ConnectorGUI extends JFrame {
         this.textPort.setMaximumSize(new Dimension(300, 30));
         left.add(this.textPort);
 
+        this.rDownload = new JRadioButton("Just download");
+        this.rDownload.setActionCommand("Download");
+        this.rDownload.setSelected(connector.getSoftware().equals("Download"));
+        left.add(this.rDownload);
+
         this.rMetashape = new JRadioButton("Agisoft Metashape");
         this.rMetashape.setActionCommand("Metashape");
         this.rMetashape.setSelected(connector.getSoftware().equals("Metashape"));
@@ -78,6 +84,7 @@ public class ConnectorGUI extends JFrame {
         this.selectSfmSoftware = new ButtonGroup();
         this.selectSfmSoftware.add(rMetashape);
         this.selectSfmSoftware.add(rODM);
+        this.selectSfmSoftware.add(rDownload);
         this.connect = new JButton("Connect");
         this.connect.addActionListener((e) -> {
             connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
