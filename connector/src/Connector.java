@@ -7,7 +7,7 @@ class Connector {
     private boolean isConnected = false;
     private PhotoBoxClient photoBox;
     private SfmClient sfmClient;
-    private String software = "Metashape";
+    private String software = "Download";
     private File directory;
 
     public static void main(String[] args) {
@@ -55,8 +55,10 @@ class Connector {
 
         if (this.software.equals("Metashape")) {
             this.sfmClient = new MetashapeClient(this);
-        } else {
+        } else if (this.software.equals("ODM")) {
             this.sfmClient = new ODMClient(this);
+        } else {
+            this.sfmClient = new DownloadClient();
         }
 
         if (!this.sfmClient.connect()) {
