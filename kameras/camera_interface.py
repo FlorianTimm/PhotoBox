@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.02.28
+"""
+
 # stream: https://github.com/raspberrypi/picamera2/issues/366#issuecomment-1285888051
 
 from io import BytesIO
@@ -12,7 +20,7 @@ from typen import CamSettings, CamSettingsWithFilename
 from typing import Dict, Tuple, List, Callable
 
 
-class Kamera(object):
+class CameraInterface(object):
     CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
     def __init__(self, folder: str):
