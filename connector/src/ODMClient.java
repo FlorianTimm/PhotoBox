@@ -13,6 +13,12 @@ public class ODMClient implements SfmClient {
         return true;
     }
 
+    public boolean disconnect() {
+        // TODO: Implement disconnection from OpenDroneMap
+        connector.log("Disconnected from OpenDroneMap");
+        return true;
+    }
+
     public boolean createProject(String filename) {
         // TODO: Implement connection to OpenDroneMap
         return true;

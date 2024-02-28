@@ -64,6 +64,15 @@ class Connector {
         return true;
     }
 
+    public void takePhoto() {
+        if (!this.isConnected) {
+            this.gui.log("Not connected");
+            return;
+        }
+
+        this.photoBox.takePhoto();
+    }
+
     public void disconnect() {
         log("Disconnecting from " + this.host + ":" + this.port);
 

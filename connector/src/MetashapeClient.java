@@ -29,6 +29,11 @@ public class MetashapeClient implements Progress, SfmClient {
         return true;
     }
 
+    public boolean disconnect() {
+        connector.log("Disconnected from Metashape");
+        return true;
+    }
+
     public boolean createProject() {
         return createProject("project.psx");
     }
