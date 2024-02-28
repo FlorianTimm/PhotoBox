@@ -68,7 +68,7 @@ class LedControl:
             self.pixels[led] = self.RED
             liste_aktuell = self.control.get_hostnames()
             for hostname, ip in liste_aktuell:
-                n = re.findall("\d{2}", hostname)
+                n = re.findall(r"\d{2}", hostname)
                 if len(n) > 0:
                     t = int(n[0])
                     if t == pi:
