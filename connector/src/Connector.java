@@ -67,6 +67,15 @@ class Connector {
     public void disconnect() {
         log("Disconnecting from " + this.host + ":" + this.port);
 
+        if (!this.photoBox.disconnect()) {
+            this.gui.log("Failed to disconnect from PhotoBox");
+            return;
+        }
+        if (!this.sfmClient.disconnect()) {
+            this.gui.log("Failed to disconnect from " + this.software);
+            return;
+        }
+
         this.isConnected = false;
         this.gui.setDisconnected();
     }

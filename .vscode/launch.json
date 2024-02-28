@@ -12,6 +12,19 @@
             "cwd": "${workspaceFolder}/master/",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "type": "java",
+            "name": "PhotoBoxConnector",
+            "request": "launch",
+            "classPaths": [
+                "${workspaceFolder}/connector/bin"
+            ],
+            "mainClass": "Connector",
+            //"projectName": "connector_3847253a",
+            "args": "localhost:50267",
+            "cwd": "${workspaceFolder}/connector/",
+            //"vmArgs": "-Djava.library.path=${workspaceFolder}/lib/jniLibs/linux64"
         }
     ]
 }

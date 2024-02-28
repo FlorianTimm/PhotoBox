@@ -1,9 +1,16 @@
 import atexit
+from calendar import c
+import html
 from queue import Queue
 import socket
+import sys
+from tracemalloc import stop
+from turtle import st
+
+from regex import F
 from flask import Flask, Response, render_template, send_from_directory
 from flask_cors import CORS
-from threading import Thread
+from threading import Thread, Timer
 import configparser
 import re
 from time import sleep, clock_settime, clock_gettime, CLOCK_REALTIME
@@ -47,6 +54,8 @@ LIGHTRED = (50, 0, 0)
 
 liste: dict[str, str] = dict()
 marker: dict[str, list] = dict()
+
+stopping = False
 
 photo_count: dict[str, int] = {}
 download_count: dict[str, int] = {}
@@ -141,31 +150,40 @@ def search(send_search=True) -> None:
 def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
     global photo_count, download_count, photo_type
     if id == "":
-        if gpio_available:
-            pixels.fill(WHITE)  # type: ignore
         id = str(uuid.uuid4())
+    if gpio_available:
+        pixels.fill(WHITE)  # type: ignore
+
+    def do_capture(action: Literal['photo', 'stack'], id: str):
         photo_count[id] = len(liste) * (4 if action == "stack" else 1)
         download_count[id] = len(liste) * (4 if action == "stack" else 1)
         photo_type[id] = action
         send_to_all(f'{action}:{id}')
         sleep(1 if action == "photo" else 5)
         status_led()
+    Thread(target=do_capture, args=(action, id)).start()
+    return id
+
+
+@app.route("/photo")
+@app.route("/photo/<id>")
+def photo_html(id: str = "") -> str:
+    return capture_html("photo", id)
+
+
+@app.route("/stack")
+def stack_html() -> str:
+    return capture_html("stack")
+
+
+def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
+    if id == "":
+        id = capture(action)
         return render_template('wait.htm', time=5,
                                target_url=f"/{action}/{id}", title="Photo...")
     else:
         hnames = dict(sorted(liste.items()))
         return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
-
-
-@app.route("/photo")
-@app.route("/photo/<id>")
-def photo(id: str = "") -> str:
-    return capture("photo", id)
-
-
-@app.route("/stack")
-def stack() -> str:
-    return capture("stack")
 
 
 @app.route("/preview")
@@ -259,6 +277,14 @@ def aruco() -> str:
 def aruco_erg() -> str:
     """ Aruco """
     return render_template('aruco.htm', content=json_dumps(marker).replace("\n", "<br />\n").replace(" ", "&nbsp;"))
+
+
+@app.route("/test")
+def test() -> str:
+    """ Test """
+    send_to_all('test')
+    desktop_message_queue.put("Test")
+    return render_template('wait.htm', time=5, target_url="/overview", title="Test...")
 
 
 @app.route("/light")
@@ -412,7 +438,7 @@ def listen_to_port():
     socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     socket_rec.bind(("0.0.0.0", int(conf['both']['BroadCastPort'])))
-    while True:
+    while stopping == False:
         # sock.sendto(bytes("hello", "utf-8"), ip_co)
         data, addr = socket_rec.recvfrom(1024)
         print("received message: %s" % data)
@@ -428,6 +454,7 @@ def listen_to_port():
             receive_aruco(data[11:])
         elif data[:5] == 'light':
             photo_light()
+    socket_rec.close()
 
 
 def switch_pause_resume():
@@ -489,14 +516,15 @@ def blue_button_released() -> None:
     global button_blue_was_held
     if not button_blue_was_held:
         print("Photo pressed...")
-        photo()
+        capture('photo')
     button_blue_was_held = False
 
 
 def blue_button_held() -> None:
     global button_blue_was_held
     button_blue_was_held = True
-    print("Calibration pressed...")
+    print("Stack pressed...")
+    capture('stack')
     pass
 
 
@@ -533,50 +561,119 @@ if gpio_available:
     button_green_was_held = False
 
 
-def desktop_interface(queue):
-    di_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    di_socket.bind(("", int(conf['server']['DesktopPort'])))
-    di_socket.listen()
-    di_socket.settimeout(1)
-    while True:
+def desktop_interface(queue: Queue[str]):
+    di_socket = None
+    conn = None
+    hb = None
+
+    def heartbeat():
+        queue.put("heartbeat")
+        hb = Timer(5, heartbeat)
+        hb.start()
+
+    try:
+        di_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        di_socket.bind(("", int(conf['server']['DesktopPort'])))
+        di_socket.listen()
+        di_socket.settimeout(1)
+
         try:
-            conn, addr = di_socket.accept()
-
-            data = conn.recv(1024).decode("utf-8")
-            print(addr, data)
-
-            if data[:4] == 'Moin':
-                print("Client connected")
-                conn.sendall(bytes("Moin\n", "utf-8"))
-            while True:
-
-                if queue.qsize() > 0:
-                    conn.sendall((queue.get()+"\n").encode("utf-8"))
-                sleep(0.5)
-
-                # from: https://stackoverflow.com/questions/48024720/python-how-to-check-if-socket-is-still-connected
+            while stopping == False:
                 try:
-                    # this will try to read bytes without blocking and also without removing them from buffer (peek only)
-                    data = conn.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
-                    if len(data) == 0:
-                        print("socket was closed")
+                    conn, addr = di_socket.accept()
+                except socket.timeout:
+                    continue
+
+                # Heartbeat-Signal to keep the connection alive
+                hb = Timer(10, heartbeat)
+                hb.start()
+
+                while stopping == False:
+                    try:
+                        data = conn.recv(1024).decode("utf-8")
+                        print(addr, data)
+
+                        if data[:4] == 'Moin':
+                            print("Client connected")
+                            conn.sendall(bytes("Moin\n", "utf-8"))
+                        elif data[:5] == 'photo':
+                            id = ""
+                            if len(data) > 5:
+                                id = data[6:]
+                            capture('photo', id)
+                        if queue.qsize() > 0:
+                            conn.sendall((queue.get()+"\n").encode("utf-8"))
+                    except:
+                        print("Client disconnected")
+                        if hb:
+                            hb.cancel()
                         break
-                except BlockingIOError:
-                    pass  # socket is open and reading from it would block
-                except ConnectionResetError:
-                    print("socket was closed for some other reason")
-                    break
-                except Exception as e:
-                    print("unexpected exception when checking if a socket is closed")
-        except socket.timeout:
-            pass
-        except Exception as e:
-            print("Error in desktop interface:", e)
-            sleep(1)
+        finally:
+            if conn:
+                conn.close()
+            if hb:
+                hb.cancel()
+    finally:
+        if di_socket:
+            di_socket.close()
+
+
+def desktop_interface_test(queue: Queue[str]):
+    print("starting to listen")
+
+    for res in socket.getaddrinfo(None, int(conf['server']['DesktopPort']), socket.AF_UNSPEC,
+                                  socket.SOCK_STREAM, 0, socket.AI_PASSIVE):
+        af, socktype, proto, canonname, sa = res
+        try:
+            s = socket.socket(af, socktype, proto)
+        except socket.error as msg:
+            s = None
+            continue
+        try:
+            s.bind(sa)
+            s.listen(1)
+        except socket.error as msg:
+            s.close()
+            s = None
+            continue
+        break
+    if s is None:
+        print('could not open socket')
+        sys.exit(1)
+    conn, addr = s.accept()
+    print('Connected by', addr)
+    while 1:
+        try:
+            data = conn.recv(1024)
+        except:
+            print("cannot recieve data")
+            break
+        if not data:
+            break
+        print(data)
+
+        message = ""
+
+        while message != "quit":
+            if queue.qsize() > 0:
+                message = queue.get()
+            else:
+                continue
+
+            message_bytes = (message+"\n").encode("utf-8")
+            try:
+                conn.sendall(message_bytes)
+            except Exception as exc:
+                # print exc # or something.
+                print("message could not be sent")
+                break
+        # conn.send("I got that, over!")
+
+    conn.close()
+    print("connection closed")
 
 
 # Start
-
 if __name__ == '__main__':
     thread_webinterface = StoppableThread(target=start_web)
     thread_webinterface.start()
@@ -591,6 +688,9 @@ if __name__ == '__main__':
 
 
 def exit_handler():
+    global stopping
+    stopping = True
+    sleep(1)
     thread_desktop_interface.stop()
     thread_webinterface.stop()
     thread_camera_interface.stop()
