@@ -17,12 +17,12 @@ if test -f "$FILE"; then
     systemctl enable PhotoBoxMaster.service || /bin/true
 fi
 
-FILE=/etc/systemd/system/PhotoBoxKamera.service
+FILE=/etc/systemd/system/PhotoBoxCamera.service
 if test -f "$FILE"; then
-    rm /etc/systemd/system/PhotoBoxKamera.service
-    cp  /home/photo/PhotoBox/kameras/PhotoBoxKamera.service /etc/systemd/system/PhotoBoxKamera.service
+    rm /etc/systemd/system/PhotoBoxCamera.service
+    cp  /home/photo/PhotoBox/camera/PhotoBoxCamera.service /etc/systemd/system/PhotoBoxCamera.service
     systemctl daemon-reload
-    systemctl enable PhotoBoxKamera.service || /bin/true
+    systemctl enable PhotoBoxCamera.service || /bin/true
 fi
 
 

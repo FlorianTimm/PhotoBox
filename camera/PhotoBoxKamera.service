@@ -1,13 +1,13 @@
 [Unit]
-Description=PhotoBox Kamera
+Description=PhotoBox Camera
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 User=root
-WorkingDirectory=/home/photo/PhotoBox/kameras
+WorkingDirectory=/home/photo/PhotoBox/camera
 ExecStartPre=/home/photo/PhotoBox/update.sh
-ExecStart=python3 kameraSteuerung.py
+ExecStart=python3 camera.py
 Restart=always
 RestartSec=3
 

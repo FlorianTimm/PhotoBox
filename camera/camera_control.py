@@ -11,7 +11,7 @@ from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
 from typing import TypeVar
-from kameras.camera_interface import CameraInterface
+from camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
 from typen import CamSettings, CamSettingsWithFilename
