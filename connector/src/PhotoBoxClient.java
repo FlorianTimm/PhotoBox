@@ -71,6 +71,21 @@ public class PhotoBoxClient {
         return false;
     }
 
+    private void send(String message) {
+        try {
+            OutputStream outputStream = this.socket.getOutputStream();
+            outputStream.write(message.getBytes());
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            this.connector.log(e.getMessage());
+        }
+    }
+
+    public void takePhoto() {
+        this.send("photo");
+    }
+
     public boolean disconnect() {
         this.connector.log("Disconnecting from " + this.host + ":" + this.port);
         try {

@@ -149,12 +149,16 @@ def search(send_search=True) -> None:
 
 def capture(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
     global photo_count, download_count, photo_type
+    if len(liste) == 0:
+        desktop_message_queue.put("No cameras found!")
+        return "No cameras found!"
     if id == "":
         id = str(uuid.uuid4())
     if gpio_available:
         pixels.fill(WHITE)  # type: ignore
 
     def do_capture(action: Literal['photo', 'stack'], id: str):
+        global photo_count, download_count, photo_type
         photo_count[id] = len(liste) * (4 if action == "stack" else 1)
         download_count[id] = len(liste) * (4 if action == "stack" else 1)
         photo_type[id] = action
@@ -447,8 +451,8 @@ def listen_to_port():
         print(addr[0] + ": " + data)
         if data[:4] == 'Moin':
             Thread(target=found_camera, args=(data[5:], addr[0])).start()
-        elif data[:6] == 'photo:':
-            receive_photo(addr[0], data[6:])
+        elif data[:10] == 'photoDone:':
+            receive_photo(addr[0], data[10:])
         elif data[:11] == 'arucoReady:':
             print(data)
             receive_aruco(data[11:])

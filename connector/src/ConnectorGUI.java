@@ -2,7 +2,6 @@
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -15,8 +14,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.text.DefaultCaret;
 
-public class ConnectorGUI extends JFrame implements java.awt.event.ActionListener {
+public class ConnectorGUI extends JFrame {
     private Connector connector;
     private JTextField textHostname;
     private JTextField textPort;
@@ -25,6 +25,7 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
     private ButtonGroup selectSfmSoftware;
     private JRadioButton rODM;
     private JRadioButton rMetashape;
+    private JButton photoButton;
 
     public ConnectorGUI(Connector connector) {
         super("PhotoBoxConnector");
@@ -75,7 +76,12 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
         this.selectSfmSoftware.add(rMetashape);
         this.selectSfmSoftware.add(rODM);
         this.connect = new JButton("Connect");
-        this.connect.addActionListener(this);
+        this.connect.addActionListener((e) -> {
+            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+            connector.setHost(textHostname.getText());
+            connector.setPort(Integer.parseInt(this.textPort.getText()));
+            connector.toggleConnect();
+        });
         left.add(this.connect);
 
         this.logArea = new JTextArea();
@@ -84,6 +90,15 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
         this.logArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(this.logArea);
         cp.add(scrollPane, java.awt.BorderLayout.CENTER);
+        DefaultCaret caret = (DefaultCaret) this.logArea.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
+        this.photoButton = new JButton("Take Photo");
+        this.photoButton.addActionListener((e) -> {
+            connector.takePhoto();
+        });
+        cp.add(this.photoButton, java.awt.BorderLayout.SOUTH);
+        this.photoButton.setEnabled(false);
 
         this.requestFocus();
         // this.pack();
@@ -108,14 +123,7 @@ public class ConnectorGUI extends JFrame implements java.awt.event.ActionListene
         this.textPort.setEnabled(enabled);
         this.rODM.setEnabled(enabled);
         this.rMetashape.setEnabled(enabled);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent arg0) {
-        connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
-        connector.setHost(textHostname.getText());
-        connector.setPort(Integer.parseInt(this.textPort.getText()));
-        connector.toggleConnect();
+        this.photoButton.setEnabled(!enabled);
     }
 
     protected void log(String message) {

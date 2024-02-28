@@ -190,7 +190,7 @@ class KameraSteuerung:
                 'focus': f,
                 'filename': filename + '_' + str(f) + '.jpg'}
             self.save(cs)
-            self.answer(addr[0], 'photo:' + cs['filename'])
+            self.answer(addr[0], 'photoDone:' + cs['filename'])
 
     def take_photo(self, data, addr):
         json: CamSettingsWithFilename
@@ -199,7 +199,7 @@ class KameraSteuerung:
         except:
             json = {'filename': data[6:] + '.jpg'}
         self.save(json)
-        self.answer(addr[0], 'photo:' + json['filename'])
+        self.answer(addr[0], 'photoDone:' + json['filename'])
 
     def answer(self, addr: str, msg: str):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
