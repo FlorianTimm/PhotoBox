@@ -5,7 +5,7 @@ read n
  
 if [ $n -eq 1 ]
 then
-  cp  /home/photo/PhotoBox/camera/PhotoBoxKamera.service /etc/systemd/system/PhotoBoxCamera.service
+  cp  /home/photo/PhotoBox/camera/PhotoBoxCamera.service /etc/systemd/system/PhotoBoxCamera.service
 fi
 
 if [ $n -eq 2 ]
