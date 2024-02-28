@@ -17,6 +17,8 @@ from os.path import basename
 from cv2 import imread, imwrite
 
 import focus_stack as focus_stack
+from desktop_control_thread import DesktopControlThread
+from camera_control_thread import CameraControlThread
 from stoppable_thread import StoppableThread
 from button_control import ButtonControl
 from led_control import LedControl
@@ -47,12 +49,11 @@ class Control:
             target=self.webapp.run, args=('0.0.0.0', int(self.conf['server']['WebPort'])))
         self.thread_webinterface.start()
 
-        self.thread_camera_interface = StoppableThread(
-            target=self.listen_to_port)
+        self.thread_camera_interface = CameraControlThread(self.conf, self)
         self.thread_camera_interface.start()
 
-        self.thread_desktop_interface = StoppableThread(
-            target=self.desktop_interface, args=(self.desktop_message_queue,))
+        self.thread_desktop_interface = DesktopControlThread(
+            self.conf, self, self.desktop_message_queue)
         self.thread_desktop_interface.start()
 
         self.search_cameras()
@@ -174,29 +175,6 @@ class Control:
         hostname: str = data[i1+1:i1+i2+1]
         self.detected_markers[hostname][id] = json_loads(data[i1+i2+2:])
 
-    def listen_to_port(self) -> None:
-        socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        socket_rec.bind(("0.0.0.0", int(self.conf['both']['BroadCastPort'])))
-        while self.system_is_stopping == False:
-            # sock.sendto(bytes("hello", "utf-8"), ip_co)
-            data, addr = socket_rec.recvfrom(1024)
-            print("received message: %s" % data)
-            print(addr)
-            data = data.decode("utf-8")
-            print(addr[0] + ": " + data)
-            if data[:4] == 'Moin':
-                Thread(target=self.found_camera,
-                       args=(data[5:], addr[0])).start()
-            elif data[:10] == 'photoDone:':
-                self.receive_photo(addr[0], data[10:])
-            elif data[:11] == 'arucoReady:':
-                print(data)
-                self.receive_aruco(data[11:])
-            elif data[:5] == 'light':
-                self.led_control.photo_light()
-        socket_rec.close()
-
     def switch_pause_resume(self, ):
         if self.cams_in_standby:
             self.pause()
@@ -213,70 +191,6 @@ class Control:
             self.cams_in_standby = True
             self.search_cameras(False)
             self.send_to_all('resume')
-
-    def desktop_interface(self, queue: Queue[str]):
-        di_socket = None
-        conn = None
-        hb = None
-
-        def heartbeat():
-            queue.put("heartbeat")
-            hb = Timer(5, heartbeat)
-            hb.start()
-
-        try:
-            di_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            di_socket.bind(("", int(self.conf['server']['DesktopPort'])))
-            di_socket.listen()
-            di_socket.settimeout(1)
-
-            try:
-                while self.system_is_stopping == False:
-                    try:
-                        conn, addr = di_socket.accept()
-                    except socket.timeout:
-                        continue
-                    conn.settimeout(0.1)
-                    queue.queue.clear()
-                    if hb:
-                        hb.cancel()
-                    # Heartbeat-Signal to keep the connection alive
-                    hb = Timer(10, heartbeat)
-                    hb.start()
-
-                    while self.system_is_stopping == False:
-                        try:
-                            if queue.qsize() > 0:
-                                conn.sendall(
-                                    (queue.get()+"\n").encode("utf-8"))
-
-                            data = conn.recv(1024).decode("utf-8")
-                            print(addr, data)
-
-                            if data[:4] == 'Moin':
-                                print("Client connected")
-                                conn.sendall(bytes("Moin\n", "utf-8"))
-                            elif data[:5] == 'photo':
-                                id = ""
-                                if len(data) > 5:
-                                    id = data[6:]
-                                self.capture_photo('photo', id)
-
-                        except socket.timeout:
-                            continue
-                        except:
-                            print("Client disconnected")
-                            if hb:
-                                hb.cancel()
-                            break
-            finally:
-                if conn:
-                    conn.close()
-                if hb:
-                    hb.cancel()
-        finally:
-            if di_socket:
-                di_socket.close()
 
     # System-Control
 
