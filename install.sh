@@ -1,11 +1,11 @@
 #!/bin/bash
 
-echo -n "install (1) Kamera or (2) Master : "
+echo -n "install (1) Camera or (2) Master : "
 read n
  
 if [ $n -eq 1 ]
 then
-  cp  /home/photo/PhotoBox/kameras/PhotoBoxKamera.service /etc/systemd/system/PhotoBoxKamera.service
+  cp  /home/photo/PhotoBox/camera/PhotoBoxKamera.service /etc/systemd/system/PhotoBoxCamera.service
 fi
 
 if [ $n -eq 2 ]
