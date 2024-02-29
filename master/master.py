@@ -3,7 +3,7 @@ from flask_cors import CORS
 import configparser
 from time import clock_settime, clock_gettime, CLOCK_REALTIME
 import uuid
-from os import path
+from os import PathLike, path
 from json import dumps as json_dumps
 from glob import glob
 from datetime import datetime
@@ -23,7 +23,7 @@ control = Control(conf, app)
 
 
 @app.route("/static/<path:filename>")
-def static_file(filename) -> Response:
+def static_file(filename: PathLike[str] | str) -> Response:
     return send_from_directory("../template/static/", filename)
 
 
@@ -33,7 +33,7 @@ def index() -> str:
 
 
 @app.route("/time/<int:time>")
-def time(time) -> str:
+def time(time: int) -> str:
     clk_id: int = CLOCK_REALTIME
     alt: float = clock_gettime(clk_id)
     neu: float = float(time)/1000.
@@ -49,7 +49,7 @@ def overviewZip() -> str:
     filelist = glob(control.conf['server']['Folder'] + "*.zip")
     filelist.sort(key=lambda x: path.getmtime(x))
 
-    def f2d(file):
+    def f2d(file: str):
         time = path.getmtime(file)
         p = file.replace(control.conf['server']['Folder'], "")
         t = datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
@@ -106,7 +106,7 @@ def preview() -> str:
 
 @app.route("/focus")
 @app.route("/focus/<val>")
-def focus(val=-1) -> str:
+def focus(val: float = -1) -> str:
     """ Focus """
     control.send_to_all('focus:' + str(val))
     return render_template('wait.htm', time=5, target_url="/overview", title="Focusing...")
@@ -162,8 +162,8 @@ def test() -> str:
 
 
 @app.route("/light")
-@app.route("/light/<val>")
-def photo_light_html(val=0) -> str:
+@app.route("/light/<int:val>")
+def photo_light_html(val: int = 0) -> str:
     try:
         return render_template('wait.htm', time=1, target_url="/", title="Light...")
     finally:
@@ -172,7 +172,7 @@ def photo_light_html(val=0) -> str:
 
 @app.route("/status")
 @app.route("/status/<val>")
-def status_led_html(val=0) -> str:
+def status_led_html(val: int = 0) -> str:
     try:
         return render_template('wait.htm', time=1, target_url="/", title="Status...")
     finally:

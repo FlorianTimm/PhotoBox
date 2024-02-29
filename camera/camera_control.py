@@ -10,7 +10,7 @@ from threading import Thread
 from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
-from typing import TypeVar
+from typing import Tuple, TypeVar
 from camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
@@ -101,7 +101,7 @@ class CameraControl:
     def aruco(self) -> list[dict[str, int | float]]:
         return self.cam.aruco()
 
-    def aruco_broadcast(self, addr: str, id: str):
+    def aruco_broadcast(self, addr: Tuple[str,int], id: str):
         print("Aruco: " + id, addr)
 
         def aruco_pic():
@@ -113,7 +113,7 @@ class CameraControl:
         self.answer(addr[0], 'arucoReady:' + id + ':' +
                     socket.gethostname() + ':' + j)
 
-    def meta(self) -> dict[str, int]:
+    def meta(self) -> None | dict[str, int]:
         return self.cam.meta()
 
     def pause(self):
@@ -131,7 +131,7 @@ class CameraControl:
 
     def receive_broadcast(self):
         while True:
-            data, addr = self.sock.recvfrom(1024)
+            (data, addr):Tuple[bytes, Tuple[str, int]] = self.sock.recvfrom(1024) # type: ignore
             data = data.decode("utf-8")
             print(addr, data)
             if data[:4] == 'Moin':
@@ -187,7 +187,7 @@ class CameraControl:
             else:
                 print("Unknown command: " + data)
 
-    def take_focusstack(self, filename, addr):
+    def take_focusstack(self, filename: str, addr: Tuple[str, int]):
         for f in [1, 3, 4, 5]:
             cs: CamSettingsWithFilename = {
                 'focus': f,
@@ -195,7 +195,7 @@ class CameraControl:
             self.save(cs)
             self.answer(addr[0], 'photoDone:' + cs['filename'])
 
-    def take_photo(self, data, addr):
+    def take_photo(self, data: str, addr: Tuple[str, int]):
         json: CamSettingsWithFilename
         try:
             json = json_loads(data[6:])

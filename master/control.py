@@ -3,7 +3,7 @@ from queue import Queue
 import socket
 
 from flask import Flask, render_template
-from threading import Thread, Timer
+from threading import Thread
 import configparser
 from time import sleep
 import uuid
@@ -12,9 +12,8 @@ import requests
 from json import loads as json_loads
 from shutil import make_archive
 from glob import glob
-from typing import Literal, NoReturn
 from os.path import basename
-from cv2 import imread, imwrite
+from cv2 import imread, imwrite  # type: ignore
 
 import focus_stack as focus_stack
 from desktop_control_thread import DesktopControlThread
@@ -22,6 +21,13 @@ from camera_control_thread import CameraControlThread
 from stoppable_thread import StoppableThread
 from button_control import ButtonControl
 from led_control import LedControl
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+    from numpy import uint8
+    from typing import Literal, NoReturn
 
 
 class Control:
@@ -60,7 +66,7 @@ class Control:
         self.search_cameras()
         atexit.register(self.exit_handler)
 
-    def search_cameras(self, send_search=True) -> None:
+    def search_cameras(self, send_search: bool = True) -> None:
         self.list_of_cameras = dict()
         self.led_control.starting()
         if send_search:
@@ -92,20 +98,20 @@ class Control:
     def send_to_desktop(self, message: str) -> None:
         self.desktop_message_queue.put(message)
 
-    def send_to_all(self, msg) -> None:
-        msg = msg.encode("utf-8")
+    def send_to_all(self, msg_str: str) -> None:
+        msg = msg_str.encode("utf-8")
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto(msg, ("255.255.255.255", int(
                 self.conf['both']['BroadCastPort'])))
 
-    def found_camera(self, hostname, ip) -> None:
+    def found_camera(self, hostname: str, ip: str) -> None:
         if hostname in self.list_of_cameras:
             return
         self.list_of_cameras[hostname] = ip
         self.led_control.status_led(5)
 
-    def receive_photo(self, ip, name) -> None:
+    def receive_photo(self, ip: str, name: str) -> None:
         global photo_count
         print("Photo received: " + name)
         id = name[:36]
@@ -123,7 +129,7 @@ class Control:
             del self.pending_photo_count[id]
             print("All photos taken!")
 
-    def download_photo(self, ip, id, name, hostname) -> None:
+    def download_photo(self, ip: str, id: str, name: str, hostname: str) -> None:
         """ collect photos """
         global download_count
         print("Downloading photo...")
@@ -153,17 +159,17 @@ class Control:
             self.send_to_desktop(
                 f"photoZip:{socket.gethostname()}:{self.conf['server']['WebPort']}/bilder/{id}.zip")
 
-    def stack_photos(self, id) -> None:
+    def stack_photos(self, id: str) -> None:
         folder: str = self.conf['server']['Folder'] + id + "/"
         imgs: list[str] = glob(folder + "*.jpg")
-        groups: dict[str, list] = {}
+        groups: dict[str, list[NDArray[uint8]]] = {}
         imgs.sort()
         for i in imgs:
             name = basename(i)
             name = name.split("_")[0]
             if not name in groups:
                 groups[name] = []
-            groups[name].append(imread(i))
+            groups[name].append(imread(i))  # type: ignore
         for camera, bilder in groups.items():
             imwrite(folder + camera + ".jpg", focus_stack.focus_stack(bilder))
 
@@ -240,7 +246,7 @@ class Control:
 
     # Getter
 
-    def get_hostnames(self, ) -> dict:
+    def get_hostnames(self, ) -> dict[str, str]:
         print("get_hostnames")
         return dict(sorted(self.list_of_cameras.items()))
 
@@ -250,7 +256,5 @@ class Control:
     def get_leds(self) -> LedControl:
         return self.led_control
 
-    def get_hostname(self, ip) -> list[str]:
-        print(self.list_of_cameras)
-        print(ip)
+    def get_hostname(self, ip: str) -> list[str]:
         return [k for k, v in self.list_of_cameras.items() if v == ip]
