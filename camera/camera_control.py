@@ -109,9 +109,9 @@ class CameraControl:
         m = self.cam.aruco(aruco_pic)
         open(self.conf['kameras']['Folder'] + id +
              '.json', 'w').write(dumps(m, indent=2))
-        # j = dumps(m, indent=None, separators=(",", ":"))
+        j = dumps(m, indent=None, separators=(",", ":"))
         self.answer(addr[0], 'arucoReady:' + id + ':' +
-                    socket.gethostname())  # + ':' + j)
+                    socket.gethostname() + ':' + j)
 
     def meta(self) -> dict[str, int]:
         return self.cam.meta()
@@ -205,6 +205,7 @@ class CameraControl:
         self.answer(addr[0], 'photoDone:' + json['filename'])
 
     def answer(self, addr: str, msg: str):
+        print("Answer: ", addr, msg)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto((msg).encode("utf-8"), (addr, int(
