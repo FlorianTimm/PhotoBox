@@ -109,9 +109,9 @@ class CameraControl:
         m = self.cam.aruco(aruco_pic)
         open(self.conf['kameras']['Folder'] + id +
              '.json', 'w').write(dumps(m, indent=2))
-        j = dumps(m, indent=None, separators=(",", ":"))
+        # j = dumps(m, indent=None, separators=(",", ":"))
         self.answer(addr[0], 'arucoReady:' + id + ':' +
-                    socket.gethostname() + ':' + j)
+                    socket.gethostname())  # + ':' + j)
 
     def meta(self) -> dict[str, int]:
         return self.cam.meta()
