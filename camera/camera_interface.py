@@ -135,9 +135,6 @@ class CameraInterface(object):
                 if 'white_balance' in settings:
                     print("white_balance: ", settings['white_balance'])
                     controls.AwbMode = settings['white_balance']
-                if 'yuv' in settings:
-                    print("yuv: ", settings['yuv'])
-                    controls.f
         return settings
 
     def focus(self, focus: float) -> str:
@@ -173,16 +170,11 @@ class CameraInterface(object):
             self.aruco_dict = Dictionary_create(32, 3)
             self.parameter = DetectorParameters.create()
             self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
-        cs: CamSettings = {}
+
         _, _, w, h = self.cam.camera_properties['ScalerCropMaximum']
 
-        self.cam.stop()
-        self.cam.start(self.yuv_config)
-        req, _, _ = self.capture_photo(cs)
-        im = req.make_array("main")[:h, :w]
-        req.release()
-        self.cam.stop()
-        self.cam.start(self.rgb_config)
+        im = self.cam.switch_mode_and_capture_array(
+            yuv_config, 'main', wait=True)[:h, :w]
 
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
