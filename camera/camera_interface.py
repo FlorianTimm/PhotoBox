@@ -173,15 +173,19 @@ class CameraInterface(object):
 
         _, _, w, h = self.cam.camera_properties['ScalerCropMaximum']
 
-        im = self.cam.switch_mode_and_capture_array(
-            self.yuv_config, 'main', wait=True)[:h, :w]
+        if not self.cam.started:
+            self.cam.start(self.yuv_config)
+            im = self.cam.capture_array('main', wait=True)[:h, :w]
+        else:
+            im = self.cam.switch_mode_and_capture_array(
+                self.yuv_config, 'main', wait=True)[:h, :w]
 
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
             inform_after_picture()
         corners, ids, _ = detectMarkers(
             im, self.aruco_dict, parameters=self.parameter)
-        marker = []
+        marker: list[dict[str, int | float]] = []
         if ids is not None:
             for ecke, id_ in zip(corners, ids):
                 for eid, e in enumerate(ecke[0]):
@@ -190,6 +194,7 @@ class CameraInterface(object):
                                    'ecke': eid,
                                    'x': float(x),
                                    'y': float(y)})
+        print("Found Aruco: ", len(marker))
         return marker
 
     def pause(self):
