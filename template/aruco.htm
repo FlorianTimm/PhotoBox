@@ -6,7 +6,14 @@
 
 {% block content %}
 
-{{ content }}
+<a href="/aruco">Refresh with new Pictures</a><br>
+<a href="/arucoErg">Reload</a>
+<br>
+<br>
+
+{% autoescape false %}
+{{json_data}}
+{% endautoescape %}
 
 {% endblock %}
 
