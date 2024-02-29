@@ -101,7 +101,7 @@ class CameraControl:
     def aruco(self) -> list[dict[str, int | float]]:
         return self.cam.aruco()
 
-    def aruco_broadcast(self, addr, id):
+    def aruco_broadcast(self, addr: str, id: str):
         print("Aruco: " + id, addr)
 
         def aruco_pic():
@@ -109,7 +109,9 @@ class CameraControl:
         m = self.cam.aruco(aruco_pic)
         open(self.conf['kameras']['Folder'] + id +
              '.json', 'w').write(dumps(m, indent=2))
-        self.answer(addr[0], 'arucoReady:' + id + ':' + socket.gethostname())
+        j = dumps(m, indent=None, separators=(",", ":"))
+        self.answer(addr[0], 'arucoReady:' + id + ':' +
+                    socket.gethostname() + ':' + j)
 
     def meta(self) -> dict[str, int]:
         return self.cam.meta()
