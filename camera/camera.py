@@ -174,7 +174,7 @@ def focus(focus: float = -1):
 
 @app.route('/aruco/')
 @app.route('/aruco/<id>')
-def aruco(id=""):
+def aruco(id: str = ""):
     if id != "":
         return ""
     return dumps(cc.aruco(), indent=2)

@@ -10,6 +10,8 @@
 
 from io import BytesIO
 from typing import Any, TypeVar
+
+from tables import Unknown
 from picamera2 import Picamera2
 from picamera2.request import CompletedRequest
 from libcamera import controls  # type: ignore
@@ -26,7 +28,7 @@ class CameraInterface(object):
     def __init__(self, folder: str):
         tuning = Picamera2.load_tuning_file("imx708.json", dir='./tuning/')
         self.cam: Picamera2 = Picamera2(tuning=tuning)
-        self.rgb_config = self.cam.create_still_configuration()
+        self.rgb_config: dict[str, Any] = self.cam.create_still_configuration()
         self.cam.configure(self.rgb_config)
         self.cam.start()
         scm: List[int] = self.cam.camera_properties['ScalerCropMaximum']
@@ -87,8 +89,9 @@ class CameraInterface(object):
         self.resume()
         if settings:
             settings = self.set_settings(settings)
-        req: CompletedRequest = self.cam.capture_request(wait=True, flush=True)
-        metadata = req.get_metadata()
+        req: CompletedRequest = self.cam.capture_request(  # type: ignore
+            wait=True, flush=True)
+        metadata: dict[str, Any] = req.get_metadata()
         return req, metadata, settings
 
     def save_picture(self, settings: CamSettingsWithFilename) -> str:
@@ -118,7 +121,7 @@ class CameraInterface(object):
     def meta(self) -> None | dict[str, Any]:
         self.resume()
         _, m = self.cam.capture_metadata(wait=True)  # type: ignore
-        return m
+        return m  # type: ignore
 
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):

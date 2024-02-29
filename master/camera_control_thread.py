@@ -3,10 +3,16 @@ import socket
 from threading import Thread
 from stoppable_thread import StoppableThread
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from control import Control
+
 
 class CameraControlThread(StoppableThread):
-    def __init__(self, conf: ConfigParser,  control) -> None:
-        StoppableThread.__init__(self)
+    def __init__(self, conf: ConfigParser,  control: Control) -> None:
+        StoppableThread.__init__(  # type: ignore
+            self, name="CameraControlThread")
         self.control = control
         self.conf = conf
 

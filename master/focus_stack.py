@@ -35,6 +35,7 @@ http://stackoverflow.com/questions/15911783/what-are-some-common-focus-stacking-
 """
 
 import numpy as np
+import numpy.typing as npt
 import cv2
 
 
@@ -56,7 +57,7 @@ def findHomography(image_1_kp, image_2_kp, matches):
 #   Align the images so they overlap properly...
 #
 #
-def align_images(images):
+def align_images(images: list[npt.NDArray[np.uint8]]) -> list[npt.NDArray[np.uint8]]:
 
     #   SIFT generally produces better results, but it is not FOSS, so chose the feature detector
     #   that suits the needs of your project.  ORB does OK
@@ -109,7 +110,7 @@ def align_images(images):
 #   Compute the gradient map of the image
 
 
-def doLap(image):
+def doLap(image: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
 
     # YOU SHOULD TUNE THESE VALUES TO SUIT YOUR NEEDS
     kernel_size = 5         # Size of the laplacian window
@@ -125,7 +126,7 @@ def doLap(image):
 #
 
 
-def focus_stack(unimages):
+def focus_stack(unimages: list[npt.NDArray[np.uint8]]) -> npt.NDArray[np.uint8]:
     images = align_images(unimages)
 
     print("Computing the laplacian of the blurred images")
