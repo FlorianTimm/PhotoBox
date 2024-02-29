@@ -150,7 +150,7 @@ def aruco() -> str:
 @app.route("/arucoErg")
 def aruco_erg() -> str:
     """ Aruco """
-    return render_template('aruco.htm', content=json_dumps(control.detected_markers).replace("\n", "<br />\n").replace(" ", "&nbsp;"))
+    return render_template('aruco.htm', json_data=json_dumps(control.detected_markers, indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
 
 
 @app.route("/test")

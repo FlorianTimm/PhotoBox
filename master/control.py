@@ -26,7 +26,8 @@ from led_control import LedControl
 
 class Control:
     list_of_cameras: dict[str, str] = dict()
-    detected_markers: dict[str, list] = dict()
+    detected_markers: dict[str,
+                           dict[str, list[dict[str, int | float]]]] = dict()
     system_is_stopping = False
     pending_photo_count: dict[str, int] = {}
     pending_download_count: dict[str, int] = {}
@@ -166,14 +167,17 @@ class Control:
         for camera, bilder in groups.items():
             imwrite(folder + camera + ".jpg", focus_stack.focus_stack(bilder))
 
-    def receive_aruco(self, data) -> None:
+    def receive_aruco(self, data: str) -> None:
         global marker
         i1: int = data.find(":")
         i2: int = data[i1+1:].find(":")
-        id: int = data[:i1]
+        id: str = data[:i1]
 
         hostname: str = data[i1+1:i1+i2+1]
-        self.detected_markers[hostname][id] = json_loads(data[i1+i2+2:])
+        if not hostname in self.detected_markers:
+            self.detected_markers[hostname] = {}
+        j: list[dict[str, int | float]] = json_loads(data[i1+i2+2:])
+        self.detected_markers[hostname][id] = j
 
     def switch_pause_resume(self, ):
         if self.cams_in_standby:

@@ -107,8 +107,8 @@ class CameraControl:
         def aruco_pic():
             self.answer(addr[0], 'arucoImg:' + id + ':' + socket.gethostname())
         m = self.cam.aruco(aruco_pic)
-        open(self.conf['kameras']['Folder'] + id +
-             '.json', 'w').write(dumps(m, indent=2))
+        # open(self.conf['kameras']['Folder'] + id +
+        #     '.json', 'w').write(dumps(m, indent=2))
         j = dumps(m, indent=None, separators=(",", ":"))
         self.answer(addr[0], 'arucoReady:' + id + ':' +
                     socket.gethostname() + ':' + j)
