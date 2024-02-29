@@ -174,7 +174,7 @@ class CameraInterface(object):
         _, _, w, h = self.cam.camera_properties['ScalerCropMaximum']
 
         im = self.cam.switch_mode_and_capture_array(
-            yuv_config, 'main', wait=True)[:h, :w]
+            self.yuv_config, 'main', wait=True)[:h, :w]
 
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
