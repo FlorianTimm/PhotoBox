@@ -26,8 +26,8 @@ class CameraInterface(object):
     def __init__(self, folder: str):
         tuning = Picamera2.load_tuning_file("imx708.json", dir='./tuning/')
         self.cam: Picamera2 = Picamera2(tuning=tuning)
-        self.still_config = self.cam.create_still_configuration()
-        self.cam.configure(self.still_config)  # type: ignore
+        self.rgb_config = self.cam.create_still_configuration()
+        self.cam.configure(self.rgb_config)
         self.cam.start()
         scm: List[int] = self.cam.camera_properties['ScalerCropMaximum']
         self.cam.stop()
@@ -47,11 +47,11 @@ class CameraInterface(object):
         }
         ctrl = self.DEFAULT_CTRL.copy()
         ctrl["AnalogueGain"] = 1.0
-        self.preview_config = self.cam.create_preview_configuration(
+        self.rgb_config = self.cam.create_still_configuration(
             controls=ctrl)
-        self.still_config = self.cam.create_still_configuration(
-            controls=ctrl)
-        self.cam.configure(self.still_config)  # type: ignore
+        self.yuv_config = self.cam.create_still_configuration(
+            main={"format": "YUV420"}, controls=ctrl)
+        self.cam.configure(self.rgb_config)  # type: ignore
         self.cam.start()
         self.folder = folder
         self.aruco_dict = None
@@ -87,8 +87,7 @@ class CameraInterface(object):
         self.resume()
         if settings:
             settings = self.set_settings(settings)
-        req: CompletedRequest = self.cam.capture_request(  # type: ignore
-            wait=True, flush=True)
+        req: CompletedRequest = self.cam.capture_request(wait=True, flush=True)
         metadata = req.get_metadata()
         return req, metadata, settings
 
@@ -116,9 +115,9 @@ class CameraInterface(object):
         print("Bild " + file + " gemacht!")
         return "fertig"
 
-    def meta(self) -> dict[str, Any]:
+    def meta(self) -> None | dict[str, Any]:
         self.resume()
-        m = self.cam.capture_metadata()
+        _, m = self.cam.capture_metadata(wait=True)  # type: ignore
         return m
 
     def set_settings(self, settings: CamSet) -> CamSet:
@@ -136,6 +135,9 @@ class CameraInterface(object):
                 if 'white_balance' in settings:
                     print("white_balance: ", settings['white_balance'])
                     controls.AwbMode = settings['white_balance']
+                if 'yuv' in settings:
+                    print("yuv: ", settings['yuv'])
+                    controls.f
         return settings
 
     def focus(self, focus: float) -> str:
@@ -162,15 +164,23 @@ class CameraInterface(object):
         return self.cam.camera_properties
 
     def aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
-        from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers
+        from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers  # type: ignore
+
         if self.aruco_dict is None:
             self.aruco_dict = Dictionary_create(32, 3)
             self.parameter = DetectorParameters.create()
             self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
         cs: CamSettings = {}
+        _, _, w, h = cam.camera_properties['ScalerCropMaximum']
+
+        self.cam.stop()
+        self.cam.start(self.yuv_config)
         req, _, _ = self.capture_photo(cs)
-        im = req.make_array("main")
+        im = req.make_array("main")[:h, :w]
         req.release()
+        self.cam.stop()
+        self.cam.start(self.rgb_config)
+
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
             inform_after_picture()

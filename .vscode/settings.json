@@ -10,13 +10,16 @@
             "source.organizeImports": "explicit"
         }
     },
-    "python.analysis.typeCheckingMode": "basic",
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.analysis.typeCheckingMode": "strict",
     "python.autoComplete.extraPaths": [
         "./.venv/lib/python3.11/site-packages",
+        "./.venv/lib64/python3.11/site-packages",
         "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
     ],
     "python.analysis.extraPaths": [
         "./.venv/lib/python3.11/site-packages",
+        "./.venv/lib64/python3.11/site-packages",
         "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
     ],
     "java.project.referencedLibraries": [
