@@ -164,6 +164,9 @@ class CameraInterface(object):
         return self.cam.camera_properties
 
     def aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
+        # directly shoted in YUV and filtered to grayscale
+        # https://github.com/raspberrypi/picamera2/issues/698
+
         from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers  # type: ignore
 
         if self.aruco_dict is None:
@@ -171,7 +174,7 @@ class CameraInterface(object):
             self.parameter = DetectorParameters.create()
             self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
         cs: CamSettings = {}
-        _, _, w, h = cam.camera_properties['ScalerCropMaximum']
+        _, _, w, h = self.cam.camera_properties['ScalerCropMaximum']
 
         self.cam.stop()
         self.cam.start(self.yuv_config)
