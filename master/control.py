@@ -1,3 +1,4 @@
+from ast import dump
 import atexit
 from queue import Queue
 import socket
@@ -14,6 +15,7 @@ from shutil import make_archive
 from glob import glob
 from os.path import basename
 from cv2 import imread, imwrite  # type: ignore
+from json import dump as json_dump
 
 import focus_stack as focus_stack
 from desktop_control_thread import DesktopControlThread
@@ -22,12 +24,9 @@ from stoppable_thread import StoppableThread
 from button_control import ButtonControl
 from led_control import LedControl
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
-    from numpy import uint8
-    from typing import Literal, NoReturn
+from typing import TYPE_CHECKING, Literal, NoReturn
+from numpy.typing import NDArray
+from numpy import uint8
 
 
 class Control:
@@ -37,6 +36,7 @@ class Control:
     system_is_stopping = False
     pending_photo_count: dict[str, int] = {}
     pending_download_count: dict[str, int] = {}
+    pending_aruco_count: dict[str, int] = {}
     pending_photo_types: dict[str, Literal["photo", "stack"]] = {}
     cams_in_standby = True
     desktop_message_queue: Queue[str] = Queue()
@@ -86,10 +86,11 @@ class Control:
         return id
 
     def capture_thread(self, action: Literal['photo', 'stack'], id: str):
-        self.pending_photo_count[id] = len(self.list_of_cameras) * \
+        photo_count = len(self.list_of_cameras) * \
             (4 if action == "stack" else 1)
-        self.pending_download_count[id] = len(
-            self.list_of_cameras) * (4 if action == "stack" else 1)
+        self.pending_photo_count[id] = photo_count
+        self.pending_download_count[id] = photo_count
+        self.pending_aruco_count[id] = photo_count
         self.pending_photo_types[id] = action
         self.send_to_all(f'{action}:{id}')
         sleep(1 if action == "photo" else 5)
@@ -174,16 +175,24 @@ class Control:
             imwrite(folder + camera + ".jpg", focus_stack.focus_stack(bilder))
 
     def receive_aruco(self, data: str) -> None:
-        global marker
         i1: int = data.find(":")
         i2: int = data[i1+1:].find(":")
         id: str = data[:i1]
 
         hostname: str = data[i1+1:i1+i2+1]
-        if not hostname in self.detected_markers:
-            self.detected_markers[hostname] = {}
+        if not id in self.detected_markers:
+            self.detected_markers[id] = {}
         j: list[dict[str, int | float]] = json_loads(data[i1+i2+2:])
-        self.detected_markers[hostname][id] = j
+        self.detected_markers[id][hostname] = j
+        self.pending_aruco_count[id] -= 1
+
+        if self.pending_aruco_count[id] == 0:
+            print("Aruco done!")
+            del self.pending_aruco_count[id]
+            json_dump(self.detected_markers[id], open(
+                self.conf['server']['Folder'] + id + '.json', "w"), indent=2)
+            self.send_to_desktop(
+                f"arucoImg:{socket.gethostname()}:{self.conf['server']['WebPort']}/bilder/{id}.json")
 
     def switch_pause_resume(self, ):
         if self.cams_in_standby:
