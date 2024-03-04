@@ -10,7 +10,7 @@ from threading import Thread
 from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
-from typing import Tuple, TypeVar
+from typing import Callable, List, Tuple, TypeVar
 from camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
@@ -83,13 +83,13 @@ class CameraControl:
                 settingR = {}
         return self.cam.set_settings(settingR)
 
-    def save(self, settings: CamSettingsWithFilename | str):
+    def save(self, settings: CamSettingsWithFilename | str, aruco_callback: None|Callable[[List[dict[str, int | float]]], None] = None   ):
         settingsR: CamSettingsWithFilename
         if isinstance(settings, str):
             settingsR = json_loads(settings)
         else:
             settingsR = settings
-        return self.cam.save_picture(settingsR)
+        return self.cam.save_picture(settingsR, aruco_callback=aruco_callback)
 
     def preview(self, settings: CamSettings | str = {}):
         settings = self.check_settings(settings)
@@ -109,6 +109,9 @@ class CameraControl:
         m = self.cam.aruco(aruco_pic)
         # open(self.conf['kameras']['Folder'] + id +
         #     '.json', 'w').write(dumps(m, indent=2))
+        self.send_aruco_data(addr, id, m)
+
+    def send_aruco_data(self, addr: Tuple[str,int], id:str, m:list[dict[str, int | float]]):
         j = dumps(m, indent=None, separators=(",", ":"))
         self.answer(addr[0], 'arucoReady:' + id + ':' +
                     socket.gethostname() + ':' + j)
@@ -201,7 +204,9 @@ class CameraControl:
             json = json_loads(data[6:])
         except:
             json = {'filename': data[6:] + '.jpg'}
-        self.save(json)
+        def aruco_callback(data: List[dict[str, int | float]]):
+            self.send_aruco_data(addr, json['filename'], data)
+        self.save(json, aruco_callback)
         self.answer(addr[0], 'photoDone:' + json['filename'])
 
     def answer(self, addr: str, msg: str):
