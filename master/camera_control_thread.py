@@ -31,7 +31,8 @@ class CameraControlThread(StoppableThread):
                 Thread(target=self.control.found_camera,
                        args=(data[5:], addr[0])).start()
             elif data[:10] == 'photoDone:':
-                self.control.receive_photo(addr[0], data[10:])
+                data = data[10:].split(":", 2)
+                self.control.receive_photo(addr[0], data[0], data[1])
             elif data[:11] == 'arucoReady:':
                 print(data)
                 self.control.receive_aruco(data[11:])

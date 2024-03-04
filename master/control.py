@@ -112,10 +112,9 @@ class Control:
         self.list_of_cameras[hostname] = ip
         self.led_control.status_led(5)
 
-    def receive_photo(self, ip: str, name: str) -> None:
+    def receive_photo(self, ip: str, id: str, filename: str) -> None:
         global photo_count
-        print("Photo received: " + name)
-        id = name[:36]
+        print("Photo received: " + filename)
         self.pending_photo_count[id] -= 1
         hostname = self.get_hostname(ip)
         if len(hostname) > 0:
@@ -124,7 +123,7 @@ class Control:
             print("Error: Hostname not found!")
             return
         Thread(target=self.download_photo, args=(
-            ip, id, name, hostname)).start()
+            ip, id, filename, hostname)).start()
         if self.pending_photo_count[id] == 0:
             self.led_control.status_led()
             del self.pending_photo_count[id]
