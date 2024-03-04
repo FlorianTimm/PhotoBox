@@ -191,7 +191,7 @@ class Control:
             json_dump(self.detected_markers[id], open(
                 self.conf['server']['Folder'] + id + '.json', "w"), indent=2)
             self.send_to_desktop(
-                f"arucoImg:{socket.gethostname()}:{self.conf['server']['WebPort']}/bilder/{id}.json")
+                f"aruco:{socket.gethostname()}:{self.conf['server']['WebPort']}/bilder/{id}.json")
 
     def switch_pause_resume(self, ):
         if self.cams_in_standby:
