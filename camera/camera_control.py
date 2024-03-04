@@ -211,7 +211,7 @@ class CameraControl:
         def aruco_callback(data: List[dict[str, int | float]]):
             self.send_aruco_data(addr, id, data)
         self.save(json, aruco_callback)
-        self.answer(addr[0], 'photoDone:' + id)
+        self.answer(addr[0], 'photoDone:' + id + ':' + json['filename'])
 
     def answer(self, addr: str, msg: str):
         print("Answer: ", addr, msg)
