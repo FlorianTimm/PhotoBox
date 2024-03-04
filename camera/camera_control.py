@@ -202,13 +202,16 @@ class CameraControl:
         json: CamSettingsWithFilename
         try:
             json = json_loads(data[6:])
+            id = json['filename']
+            id = id[:id.rfind('.')]
         except:
             json = {'filename': data[6:] + '.jpg'}
+            id = data[6:]
 
         def aruco_callback(data: List[dict[str, int | float]]):
-            self.send_aruco_data(addr, json['filename'], data)
+            self.send_aruco_data(addr, id, data)
         self.save(json, aruco_callback)
-        self.answer(addr[0], 'photoDone:' + json['filename'])
+        self.answer(addr[0], 'photoDone:' + id)
 
     def answer(self, addr: str, msg: str):
         print("Answer: ", addr, msg)

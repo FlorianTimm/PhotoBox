@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class CameraControlThread(StoppableThread):
-    def __init__(self, conf: ConfigParser,  control: Control) -> None:
+    def __init__(self, conf: ConfigParser,  control: 'Control') -> None:
         StoppableThread.__init__(  # type: ignore
             self, name="CameraControlThread")
         self.control = control
