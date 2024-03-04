@@ -49,17 +49,23 @@ public class PhotoBoxClient {
                     while (true) {
                         String line = reader.readLine();
                         if (line != null) {
-                            connector.log(line);
                             String[] w = line.split(":", 2);
                             for (int i = 0; i < w.length; i++) {
                                 w[i] = w[i].trim();
-                                connector.log(w[i]);
                             }
                             switch (w[0]) {
                                 case "photoZip":
+                                    connector.log("Photos downloading: " + w[1]);
                                     downloadPhotos(w[1]);
                                     break;
+                                case "aruco":
+                                    connector.log("Aruco downloading: " + w[1]);
+                                    downloadAruco(w[1]);
+                                    break;
+                                case "heartbeat":
+                                    break;
                                 default:
+                                    connector.log("Unknown message: " + line);
                                     break;
                             }
                         }
@@ -95,18 +101,32 @@ public class PhotoBoxClient {
     }
 
     private void downloadPhotos(String zipName) {
+        String urlString = "http://" + zipName;
+        String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
+        String zipTarget = download(urlString, filename);
+        if (zipTarget == null) {
+            return;
+        }
+        unzipFile(zipTarget);
+    }
+
+    private void downloadAruco(String arucoName) {
+        String urlString = "http://" + arucoName;
+        String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
+        download(urlString, filename);
+    }
+
+    private String download(String urlString, String filename) {
         connector.log("Downloading photos");
         File dir = connector.getDirectory();
         if (dir == null) {
             connector.log("No directory selected");
-            return;
+            return null;
         } else if (!dir.isDirectory()) {
             dir.mkdir();
             connector.log(dir.getAbsolutePath() + " is created as a directory.");
         }
         connector.log("Downloading photos to " + dir.getAbsolutePath());
-        String urlString = "http://" + zipName;
-        String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
         String zipTarget = dir.getAbsolutePath() + "/" + filename;
         try {
             URL website = new URL(urlString);
@@ -114,15 +134,16 @@ public class PhotoBoxClient {
             FileOutputStream fos = new FileOutputStream(zipTarget);
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             fos.close();
-            connector.log("Downloaded " + zipName);
-            unzipFile(zipTarget);
+            connector.log("Downloaded " + filename);
+            return zipTarget;
         } catch (MalformedURLException e) {
-            connector.log(zipName + " is not a valid URL");
+            connector.log(urlString + " is not a valid URL");
             e.printStackTrace();
         } catch (IOException e) {
-            connector.log("Could not download " + zipName);
+            connector.log("Could not download " + urlString);
             e.printStackTrace();
         }
+        return null;
     }
 
     private void unzipFile(String zipFilePath) {
