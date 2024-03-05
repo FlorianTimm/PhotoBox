@@ -37,8 +37,6 @@ public class PhotoBoxClient {
             // Connect to port
             this.socket = new Socket(host, port);
 
-            String message = "Moin";
-
             // Send message
             OutputStream outputStream = this.socket.getOutputStream();
             InputStream inputStream = this.socket.getInputStream();
@@ -84,6 +82,8 @@ public class PhotoBoxClient {
 
             // BufferedReader reader = new BufferedReader(new
             // InputStreamReader(inputStream));
+
+            String message = "time:" + System.currentTimeMillis() + "\n";
 
             outputStream.write(message.getBytes());
             outputStream.flush();

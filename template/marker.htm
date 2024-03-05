@@ -1,0 +1,48 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Aruco-Marker{% endblock %}
+
+{% block title2 %}Aruco-Marker{% endblock %}
+
+{% block content %}
+
+<form method="get">
+    <input type="text" name="ecke" placeholder="Ecke">
+    <input type="text" name="x" placeholder="X">
+    <input type="text" name="y" placeholder="Y">
+    <input type="text" name="z" placeholder="Z">
+    <input type="submit" value="Submit">
+</form>
+<p>
+<form method=post enctype=multipart/form-data>
+    <input type="file" name="file">
+    <input type="submit" value="Upload">
+</form>
+</p>
+<a href="/bilder/marker.csv">Download as CSV</a>
+<table>
+    <tr>
+        <th>Marker</th>
+        <th>Ecke</th>
+        <th>X</th>
+        <th>Y</th>
+        <th>Z</th>
+    </tr>
+    {% for marker, m in markers.items() %}
+    {% for ecke, c in m.items() %}
+    <tr>
+        <td>{{ marker }}</td>
+        <td>{{ ecke }}</td>
+        <td>{{ c[0] }}</td>
+        <td>{{ c[1] }}</td>
+        <td>{{ c[2] }}</td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
+
+{% endblock %}
+
+{% block header %}
+
+{% endblock %}

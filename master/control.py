@@ -1,7 +1,10 @@
-from ast import dump
 import atexit
+from io import StringIO
 from queue import Queue
 import socket
+
+import pandas as pd
+from pytest import mark
 
 from flask import Flask, render_template
 from threading import Thread
@@ -10,12 +13,13 @@ from time import sleep
 import uuid
 from os import system, makedirs, path
 import requests
-from json import loads as json_loads
+from json import load, loads as json_loads
 from shutil import make_archive
 from glob import glob
 from os.path import basename
-from cv2 import imread, imwrite  # type: ignore
+from cv2 import imread, imwrite
 from json import dump as json_dump
+from time import clock_settime, clock_gettime, CLOCK_REALTIME
 
 import focus_stack as focus_stack
 from desktop_control_thread import DesktopControlThread
@@ -24,7 +28,7 @@ from stoppable_thread import StoppableThread
 from button_control import ButtonControl
 from led_control import LedControl
 
-from typing import TYPE_CHECKING, Literal, NoReturn
+from typing import Literal, NoReturn, Tuple
 from numpy.typing import NDArray
 from numpy import uint8
 
@@ -40,6 +44,7 @@ class Control:
     pending_photo_types: dict[str, Literal["photo", "stack"]] = {}
     cams_in_standby = True
     desktop_message_queue: Queue[str] = Queue()
+    marker: dict[int, dict[int, Tuple[float, float, float]]] = {}
 
     def __init__(self, conf: configparser.ConfigParser, app: Flask) -> None:
         self.webapp = app
@@ -50,6 +55,7 @@ class Control:
 
         self.led_control = LedControl(self.conf, self)
         self.button_control = ButtonControl(self)
+        self.load_markers()
 
     def start(self):
         self.thread_webinterface = StoppableThread(
@@ -193,6 +199,34 @@ class Control:
             self.send_to_desktop(
                 f"aruco:{socket.gethostname()}:{self.conf['server']['WebPort']}/bilder/{id}.json")
 
+    def set_marker_from_csv(self, file) -> None:
+        m = pd.read_csv(file)
+
+        for _, r in m.iterrows():
+            id = int(r['id'])
+
+            if not id in self.marker:
+                self.marker[id] = {}
+            c = int(r['corner'])
+            self.marker[id][c] = (r['x'], r['y'], r['z'])
+        print(self.marker)
+        self.save_markers()
+
+    def save_markers(self, ) -> None:
+        with open(self.conf['server']['Folder'] + "marker.csv", "w") as f:
+            f.write("id,corner,x,y,z\n")
+            for id, corners in self.marker.items():
+                for corner, pos in corners.items():
+                    f.write(f"{id},{corner},{pos[0]},{pos[1]},{pos[2]}\n")
+
+    def load_markers(self, ) -> None:
+        try:
+            self.set_marker_from_csv(
+                self.conf['server']['Folder'] + "marker.csv")
+            print("Marker loaded!")
+        except:
+            pass
+
     def switch_pause_resume(self, ):
         if self.cams_in_standby:
             self.pause()
@@ -211,6 +245,15 @@ class Control:
             self.send_to_all('resume')
 
     # System-Control
+
+    def set_time(self, time: int) -> str:
+        clk_id: int = CLOCK_REALTIME
+        alt: float = clock_gettime(clk_id)
+        neu: float = float(time)/1000.
+        if neu-alt > 10:
+            clock_settime(clk_id, neu)
+            return "updated: " + str(neu)
+        return "keeped: " + str(alt)
 
     def system_control(self, action: Literal['shutdown', 'reboot']) -> NoReturn:
         """ Controls the system based on the action """
@@ -266,3 +309,6 @@ class Control:
 
     def get_hostname(self, ip: str) -> list[str]:
         return [k for k, v in self.list_of_cameras.items() if v == ip]
+
+    def get_marker(self):
+        return self.marker

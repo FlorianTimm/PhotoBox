@@ -1,5 +1,4 @@
 from cv2.aruco import extendDictionary, CORNER_REFINE_SUBPIX, detectMarkers, DetectorParameters
-import pandas as pd
 import numpy as np
 from cv2 import cvtColor, COLOR_BGR2GRAY, imread
 import Metashape  # Metashape Pro 1.8.5
