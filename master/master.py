@@ -1,7 +1,7 @@
-from flask import Flask, Response, render_template, send_from_directory
+from traceback import print_tb
+from flask import Flask, Response, flash, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
 import configparser
-from time import clock_settime, clock_gettime, CLOCK_REALTIME
 import uuid
 from os import PathLike, path
 from json import dumps as json_dumps
@@ -11,6 +11,7 @@ from typing import Literal, NoReturn
 from requests import get, Response as GetResponse
 
 from control import Control
+import numpy as np
 
 conf = configparser.ConfigParser()
 conf.read('../config.ini')
@@ -34,13 +35,7 @@ def index() -> str:
 
 @app.route("/time/<int:time>")
 def time(time: int) -> str:
-    clk_id: int = CLOCK_REALTIME
-    alt: float = clock_gettime(clk_id)
-    neu: float = float(time)/1000.
-    if neu-alt > 10:
-        clock_settime(clk_id, neu)
-        return "updated: " + str(neu)
-    return "keeped: " + str(alt)
+    return control.set_time(time)
 
 
 @app.route("/overviewZip")
@@ -177,6 +172,26 @@ def status_led_html(val: int = 0) -> str:
         return render_template('wait.htm', time=1, target_url="/", title="Status...")
     finally:
         control.get_leds().status_led(val)
+
+
+@app.route("/marker", methods=['GET'])
+def marker_get() -> str:
+    """ Marker """
+    return render_template('marker.htm', markers=control.get_marker())
+
+
+@app.route("/marker", methods=['POST'])
+def marker_post():
+    """ Marker-File-Upload """
+    print("Upload marker file")
+    if 'file' not in request.files:
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '' or file.mimetype != 'text/csv':
+        return redirect(request.url)
+    file.seek(0)
+    control.set_marker_from_csv(file.stream)
+    return redirect(request.url)
 
 
 control.start()

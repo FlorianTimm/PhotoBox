@@ -55,14 +55,18 @@ class DesktopControlThread(StoppableThread):
                             if data != "":
                                 print(addr, data)
 
-                            if data[:4] == 'Moin':
-                                print("Client connected")
-                                conn.sendall(bytes("Moin\n", "utf-8"))
-                            elif data[:5] == 'photo':
-                                id = ""
-                                if len(data) > 5:
-                                    id = data[6:]
-                                self.control.capture_photo('photo', id)
+                            parts = data.split(":", 2)
+                            match parts[0]:
+                                case "Moin":
+                                    print("Client connected")
+                                    conn.sendall(bytes("Moin\n", "utf-8"))
+                                case "time":
+                                    self.control.set_time(parts[1])
+                                case 'photo':
+                                    id = ""
+                                    if len(parts) > 1:
+                                        id = parts[1]
+                                    self.control.capture_photo('photo', id)
 
                         except socket.timeout:
                             continue
