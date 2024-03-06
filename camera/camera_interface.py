@@ -12,7 +12,7 @@ from io import BytesIO
 from json import dump
 from threading import Thread
 from typing import Any, TypeVar
-from camera.camera_aruco import Aruco
+from camera_aruco import Aruco
 
 from picamera2 import Picamera2
 from picamera2.request import CompletedRequest

@@ -7,7 +7,7 @@ After=network-online.target
 User=root
 WorkingDirectory=/home/photo/PhotoBox/
 ExecStartPre=/home/photo/PhotoBox/update.sh
-ExecStart=python3 camera.py
+ExecStart=python3 camera/camera.py
 Restart=always
 RestartSec=3
 

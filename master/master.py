@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Literal, NoReturn
 from requests import get, Response as GetResponse
 
-from master.control import Control
+from control import Control
 
 conf = configparser.ConfigParser()
 conf.read('./config.ini')
