@@ -1,5 +1,4 @@
-from traceback import print_tb
-from flask import Flask, Response, flash, redirect, render_template, request, send_from_directory
+from flask import Flask, Response, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
 import configparser
 import uuid
@@ -10,14 +9,13 @@ from datetime import datetime
 from typing import Literal, NoReturn
 from requests import get, Response as GetResponse
 
-from control import Control
-import numpy as np
+from master.control import Control
 
 conf = configparser.ConfigParser()
-conf.read('../config.ini')
+conf.read('./config.ini')
 
 app = Flask(__name__, static_url_path='/bilder',
-            static_folder=conf['server']['Folder'], template_folder='../template')
+            static_folder=conf['server']['Folder'], template_folder='./template')
 CORS(app)
 
 control = Control(conf, app)
@@ -25,7 +23,7 @@ control = Control(conf, app)
 
 @app.route("/static/<path:filename>")
 def static_file(filename: PathLike[str] | str) -> Response:
-    return send_from_directory("../template/static/", filename)
+    return send_from_directory("./template/static/", filename)
 
 
 @app.route("/")
