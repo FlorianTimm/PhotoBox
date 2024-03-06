@@ -20,7 +20,9 @@
     "python.analysis.extraPaths": [
         "./.venv/lib/python3.11/site-packages",
         "./.venv/lib64/python3.11/site-packages",
-        "/usr/lib/x86_64-linux-gnu/python3.11/site-packages"
+        "/usr/lib/x86_64-linux-gnu/python3.11/site-packages",
+        "./master",
+        "./camera"
     ],
     "java.project.referencedLibraries": [
         "connector/lib/**/*.jar",

@@ -19,12 +19,12 @@ from cv2 import imread, imwrite
 from json import dump as json_dump
 from time import clock_settime, clock_gettime, CLOCK_REALTIME
 
-import master.focus_stack as focus_stack
-from master.desktop_control_thread import DesktopControlThread
-from master.camera_control_thread import CameraControlThread
-from master.stoppable_thread import StoppableThread
-from master.button_control import ButtonControl
-from master.led_control import LedControl
+import focus_stack as focus_stack
+from desktop_control_thread import DesktopControlThread
+from camera_control_thread import CameraControlThread
+from stoppable_thread import StoppableThread
+from button_control import ButtonControl
+from led_control import LedControl
 
 from typing import Literal, NoReturn, Tuple
 from numpy.typing import NDArray

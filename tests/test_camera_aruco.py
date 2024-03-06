@@ -1,6 +1,6 @@
 import pytest
 
-from camera.camera_aruco import Aruco
+from camera_aruco import Aruco
 from cv2 import imread
 from cv2 import cvtColor, COLOR_BGR2GRAY
 

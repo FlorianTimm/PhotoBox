@@ -1,12 +1,12 @@
 from configparser import ConfigParser
 import socket
 from threading import Thread
-from master.stoppable_thread import StoppableThread
+from stoppable_thread import StoppableThread
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from master.control import Control
+    from control import Control
 
 
 class CameraControlThread(StoppableThread):
