@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSequenceAllInOne</id>
+    <coordinates>
+      <x>0</x>
+      <y>0</y>
+      <w>1370</w>
+      <h>1120</h>
+    </coordinates>
+    <panel_attributes>title=Capturing an object
+autoTick=true
+obj=User~user ACTOR EXECUTION
+obj=Connector\n(Desktop)~con
+obj=Master\n(Raspberry Pi 4)~master
+obj=Camera\n(Raspberry Pi Zero W)~camera
+obj=SfM-Software\n(Metashape or OpenDroneMap)~sfm
+
+
+combinedFragment=Using software button~soft user master
+user-&gt;con: Software-Button;on=con
+con-&gt;master; on=master; off=con
+--=soft
+tick=
+combinedFragment=alt: Using hardware button~hard user master
+user-&gt;master :Hardware-Button
+--=hard
+tick=
+
+combinedFragment=parallel to each camera~loop camera master
+master-&gt;camera; on=camera
+camera-&gt;camera + :take picture
+camera.&gt;master :photo taken; 
+camera-&gt;camera ++ :search aruco
+master-&gt;camera: downloading;
+
+camera.&gt;master:Aruco marker;off=camera
+--=loop
+on=con
+master.&gt;con : all pictures taken
+master-&gt;master ++ :filter aruco
+
+con-&gt;master: downloading pictures
+master.&gt;con : aruco marker
+con-&gt;master: downloading marker coordinates; off=master
+
+con-&gt;sfm: data; on=sfm
+sfm-&gt;sfm+: calculate 3d
+tick=
+off=sfm
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
