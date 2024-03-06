@@ -11,7 +11,7 @@ from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
 from typing import Callable, List, Tuple, TypeVar
-from camera_interface import CameraInterface
+from camera.camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
 from typen import CamSettings, CamSettingsWithFilename
@@ -99,14 +99,14 @@ class CameraControl:
         return self.cam.focus(focus)
 
     def aruco(self) -> list[dict[str, int | float]]:
-        return self.cam.aruco()
+        return self.cam.find_aruco()
 
     def aruco_broadcast(self, addr: Tuple[str, int], id: str):
         print("Aruco: " + id, addr)
 
         def aruco_pic():
             self.answer(addr[0], 'arucoImg:' + id + ':' + socket.gethostname())
-        m = self.cam.aruco(aruco_pic)
+        m = self.cam.find_aruco(aruco_pic)
         # open(self.conf['kameras']['Folder'] + id +
         #     '.json', 'w').write(dumps(m, indent=2))
         self.send_aruco_data(addr, id, m)

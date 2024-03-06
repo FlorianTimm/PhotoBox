@@ -9,7 +9,7 @@
 from flask import Flask, make_response, request
 from threading import Thread
 from configparser import ConfigParser
-from camera_control import CameraControl
+from camera.camera_control import CameraControl
 from json import dumps
 from typen import CamSettings, CamSettingsWithFilename, Config
 from typing import TypeVar

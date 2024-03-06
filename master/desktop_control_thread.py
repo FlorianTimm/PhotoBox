@@ -4,7 +4,7 @@ from queue import Queue
 import socket
 from threading import Timer
 
-from stoppable_thread import StoppableThread
+from master.stoppable_thread import StoppableThread
 
 
 class DesktopControlThread(StoppableThread):

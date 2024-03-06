@@ -32,4 +32,9 @@
         "connector/src"
     ],
     "java.project.outputPath": "connector/bin",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
 }

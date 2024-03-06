@@ -10,9 +10,9 @@
 
 from io import BytesIO
 from json import dump
-import re
 from threading import Thread
 from typing import Any, TypeVar
+from camera.camera_aruco import Aruco
 
 from picamera2 import Picamera2
 from picamera2.request import CompletedRequest
@@ -22,9 +22,6 @@ import piexif
 from socket import gethostname
 from typen import CamSettings, CamSettingsWithFilename
 from typing import Dict, Tuple, List, Callable
-
-from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers, detectMarkers
-from cv2 import cvtColor, COLOR_BGR2GRAY
 
 
 class CameraInterface(object):
@@ -62,7 +59,7 @@ class CameraInterface(object):
         self.cam.configure(self.rgb_config)  # type: ignore
         self.cam.start()
         self.folder = folder
-        self.aruco_dict = None
+        self.aruco = Aruco()
 
     def make_picture(self, settings: CamSettings = {}, preview=False) -> bytes:
         data = BytesIO()
@@ -109,8 +106,8 @@ class CameraInterface(object):
         aruco_marker = []
 
         def aruco_search(img, aruco_callback: Callable[[List[dict[str, int | float]]], None]):
-            img = cvtColor(img, COLOR_BGR2GRAY)
-            aruco_marker = self.aruco_detect(img)
+
+            aruco_marker = self.aruco.detect_from_rgb(img)
             dump(aruco_marker, open(file + ".aruco", "w"), indent=2)
             aruco_callback(aruco_marker)
         if aruco_callback:
@@ -171,7 +168,7 @@ class CameraInterface(object):
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
             for i in range(10):
                 m = self.cam.capture_metadata()
-                if abs(m["LensPosition"] - focus) < 0.01:
+                if abs(m["LensPosition"] - focus) < 0.01:  # type: ignore
                     print("Fokus erreicht nach ", i*0.1, "s")
                     break
                 sleep(0.1)
@@ -180,7 +177,7 @@ class CameraInterface(object):
     def get_status(self) -> dict[str, Any]:
         return self.cam.camera_properties
 
-    def aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
+    def find_aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
         # directly shoted in YUV and filtered to grayscale
         # https://github.com/raspberrypi/picamera2/issues/698
 
@@ -188,34 +185,16 @@ class CameraInterface(object):
 
         if not self.cam.started:
             self.cam.start(self.yuv_config)
-            im = self.cam.capture_array('main', wait=True)[  # type: ignore
+            image = self.cam.capture_array('main', wait=True)[  # type: ignore
                 :h, :w]
         else:
-            im = self.cam.switch_mode_and_capture_array(  # type: ignore
+            image = self.cam.switch_mode_and_capture_array(  # type: ignore
                 self.yuv_config, 'main', wait=True)[:h, :w]
 
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
             inform_after_picture()
-        return self.aruco_detect(im)
-
-    def aruco_detect(self, im: bytes) -> list[dict[str, int | float]]:
-        if self.aruco_dict is None:
-
-            self.aruco_dict = Dictionary_create(32, 3)
-            self.parameter = DetectorParameters.create()
-            self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
-
-        corners, ids, _ = detectMarkers(
-            im, self.aruco_dict, parameters=self.parameter)
-        if ids is None:
-            return []
-        marker = [{'marker': int(id_[0]),
-                   'ecke': eid,
-                   'x': float(e[0]),
-                   'y': float(e[1])} for ecke, id_ in zip(corners, ids) for eid, e in enumerate(ecke[0])]
-        print("Found Aruco: ", len(marker))
-        return marker
+        return self.aruco.detect(image)
 
     def pause(self):
         if self.cam.started:

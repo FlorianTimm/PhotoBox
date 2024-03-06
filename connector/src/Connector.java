@@ -38,11 +38,11 @@ class Connector {
 
     }
 
-    public void toggleConnect() {
+    public boolean toggleConnect() {
         if (this.isConnected) {
-            this.disconnect();
+            return !this.disconnect();
         } else {
-            this.connect();
+            return this.connect();
         }
     }
 
@@ -80,18 +80,19 @@ class Connector {
         this.photoBox.takePhoto();
     }
 
-    public void disconnect() {
+    public boolean disconnect() {
         if (!this.photoBox.disconnect()) {
             this.gui.log("Failed to disconnect from PhotoBox");
-            return;
+            return false;
         }
         if (!this.sfmClient.disconnect()) {
             this.gui.log("Failed to disconnect from " + this.software);
-            return;
+            return false;
         }
 
         this.isConnected = false;
         this.gui.setDisconnected();
+        return true;
     }
 
     // Getters and setters
