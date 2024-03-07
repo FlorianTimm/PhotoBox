@@ -8,19 +8,44 @@ from stoppable_thread import StoppableThread
 
 
 class DesktopControlThread(StoppableThread):
+    """
+    A thread class for controlling the connection to connector.
+
+    Args:
+        conf (ConfigParser): The configuration parser object.
+        control: The control object.
+        queue (Queue[str]): The queue object for storing messages.
+
+    Attributes:
+        conf (ConfigParser): The configuration parser object.
+        queue (Queue[str]): The queue object for storing messages.
+        control: The control object.
+
+    Methods:
+        __heartbeat: Sends a heartbeat signal to keep the connection alive.
+        run: The main method that runs the thread.
+
+    """
+
     def __init__(self, conf: ConfigParser, control, queue: Queue[str]):
         StoppableThread.__init__(self)
         self.conf = conf
         self.queue = queue
         self.control = control
 
-    def heartbeat(self):
+    def __heartbeat(self):
+        """
+        Sends a heartbeat signal to keep the connection alive.
+        """
         self.queue.put("heartbeat")
-        hb = Timer(5, self.heartbeat)
+        hb = Timer(5, self.__heartbeat)
         if not self.control.system_is_stopping:
             hb.start()
 
     def run(self):
+        """
+        The main method that runs the thread.
+        """
         di_socket = None
         conn = None
         hb = None
@@ -42,7 +67,7 @@ class DesktopControlThread(StoppableThread):
                     if hb:
                         hb.cancel()
                     # Heartbeat-Signal to keep the connection alive
-                    hb = Timer(10, self.heartbeat)
+                    hb = Timer(10, self.__heartbeat)
                     hb.start()
 
                     while self.control.system_is_stopping == False:

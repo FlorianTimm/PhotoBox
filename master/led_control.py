@@ -1,100 +1,185 @@
-import configparser
-import re
+from configparser import ConfigParser
+from re import findall
 from time import sleep
 
 
-gpio_available_ = False
 try:
-    import neopixel
-    import board
-    from gpiozero import Button
+    from neopixel import NeoPixel, RGB as NeoPixelRGB
+    from board import D18
     from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin
-    gpio_available_ = True
 except ImportError:
     print("GPIO not available")
-    gpio_available_ = False
 except NotImplementedError:
     print("GPIO not available")
-    gpio_available_ = False
 
 
 class LedControl:
-    RED = (255, 75, 75)
-    BLUE = (75, 75, 255)
-    GREEN = (75, 255, 75)
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
-    YELLOW = (255, 255, 100)
-    LIGHTRED = (50, 0, 0)
+    """
+    A class that controls the LEDs.
 
-    white_light_on = False
+    Attributes:
+        __RED (tuple): RGB values for red color.
+        __BLUE (tuple): RGB values for blue color.
+        __GREEN (tuple): RGB values for green color.
+        __WHITE (tuple): RGB values for white color.
+        __BLACK (tuple): RGB values for black color.
+        __YELLOW (tuple): RGB values for yellow color.
+        __LIGHTRED (tuple): RGB values for light red color.
 
-    def __init__(self, conf: configparser.ConfigParser, control):
-        self.gpio_available = gpio_available_
-        self.conf = conf
-        self.control = control
+    Methods:
+        __init__(self, conf: configparser.ConfigParser, control): Initializes the LedControl object.
+        switch_off(self): Turns off all LEDs.
+        starting(self): Sets the LEDs to blue color.
+        waiting(self): Sets the LEDs to yellow color.
+        __fill(self, color): Fills all LEDs with the specified color.
+        status_led(self, val=0): Sets the LEDs based on the status of the control object.
+        photo_light(self, val=0): Turns on white light and sets the LEDs to white color.
+        running_light(self): Animates the LEDs with a running light effect.
+    """
 
-        if self.gpio_available:
-            self.leds: list[int] = [int(v)
-                                    for v in self.conf['server']['leds'].split(",")]
-            pixel_pin: Pin = board.D18
-            self.num_pixels: int = len(self.leds)
+    __RED = (255, 75, 75)
+    __BLUE = (75, 75, 255)
+    __GREEN = (75, 255, 75)
+    __WHITE = (255, 255, 255)
+    __BLACK = (0, 0, 0)
+    __YELLOW = (255, 255, 100)
+    __LIGHTRED = (50, 0, 0)
 
-            self.pixels = neopixel.NeoPixel(
-                pixel_pin, self.num_pixels, brightness=1, auto_write=True, pixel_order=neopixel.RGB)  # type: ignore
+    def __init__(self, conf: ConfigParser, control):
+        """
+        Initializes the LedControl object.
+
+        Args:
+            conf (configparser.ConfigParser): The configuration parser object.
+            control: The control object.
+
+        Raises:
+            None
+        """
+        self.__conf = conf
+        self.__control = control
+
+        if D18 and NeoPixel and Pin:
+            self.__leds: list[int] = [int(v)
+                                      for v in self.__conf['server']['leds'].split(",")]
+            pixel_pin: Pin = D18
+            self.__num_pixels: int = len(self.__leds)
+
+            self.__pixels = NeoPixel(
+                pixel_pin, self.__num_pixels, brightness=1, auto_write=True, pixel_order=NeoPixelRGB)  # type: ignore
 
             self.starting()
 
     def switch_off(self):
-        self.__fill(self.BLACK)
+        """
+        Turns off all LEDs.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.__fill(self.__BLACK)
 
     def starting(self):
-        self.__fill(self.BLUE)
+        """
+        Sets the LEDs to blue color.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.__fill(self.__BLUE)
 
     def waiting(self):
-        self.__fill(self.YELLOW)
+        """
+        Sets the LEDs to yellow color.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.__fill(self.__YELLOW)
 
     def __fill(self, color):
-        if not self.gpio_available:
+        """
+        Fills all LEDs with the specified color.
+
+        Args:
+            color (tuple): RGB values for the color.
+
+        Returns:
+            None
+        """
+        if not self.__pixels:
             return
-        self.pixels.fill(color)
+        self.__pixels.fill(color)
 
     def status_led(self, val=0) -> None:
-        if not self.gpio_available:
-            return
-        self.white_light_on = False
+        """
+        Sets the LEDs based on the status of the control object.
 
-        for led, pi in enumerate(self.leds):
-            self.pixels[led] = self.RED
-            liste_aktuell = self.control.get_hostnames()
+        Args:
+            val (float): The sleep duration in seconds.
+
+        Returns:
+            None
+        """
+        if not self.__pixels:
+            return
+
+        for led, pi in enumerate(self.__leds):
+            self.__pixels[led] = self.__RED
+            liste_aktuell = self.__control.get_hostnames()
             for hostname, ip in liste_aktuell:
-                n = re.findall(r"\d{2}", hostname)
+                n = findall(r"\d{2}", hostname)
                 if len(n) > 0:
                     t = int(n[0])
                     if t == pi:
-                        self.pixels[led] = self.GREEN
+                        self.__pixels[led] = self.__GREEN
         if val > 0:
             sleep(float(val))
             self.photo_light()
 
     def photo_light(self, val=0) -> None:
-        self.white_light_on = True
-        self.__fill(self.WHITE)
+        """
+        Turns on white light and sets the LEDs to white color.
+
+        Args:
+            val (float): The sleep duration in seconds.
+
+        Returns:
+            None
+        """
+        self.__fill(self.__WHITE)
         if (val > 0):
             sleep(float(val))
             self.status_led()
 
     def running_light(self):
-        if not self.gpio_available:
+        """
+        Animates the LEDs with a running light effect.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if not self.__pixels:
             return
         self.switch_off()
-        self.white_light_on = False
-        while not self.control.get_cams_started():
-            for j in range(self.num_pixels//8):
+        while not self.__control.get_cams_started():
+            for j in range(self.__num_pixels//8):
                 for i in range(8):
-                    self.pixels[j+self.num_pixels//8*i] = self.LIGHTRED
+                    self.__pixels[j+self.__num_pixels//8*i] = self.__LIGHTRED
                 sleep(0.5)
                 for i in range(8):
-                    self.pixels[j+self.num_pixels//8*i] = self.BLACK
-                if self.control.get_cams_started():
+                    self.__pixels[j+self.__num_pixels//8*i] = self.__BLACK
+                if self.__control.get_cams_started():
                     break
