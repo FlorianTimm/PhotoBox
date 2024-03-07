@@ -1,9 +1,16 @@
+from typing import TYPE_CHECKING
+
+gpio_available = False
 try:
     from gpiozero import Button
+    gpio_available = True
 except ImportError:
     print("GPIO not available")
 except NotImplementedError:
     print("GPIO not available")
+
+if TYPE_CHECKING:
+    from control import Control
 
 
 class ButtonControl:
@@ -23,7 +30,7 @@ class ButtonControl:
         __green_button_held: Handles the event when the green button is held.
     """
 
-    def __init__(self, control) -> None:
+    def __init__(self, control: 'Control') -> None:
         """
         Initializes the ButtonControl object.
 
@@ -31,8 +38,9 @@ class ButtonControl:
             control: The control object.
         """
         self.__control = control
+        self.__gpio_available = gpio_available
 
-        if Button:
+        if self.__gpio_available and Button:
             print("Buttons are starting...")
             self.__button_blue = Button(
                 24, pull_up=True, hold_time=2, bounce_time=0.1)

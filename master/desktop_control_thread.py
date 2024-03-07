@@ -3,8 +3,12 @@ from configparser import ConfigParser
 from queue import Queue
 import socket
 from threading import Timer
+from typing import TYPE_CHECKING
 
 from stoppable_thread import StoppableThread
+
+if TYPE_CHECKING:
+    from control import Control
 
 
 class DesktopControlThread(StoppableThread):
@@ -27,19 +31,19 @@ class DesktopControlThread(StoppableThread):
 
     """
 
-    def __init__(self, conf: ConfigParser, control, queue: Queue[str]):
+    def __init__(self, conf: ConfigParser, control: 'Control', queue: Queue[str]):
         StoppableThread.__init__(self)
-        self.conf = conf
-        self.queue = queue
-        self.control = control
+        self.__conf = conf
+        self.__queue = queue
+        self.__control = control
 
     def __heartbeat(self):
         """
         Sends a heartbeat signal to keep the connection alive.
         """
-        self.queue.put("heartbeat")
+        self.__queue.put("heartbeat")
         hb = Timer(5, self.__heartbeat)
-        if not self.control.system_is_stopping:
+        if not self.__control.is_system_stopping():
             hb.start()
 
     def run(self):
@@ -52,29 +56,29 @@ class DesktopControlThread(StoppableThread):
 
         try:
             di_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            di_socket.bind(("", int(self.conf['server']['DesktopPort'])))
+            di_socket.bind(("", int(self.__conf['server']['DesktopPort'])))
             di_socket.listen()
             di_socket.settimeout(1)
 
             try:
-                while self.control.system_is_stopping == False:
+                while self.__control.is_system_stopping() == False:
                     try:
                         conn, addr = di_socket.accept()
                     except socket.timeout:
                         continue
                     conn.settimeout(0.1)
-                    self.queue.queue.clear()
+                    self.__queue.queue.clear()
                     if hb:
                         hb.cancel()
                     # Heartbeat-Signal to keep the connection alive
                     hb = Timer(10, self.__heartbeat)
                     hb.start()
 
-                    while self.control.system_is_stopping == False:
+                    while self.__control.is_system_stopping() == False:
                         try:
-                            if self.queue.qsize() > 0:
+                            if self.__queue.qsize() > 0:
                                 conn.sendall(
-                                    (self.queue.get()+"\n").encode("utf-8"))
+                                    (self.__queue.get()+"\n").encode("utf-8"))
 
                             data = conn.recv(1024).decode("utf-8")
                             if data != "":
@@ -86,12 +90,12 @@ class DesktopControlThread(StoppableThread):
                                     print("Client connected")
                                     conn.sendall(bytes("Moin\n", "utf-8"))
                                 case "time":
-                                    self.control.set_time(parts[1])
+                                    self.__control.set_time(int(parts[1]))
                                 case 'photo':
                                     id = ""
                                     if len(parts) > 1:
                                         id = parts[1]
-                                    self.control.capture_photo('photo', id)
+                                    self.__control.capture_photo('photo', id)
 
                         except socket.timeout:
                             continue

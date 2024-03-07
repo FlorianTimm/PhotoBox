@@ -19,9 +19,9 @@ class Aruco:
             image, self.dict, parameters=self.parameter)
         if ids is None:
             return []
-        marker: list[ArucoMarkerPos] = [{'marker': int(id_[0]),
+        marker: list[ArucoMarkerPos] = [{'id': int(id_[0]),
                                          'corner': int(eid),
                                          'x': float(e[0]),
-                                         'y': float(e[1])} for ecke, id_ in zip(corners, ids) for eid, e in enumerate(ecke[0])]  # type: ignore
+                                         'y': float(e[1])} for ecke, id_ in zip(corners, ids) for eid, e in enumerate(ecke[0])]
         print("Found Aruco: ", len(marker))
         return marker

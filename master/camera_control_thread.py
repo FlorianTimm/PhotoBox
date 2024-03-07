@@ -30,7 +30,7 @@ class CameraControlThread(StoppableThread):
         socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         socket_rec.bind(("0.0.0.0", int(self.__conf['both']['BroadCastPort'])))
-        while self.__control.__system_is_stopping == False:
+        while self.__control.is_system_stopping() == False:
             # sock.sendto(bytes("hello", "utf-8"), ip_co)
             data, addr = socket_rec.recvfrom(1024)
             print("received message: %s" % data)

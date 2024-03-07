@@ -1,12 +1,18 @@
 from configparser import ConfigParser
 from re import findall
 from time import sleep
+from typing import TYPE_CHECKING
 
 
+if TYPE_CHECKING:
+    from control import Control
+
+led_available = False
 try:
     from neopixel import NeoPixel, RGB as NeoPixelRGB
     from board import D18
     from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin
+    led_available = True
 except ImportError:
     print("GPIO not available")
 except NotImplementedError:
@@ -45,7 +51,7 @@ class LedControl:
     __YELLOW = (255, 255, 100)
     __LIGHTRED = (50, 0, 0)
 
-    def __init__(self, conf: ConfigParser, control):
+    def __init__(self, conf: ConfigParser, control: 'Control'):
         """
         Initializes the LedControl object.
 
@@ -56,10 +62,14 @@ class LedControl:
         Raises:
             None
         """
+        global __gpio_available
         self.__conf = conf
         self.__control = control
+        self.__led_available = led_available
 
-        if D18 and NeoPixel and Pin:
+        self.__pixels = None
+
+        if self.__led_available and D18 and NeoPixel and Pin:
             self.__leds: list[int] = [int(v)
                                       for v in self.__conf['server']['leds'].split(",")]
             pixel_pin: Pin = D18
@@ -116,7 +126,7 @@ class LedControl:
         Returns:
             None
         """
-        if not self.__pixels:
+        if not self.__led_available and not self.__pixels:
             return
         self.__pixels.fill(color)
 
