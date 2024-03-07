@@ -26,7 +26,7 @@ from stoppable_thread import StoppableThread
 from button_control import ButtonControl
 from led_control import LedControl
 
-from typing import Literal, NoReturn, Tuple
+from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
 
@@ -42,7 +42,7 @@ class Control:
     pending_photo_types: dict[str, Literal["photo", "stack"]] = {}
     cams_in_standby = True
     desktop_message_queue: Queue[str] = Queue()
-    marker: dict[int, dict[int, Tuple[float, float, float]]] = {}
+    marker: dict[int, dict[int, tuple[float, float, float]]] = {}
 
     def __init__(self, conf: configparser.ConfigParser, app: Flask) -> None:
         self.webapp = app

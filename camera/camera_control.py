@@ -10,7 +10,7 @@ from threading import Thread
 from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
-from typing import Callable, List, Tuple, TypeVar
+from typing import Callable, TypeVar
 from camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
@@ -83,7 +83,7 @@ class CameraControl:
                 settingR = {}
         return self.cam.set_settings(settingR)
 
-    def save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[List[dict[str, int | float]]], None] = None):
+    def save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[dict[str, int | float]]], None] = None):
         settingsR: CamSettingsWithFilename
         if isinstance(settings, str):
             settingsR = json_loads(settings)
@@ -101,7 +101,7 @@ class CameraControl:
     def aruco(self) -> list[dict[str, int | float]]:
         return self.cam.find_aruco()
 
-    def aruco_broadcast(self, addr: Tuple[str, int], id: str):
+    def aruco_broadcast(self, addr: tuple[str, int], id: str):
         print("Aruco: " + id, addr)
 
         def aruco_pic():
@@ -111,7 +111,7 @@ class CameraControl:
         #     '.json', 'w').write(dumps(m, indent=2))
         self.send_aruco_data(addr, id, m)
 
-    def send_aruco_data(self, addr: Tuple[str, int], id: str, m: list[dict[str, int | float]]):
+    def send_aruco_data(self, addr: tuple[str, int], id: str, m: list[dict[str, int | float]]):
         j = dumps(m, indent=None, separators=(",", ":"))
         self.answer(addr[0], 'arucoReady:' + id + ':' +
                     socket.gethostname() + ':' + j)
@@ -190,7 +190,7 @@ class CameraControl:
             else:
                 print("Unknown command: " + data)
 
-    def take_focusstack(self, filename: str, addr: Tuple[str, int]):
+    def take_focusstack(self, filename: str, addr: tuple[str, int]):
         for f in [1, 3, 4, 5]:
             cs: CamSettingsWithFilename = {
                 'focus': f,
@@ -198,7 +198,7 @@ class CameraControl:
             self.save(cs)
             self.answer(addr[0], 'photoDone:' + cs['filename'])
 
-    def take_photo(self, data: str, addr: Tuple[str, int]):
+    def take_photo(self, data: str, addr: tuple[str, int]):
         json: CamSettingsWithFilename
         try:
             json = json_loads(data[6:])
@@ -208,7 +208,7 @@ class CameraControl:
             json = {'filename': data[6:] + '.jpg'}
             id = data[6:]
 
-        def aruco_callback(data: List[dict[str, int | float]]):
+        def aruco_callback(data: list[dict[str, int | float]]):
             self.send_aruco_data(addr, id, data)
         self.save(json, aruco_callback)
         self.answer(addr[0], 'photoDone:' + id + ':' + json['filename'])
