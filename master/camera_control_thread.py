@@ -32,7 +32,7 @@ class CameraControlThread(StoppableThread):
         socket_rec.bind(("0.0.0.0", int(self.__conf['both']['BroadCastPort'])))
         while self.__control.is_system_stopping() == False:
             # sock.sendto(bytes("hello", "utf-8"), ip_co)
-            data, addr = socket_rec.recvfrom(1024)
+            data, addr = socket_rec.recvfrom(2024)
             print("received message: %s" % data)
             print(addr)
             data = data.decode("utf-8")
