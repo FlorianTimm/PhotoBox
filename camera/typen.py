@@ -1,4 +1,4 @@
-from typing import TypedDict, NotRequired
+from typing import Any, TypedDict, NotRequired
 
 
 class CamSettings(TypedDict):
@@ -30,3 +30,15 @@ class Config(TypedDict):
     kameras: ConfigKamera
     both: ConfigBoth
     server: ConfigServer
+
+
+class ArucoMarkerPos(TypedDict):
+    id: int
+    corner: int
+    x: float
+    y: float
+
+
+class ArucoMetaBroadcast(TypedDict):
+    aruco: list[ArucoMarkerPos]
+    meta: dict[str, Any]

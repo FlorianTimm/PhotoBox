@@ -39,12 +39,12 @@ def time(time: int) -> str:
 @app.route("/overviewZip")
 def overviewZip() -> str:
     '''Overview of all zip files with images.'''
-    filelist = glob(control.conf['server']['Folder'] + "*.zip")
+    filelist = glob(control.__conf['server']['Folder'] + "*.zip")
     filelist.sort(key=lambda x: path.getmtime(x))
 
     def f2d(file: str):
         time = path.getmtime(file)
-        p = file.replace(control.conf['server']['Folder'], "")
+        p = file.replace(control.__conf['server']['Folder'], "")
         t = datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
         return {'path': p, 'time': t}
     files = [f2d(file) for file in filelist]
@@ -81,7 +81,7 @@ def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> s
         return render_template('wait.htm', time=5,
                                target_url=f"/{action}/{id}", title="Photo...")
     else:
-        hnames = dict(sorted(control.list_of_cameras.items()))
+        hnames = dict(sorted(control.__list_of_cameras.items()))
         return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
 
 
@@ -92,7 +92,7 @@ def preview() -> str:
     Returns:
         Response: The HTTP response containing the preview page.
     """
-    hnames = dict(sorted(control.list_of_cameras.items()))
+    hnames = dict(sorted(control.__list_of_cameras.items()))
     cameras = [{'hostname': k, 'ip': v} for k, v in hnames.items()]
     return render_template('preview.htm', cameras=cameras)
 
@@ -101,7 +101,7 @@ def preview() -> str:
 @app.route("/focus/<val>")
 def focus(val: float = -1) -> str:
     """ Focus """
-    control.send_to_all('focus:' + str(val))
+    control.__send_to_all('focus:' + str(val))
     return render_template('wait.htm', time=5, target_url="/overview", title="Focusing...")
 
 
@@ -136,21 +136,21 @@ def update() -> str:
 @app.route("/aruco")
 def aruco() -> str:
     """ Aruco """
-    control.send_to_all('aruco:' + str(uuid.uuid4()))
+    control.__send_to_all('aruco:' + str(uuid.uuid4()))
     return render_template('wait.htm', time=5, target_url="/arucoErg", title="Search for Aruco...")
 
 
 @app.route("/arucoErg")
 def aruco_erg() -> str:
     """ Aruco """
-    return render_template('aruco.htm', json_data=json_dumps(control.detected_markers, indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
+    return render_template('aruco.htm', json_data=json_dumps(control.__detected_markers, indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
 
 
 @app.route("/test")
 def test() -> str:
     """ Test """
-    control.send_to_all('test')
-    control.send_to_desktop("test")
+    control.__send_to_all('test')
+    control.__send_to_desktop("test")
     return render_template('wait.htm', time=5, target_url="/overview", title="Test...")
 
 

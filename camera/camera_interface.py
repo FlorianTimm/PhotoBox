@@ -20,7 +20,7 @@ from libcamera import controls  # type: ignore
 from time import sleep
 import piexif
 from socket import gethostname
-from typen import CamSettings, CamSettingsWithFilename
+from typen import ArucoMarkerPos, CamSettings, CamSettingsWithFilename
 from typing import Callable
 
 
@@ -30,18 +30,19 @@ class CameraInterface(object):
     def __init__(self, folder: str):
         tuning: dict[str, Any] = Picamera2.load_tuning_file(
             "imx708.json", dir='./tuning/')
-        self.cam: Picamera2 = Picamera2(tuning=tuning)
-        self.rgb_config: dict[str, Any] = self.cam.create_still_configuration()
-        self.cam.configure(self.rgb_config)  # type: ignore
-        self.cam.start()
-        scm: list[int] = self.cam.camera_properties['ScalerCropMaximum']
-        self.cam.stop()
+        self.__cam: Picamera2 = Picamera2(tuning=tuning)
+        self.__rgb_config: dict[str,
+                                Any] = self.__cam.create_still_configuration()
+        self.__cam.configure(self.__rgb_config)  # type: ignore
+        self.__cam.start()
+        scm: list[int] = self.__cam.camera_properties['ScalerCropMaximum']
+        self.__cam.stop()
         h: int = scm[3]-scm[1]
         w: int = scm[2]-scm[0]
         rect: tuple[int, int, int, int] = (
             scm[0]+2*w//5, scm[1]+2*h//5, w//5, h//5)
         print("Fokus-Fenster: ", rect)
-        self.DEFAULT_CTRL: dict[str, Any] = {
+        self.__DEFAULT_CTRL: dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
@@ -50,21 +51,21 @@ class CameraInterface(object):
             "AfMode": controls.AfModeEnum.Continuous.value,
             "AfRange": controls.AfRangeEnum.Macro.value
         }
-        ctrl = self.DEFAULT_CTRL.copy()
+        ctrl = self.__DEFAULT_CTRL.copy()
         ctrl["AnalogueGain"] = 1.0
-        self.rgb_config = self.cam.create_still_configuration(
+        self.__rgb_config = self.__cam.create_still_configuration(
             controls=ctrl)
-        self.yuv_config = self.cam.create_still_configuration(
+        self.yuv_config = self.__cam.create_still_configuration(
             main={"format": "YUV420"}, controls=ctrl)
-        self.cam.configure(self.rgb_config)  # type: ignore
-        self.cam.start()
-        self.folder = folder
-        self.aruco = Aruco()
+        self.__cam.configure(self.__rgb_config)  # type: ignore
+        self.__cam.start()
+        self.__folder = folder
+        self.__aruco = Aruco()
 
     def make_picture(self, settings: CamSettings = {}, preview=False) -> bytes:
         data = BytesIO()
         print("Kamera aktiviert!")
-        req, metadata, settings = self.capture_photo(settings)
+        req, metadata, settings = self.__capture_photo(settings)
         req.save("main", data, format="jpeg")
         print("Fokus (real): ", metadata["LensPosition"])
         req.release()
@@ -88,28 +89,32 @@ class CameraInterface(object):
         data.seek(0)
         return data.read()
 
-    def capture_photo(self, settings: CamSet) -> tuple[CompletedRequest, dict[str, Any], CamSet]:
+    def __capture_photo(self, settings: CamSet) -> tuple[CompletedRequest, dict[str, Any], CamSet]:
         self.resume()
         if settings:
             settings = self.set_settings(settings)
-        req: CompletedRequest = self.cam.capture_request(  # type: ignore
-            wait=True, flush=True)
-        metadata: dict[str, Any] = req.get_metadata()
+        req, metadata = self.__request_capture_with_meta()
         return req, metadata, settings
 
-    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[dict[str, int | float]]], None]) -> list[dict[str, int | float]]:
+    def __request_capture_with_meta(self):
+        req: CompletedRequest = self.__cam.capture_request(  # type: ignore
+            wait=True, flush=True)
+        metadata: dict[str, Any] = req.get_metadata()
+        return req, metadata
+
+    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> list[dict[str, int | float]]:
         print("Kamera aktiviert!")
-        req, metadata, settings = self.capture_photo(settings)
-        file = self.folder + settings['filename']
+        req, metadata, settings = self.__capture_photo(settings)
+        file = self.__folder + settings['filename']
         print("Fokus (real): ", metadata["LensPosition"])
         req.save("main", file)
         aruco_marker = []
 
-        def aruco_search(img, aruco_callback: Callable[[list[dict[str, int | float]]], None]):
+        def aruco_search(img, aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]):
 
-            aruco_marker = self.aruco.detect_from_rgb(img)
+            aruco_marker = self.__aruco.detect_from_rgb(img)
             dump(aruco_marker, open(file + ".aruco", "w"), indent=2)
-            aruco_callback(aruco_marker)
+            aruco_callback(aruco_marker, metadata)
         if aruco_callback:
             img = req.make_array("main")
             Thread(target=aruco_search, args=(
@@ -134,7 +139,7 @@ class CameraInterface(object):
 
     def meta(self) -> None | dict[str, Any]:
         self.resume()
-        _, m = self.cam.capture_metadata(wait=True)  # type: ignore
+        _, m = self.__cam.capture_metadata(wait=True)  # type: ignore
         return m  # type: ignore
 
     def set_settings(self, settings: CamSet) -> CamSet:
@@ -142,7 +147,7 @@ class CameraInterface(object):
             if 'focus' in settings and settings['focus'] != 0:
                 print("focus: ", settings['focus'])
                 self.focus(settings['focus'])
-            with self.cam.controls as controls:
+            with self.__cam.controls as controls:
                 if 'iso' in settings:
                     print("iso: ", settings['iso'])
                     controls.AnalogueGain = settings['iso']/100.
@@ -160,46 +165,47 @@ class CameraInterface(object):
             pass
         elif (focus == -1):
             print("Autofokus")
-            self.cam.set_controls(self.DEFAULT_CTRL)
+            self.__cam.set_controls(self.__DEFAULT_CTRL)
             # self.cam.autofocus_cycle()
         else:
             print("Fokus (soll): ", focus)
-            self.cam.set_controls(
+            self.__cam.set_controls(
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
             for i in range(10):
-                m = self.cam.capture_metadata()
+                m = self.__cam.capture_metadata()
                 if abs(m["LensPosition"] - focus) < 0.01:  # type: ignore
                     print("Fokus erreicht nach ", i*0.1, "s")
                     break
                 sleep(0.1)
         return "Fokus"
 
-    def get_status(self) -> dict[str, Any]:
-        return self.cam.camera_properties
+    def __get_status(self) -> dict[str, Any]:
+        return self.__cam.camera_properties
 
-    def find_aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[dict[str, int | float]]:
+    def find_aruco(self, inform_after_picture: None | Callable[[], None] = None) -> list[ArucoMarkerPos]:
         # directly shoted in YUV and filtered to grayscale
         # https://github.com/raspberrypi/picamera2/issues/698
 
-        _, _, w, h = self.cam.camera_properties['ScalerCropMaximum']
+        _, _, w, h = self.__cam.camera_properties['ScalerCropMaximum']
 
-        if not self.cam.started:
-            self.cam.start(self.yuv_config)
-            image = self.cam.capture_array('main', wait=True)[  # type: ignore
-                :h, :w]
+        if not self.__cam.started:
+            self.__cam.start(self.yuv_config)
+            req, meta = self.__request_capture_with_meta()
+            image = req.make_array('main')[:h, :w]
+            req.release()
         else:
-            image = self.cam.switch_mode_and_capture_array(  # type: ignore
+            image = self.__cam.switch_mode_and_capture_array(  # type: ignore
                 self.yuv_config, 'main', wait=True)[:h, :w]
 
         print("Aruco Bild gemacht!")
         if inform_after_picture != None:
             inform_after_picture()
-        return self.aruco.detect(image)
+        return self.__aruco.detect(image)
 
     def pause(self):
-        if self.cam.started:
-            self.cam.stop()
+        if self.__cam.started:
+            self.__cam.stop()
 
     def resume(self):
-        if not self.cam.started:
-            self.cam.start()
+        if not self.__cam.started:
+            self.__cam.start()
