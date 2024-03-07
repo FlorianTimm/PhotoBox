@@ -29,6 +29,8 @@ from led_control import LedControl
 from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
+import sys
+sys.path.append('./camera')  # NOQA
 from typen import ArucoMarkerPos, ArucoMetaBroadcast
 
 
@@ -76,17 +78,17 @@ class Control:
         self.__list_of_cameras = dict()
         self.__led_control.starting()
         if send_search:
-            self.__send_to_all('search')
+            self.send_to_all('search')
 
     def capture_photo(self, action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
         if len(self.__list_of_cameras) == 0:
-            self.__send_to_desktop("No cameras found!")
+            self.send_to_desktop("No cameras found!")
             return "No cameras found!"
         if id == "":
             id = str(uuid.uuid4())
         self.__led_control.photo_light()
 
-        self.__send_to_desktop(f"photoStart: {id}")
+        self.send_to_desktop(f"photoStart: {id}")
 
         Thread(target=self.__capture_thread, args=(action, id)).start()
         return id
@@ -98,14 +100,14 @@ class Control:
         self.__pending_download_count[id] = photo_count
         self.__pending_aruco_count[id] = photo_count
         self.__pending_photo_types[id] = action
-        self.__send_to_all(f'{action}:{id}')
+        self.send_to_all(f'{action}:{id}')
         sleep(1 if action == "photo" else 5)
         self.__led_control.status_led()
 
-    def __send_to_desktop(self, message: str) -> None:
+    def send_to_desktop(self, message: str) -> None:
         self.__desktop_message_queue.put(message)
 
-    def __send_to_all(self, msg_str: str) -> None:
+    def send_to_all(self, msg_str: str) -> None:
         msg = msg_str.encode("utf-8")
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -162,7 +164,7 @@ class Control:
             del self.__pending_photo_types[id]
             make_archive(self.__conf['server']['Folder'] + id, 'zip', folder)
             self.__led_control.photo_light()
-            self.__send_to_desktop(
+            self.send_to_desktop(
                 f"photoZip:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
 
     def __stack_photos(self, id: str) -> None:
@@ -201,7 +203,7 @@ class Control:
             del self.__pending_aruco_count[id]
             json_dump(self.__detected_markers[id], open(
                 self.__conf['server']['Folder'] + id + '.json', "w"), indent=2)
-            self.__send_to_desktop(
+            self.send_to_desktop(
                 f"aruco:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.json")
 
     def set_marker_from_csv(self, file) -> None:
@@ -240,14 +242,14 @@ class Control:
 
     def __pause(self, ):
         self.__cams_in_standby = False
-        self.__send_to_all('pause')
+        self.send_to_all('pause')
         Thread(target=self.__led_control.running_light).start()
 
     def __resume(self, ):
         if not self.__cams_in_standby:
             self.__cams_in_standby = True
             self.search_cameras(False)
-            self.__send_to_all('resume')
+            self.send_to_all('resume')
 
     # System-Control
 
@@ -262,7 +264,7 @@ class Control:
 
     def system_control(self, action: Literal['shutdown', 'reboot']) -> NoReturn:
         """ Controls the system based on the action """
-        self.__send_to_all(action)
+        self.send_to_all(action)
         self.__led_control.switch_off()
         if action == 'shutdown':
             system("sleep 5s; sudo shutdown -h now")
@@ -281,7 +283,7 @@ class Control:
 
     def update(self, ):
         """ Update Skript """
-        self.__send_to_all('update')
+        self.send_to_all('update')
         self.__led_control.waiting()
         print("Update Skript...")
         system("sudo git -C /home/photo/PhotoBox pull")
@@ -290,7 +292,7 @@ class Control:
 
     def restart(self, ):
         """ Restart Skript """
-        self.__send_to_all('restart')
+        self.send_to_all('restart')
         self.__led_control.waiting()
 
         def restart_skript():
@@ -317,3 +319,12 @@ class Control:
 
     def get_marker(self):
         return self.__marker
+
+    def is_system_stopping(self):
+        return self.__system_is_stopping
+
+    def get_cameras(self):
+        return self.__list_of_cameras
+
+    def get_detected_markers(self):
+        return self.__detected_markers
