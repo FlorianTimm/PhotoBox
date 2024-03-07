@@ -1,6 +1,7 @@
 import atexit
 from queue import Queue
 import socket
+from tabnanny import check
 
 import pandas as pd
 
@@ -22,6 +23,7 @@ from time import clock_settime, clock_gettime, CLOCK_REALTIME
 import focus_stack as focus_stack
 from desktop_control_thread import DesktopControlThread
 from camera_control_thread import CameraControlThread
+from marker_check import MarkerChecker
 from stoppable_thread import StoppableThread
 from button_control import ButtonControl
 from led_control import LedControl
@@ -141,9 +143,7 @@ class Control:
         """ collect photos """
         global download_count
         print("Downloading photo...")
-        folder = self.__conf['server']['Folder'] + id + "/"
-        if not path.exists(folder):
-            makedirs(folder)
+        folder = self.__check_folder(id)
 
         print("Collecting photo from " + hostname + "...")
         try:
@@ -167,8 +167,14 @@ class Control:
             self.send_to_desktop(
                 f"photoZip:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
 
+    def __check_folder(self, id):
+        folder = self.__conf['server']['Folder'] + id + "/"
+        if not path.exists(folder):
+            makedirs(folder)
+        return folder
+
     def __stack_photos(self, id: str) -> None:
-        folder: str = self.__conf['server']['Folder'] + id + "/"
+        folder: str = self.__check_folder(id)
         imgs: list[str] = glob(folder + "*.jpg")
         groups: dict[str, list[NDArray[uint8]]] = {}
         imgs.sort()
@@ -192,19 +198,32 @@ class Control:
         if not id in self.__metadata:
             self.__metadata[id] = {}
         j: ArucoMetaBroadcast = json_loads(data[i1+i2+2:])
-        marker = j['aruco']
+        aruco = j['aruco']
         meta = j['meta']
-        self.__detected_markers[id][hostname] = marker
+        self.__detected_markers[id][hostname] = aruco
         self.__metadata[id][hostname] = meta
         self.__pending_aruco_count[id] -= 1
 
         if self.__pending_aruco_count[id] == 0:
             print("Aruco done!")
             del self.__pending_aruco_count[id]
+            folder = self.__check_folder(id)
+
+            json_dump(self.__metadata[id], open(
+                folder + 'meta.json', "w"), indent=2)
+
+            filter = MarkerChecker(
+                self.__marker, self.__detected_markers[id], self.__metadata[id])
+            self.__detected_markers[id] = filter.get_filtered_positions()
+            self.__marker = filter.get_corrected_coordinates()
+
             json_dump(self.__detected_markers[id], open(
-                self.__conf['server']['Folder'] + id + '.json', "w"), indent=2)
+                folder + 'aruco.json', "w"), indent=2)
+
             self.send_to_desktop(
-                f"aruco:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.json")
+                f"aruco:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
+            self.send_to_desktop(
+                f"meta:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
 
     def set_marker_from_csv(self, file) -> None:
         m = pd.read_csv(file)

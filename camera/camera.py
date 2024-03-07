@@ -16,7 +16,7 @@ from typing import TypeVar
 from flask_cors import CORS
 
 conf = ConfigParser()
-conf.read("../config.ini")
+conf.read("./config.ini")
 
 CamSet = TypeVar("CamSet", CamSettings, CamSettingsWithFilename)
 
