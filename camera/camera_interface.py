@@ -21,27 +21,27 @@ from time import sleep
 import piexif
 from socket import gethostname
 from typen import CamSettings, CamSettingsWithFilename
-from typing import Dict, Tuple, List, Callable
+from typing import Callable
 
 
 class CameraInterface(object):
     CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
     def __init__(self, folder: str):
-        tuning: Dict[str, Any] = Picamera2.load_tuning_file(
+        tuning: dict[str, Any] = Picamera2.load_tuning_file(
             "imx708.json", dir='./tuning/')
         self.cam: Picamera2 = Picamera2(tuning=tuning)
         self.rgb_config: dict[str, Any] = self.cam.create_still_configuration()
         self.cam.configure(self.rgb_config)  # type: ignore
         self.cam.start()
-        scm: List[int] = self.cam.camera_properties['ScalerCropMaximum']
+        scm: list[int] = self.cam.camera_properties['ScalerCropMaximum']
         self.cam.stop()
         h: int = scm[3]-scm[1]
         w: int = scm[2]-scm[0]
-        rect: Tuple[int, int, int, int] = (
+        rect: tuple[int, int, int, int] = (
             scm[0]+2*w//5, scm[1]+2*h//5, w//5, h//5)
         print("Fokus-Fenster: ", rect)
-        self.DEFAULT_CTRL: Dict[str, Any] = {
+        self.DEFAULT_CTRL: dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
@@ -88,7 +88,7 @@ class CameraInterface(object):
         data.seek(0)
         return data.read()
 
-    def capture_photo(self, settings: CamSet) -> Tuple[CompletedRequest, Dict[str, Any], CamSet]:
+    def capture_photo(self, settings: CamSet) -> tuple[CompletedRequest, dict[str, Any], CamSet]:
         self.resume()
         if settings:
             settings = self.set_settings(settings)
@@ -97,7 +97,7 @@ class CameraInterface(object):
         metadata: dict[str, Any] = req.get_metadata()
         return req, metadata, settings
 
-    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[List[dict[str, int | float]]], None]) -> List[dict[str, int | float]]:
+    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[dict[str, int | float]]], None]) -> list[dict[str, int | float]]:
         print("Kamera aktiviert!")
         req, metadata, settings = self.capture_photo(settings)
         file = self.folder + settings['filename']
@@ -105,7 +105,7 @@ class CameraInterface(object):
         req.save("main", file)
         aruco_marker = []
 
-        def aruco_search(img, aruco_callback: Callable[[List[dict[str, int | float]]], None]):
+        def aruco_search(img, aruco_callback: Callable[[list[dict[str, int | float]]], None]):
 
             aruco_marker = self.aruco.detect_from_rgb(img)
             dump(aruco_marker, open(file + ".aruco", "w"), indent=2)
