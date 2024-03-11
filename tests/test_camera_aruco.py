@@ -13,7 +13,7 @@ from camera.camera_aruco import Aruco
 from cv2 import imread
 from cv2 import cvtColor, COLOR_BGR2GRAY
 from common.conf import Conf
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class TestCameraAruco:

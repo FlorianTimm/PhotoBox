@@ -18,8 +18,8 @@ from common.conf import Conf
 
 CamSet = TypeVar("CamSet", CamSettings, CamSettingsWithFilename)
 
-conf = Conf.instance().load_conf()
-LOGGER = Conf.instance().get_logger()
+conf = Conf().load_conf()
+LOGGER = Conf().get_logger()
 
 # web control
 app = Flask(__name__, static_url_path='/bilder',

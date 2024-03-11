@@ -19,8 +19,8 @@ from requests import get, Response as GetResponse
 
 from master.control import Control
 
-conf = Conf.instance().load_conf()
-LOGGER = Conf.instance().get_logger()
+conf = Conf().load_conf()
+LOGGER = Conf().get_logger()
 
 app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['server']['Folder'], template_folder='../template')

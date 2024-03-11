@@ -11,7 +11,7 @@ from re import findall
 from time import sleep
 from typing import TYPE_CHECKING
 from common.conf import Conf
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 if TYPE_CHECKING:
     from master.control import Control

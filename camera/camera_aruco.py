@@ -12,7 +12,7 @@ from cv2 import cvtColor, COLOR_BGR2GRAY
 from common.typen import ArucoMarkerPos
 from common.conf import Conf
 
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class Aruco:

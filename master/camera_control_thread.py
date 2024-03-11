@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from master.control import Control
 
 from common.conf import Conf
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class CameraControlThread(StoppableThread):

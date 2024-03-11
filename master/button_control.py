@@ -8,7 +8,7 @@
 
 from typing import TYPE_CHECKING
 from common.conf import Conf
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 gpio_available = False
 try:
