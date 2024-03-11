@@ -1,8 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 import atexit
 from queue import Queue
 import socket
-from tabnanny import check
-
 import pandas as pd
 
 from flask import Flask, render_template
@@ -20,20 +26,14 @@ from cv2 import imread, imwrite
 from json import dump as json_dump
 from time import clock_settime, clock_gettime, CLOCK_REALTIME
 
-import focus_stack as focus_stack
-from desktop_control_thread import DesktopControlThread
-from camera_control_thread import CameraControlThread
-from marker_check import MarkerChecker
-from stoppable_thread import StoppableThread
-from button_control import ButtonControl
-from led_control import LedControl
+from master import DesktopControlThread, CameraControlThread, MarkerChecker, StoppableThread, ButtonControl, LedControl, focus_stack
 
 from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
-import sys
-sys.path.append('./camera')  # NOQA
-from typen import ArucoMarkerPos, ArucoMetaBroadcast
+from common import ArucoMarkerPos, ArucoMetaBroadcast, Conf
+
+LOGGER = Conf.instance().get_logger()
 
 
 class Control:
@@ -124,39 +124,39 @@ class Control:
 
     def receive_photo(self, ip: str, id: str, filename: str) -> None:
         global photo_count
-        print("Photo received: " + filename)
+        LOGGER.info("Photo received: %s", filename)
         self.__pending_photo_count[id] -= 1
         hostname = self.__get_hostname(ip)
         if len(hostname) > 0:
             hostname = hostname[0]
         else:
-            print("Error: Hostname not found!")
+            LOGGER.info("Error: Hostname not found!")
             return
         Thread(target=self.__download_photo, args=(
             ip, id, filename, hostname)).start()
         if self.__pending_photo_count[id] == 0:
             self.__led_control.status_led()
             del self.__pending_photo_count[id]
-            print("All photos taken!")
+            LOGGER.info("All photos taken!")
 
     def __download_photo(self, ip: str, id: str, name: str, hostname: str) -> None:
         """ collect photos """
         global download_count
-        print("Downloading photo...")
+        LOGGER.info("Downloading photo...")
         folder = self.__check_folder(id)
 
-        print("Collecting photo from " + hostname + "...")
+        LOGGER.info("Collecting photo from  %s...", hostname)
         try:
             url = "http://" + ip + ":" + \
                 self.__conf["kameras"]['WebPort'] + "/bilder/" + name
-            print(url)
+            LOGGER.info(url)
             r = requests.get(url, allow_redirects=True)
             open(folder + hostname + name[36:], 'wb').write(r.content)
         except Exception as e:
-            print("Error collecting photo from " + hostname + ":", e)
+            LOGGER.info("Error collecting photo from %s: %s", hostname, e)
         self.__pending_download_count[id] -= 1
         if self.__pending_download_count[id] == 0:
-            print("Collecting photos done!")
+            LOGGER.info("Collecting photos done!")
             del self.__pending_download_count[id]
             if self.__pending_photo_types[id] == "stack":
                 pass
@@ -205,7 +205,7 @@ class Control:
         self.__pending_aruco_count[id] -= 1
 
         if self.__pending_aruco_count[id] == 0:
-            print("Aruco done!")
+            LOGGER.info("Aruco done!")
             del self.__pending_aruco_count[id]
             folder = self.__check_folder(id)
 
@@ -235,7 +235,7 @@ class Control:
                 self.__marker[id] = {}
             c = int(r['corner'])
             self.__marker[id][c] = (r['x'], r['y'], r['z'])
-        print(self.__marker)
+        LOGGER.info(self.__marker)
         self.__save_markers()
 
     def __save_markers(self, ) -> None:
@@ -249,11 +249,11 @@ class Control:
         try:
             self.set_marker_from_csv(
                 self.__conf['server']['Folder'] + "marker.csv")
-            print("Marker loaded!")
+            LOGGER.info("Marker loaded!")
         except:
             pass
 
-    def __switch_pause_resume(self, ):
+    def switch_pause_resume(self, ):
         if self.__cams_in_standby:
             self.__pause()
         else:
@@ -287,10 +287,10 @@ class Control:
         self.__led_control.switch_off()
         if action == 'shutdown':
             system("sleep 5s; sudo shutdown -h now")
-            print("Shutdown Raspberry...")
+            LOGGER.info("Shutdown Raspberry...")
         elif action == 'reboot':
             system("sleep 5s; sudo reboot")
-            print("Reboot Raspberry...")
+            LOGGER.info("Reboot Raspberry...")
         exit(0)
 
     def __exit_handler(self, ):
@@ -304,7 +304,7 @@ class Control:
         """ Update Skript """
         self.send_to_all('update')
         self.__led_control.waiting()
-        print("Update Skript...")
+        LOGGER.info("Update Skript...")
         system("sudo git -C /home/photo/PhotoBox pull")
         self.__led_control.photo_light()
         return "Updated"
@@ -318,17 +318,17 @@ class Control:
             system("sleep 5s; sudo systemctl restart PhotoBoxMaster.service")
             exit(1)
         Thread(target=restart_skript).start()
-        print("Restart Skript...")
+        LOGGER.info("Restart Skript...")
         return render_template('wait.htm', time=15, target_url="/", title="Restarting...")
 
     # Getter
 
     def get_hostnames(self, ) -> dict[str, str]:
-        print("get_hostnames")
+        LOGGER.info("get_hostnames")
         return dict(sorted(self.__list_of_cameras.items()))
 
-    # def get_cams_started(self) -> bool:
-    #    return self.__cams_in_standby
+    def get_cams_started(self) -> bool:
+        return self.__cams_in_standby
 
     def get_leds(self) -> LedControl:
         return self.__led_control

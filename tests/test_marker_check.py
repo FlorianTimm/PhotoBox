@@ -1,16 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 from json import load, dump
 import pandas as pd
-import py
 import pytest
 
-from marker_check import MarkerChecker
-from master import marker_get
-from typen import ArucoMarkerPos
+from master import MarkerChecker
+from common import ArucoMarkerPos
 
 
-import logging
+from common import Conf
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = Conf.instance().get_logger()
 
 
 class TestMarkerChecker:

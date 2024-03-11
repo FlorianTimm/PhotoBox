@@ -1,7 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 from flask import Flask
-import pytest
 from configparser import ConfigParser
-from control import Control
+from master import Control
 
 
 class TestMasterControl:

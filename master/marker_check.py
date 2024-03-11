@@ -1,14 +1,17 @@
-from re import L
-import re
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 import cv2
 import numpy as np
-import sys
-sys.path.append('./camera')  # NOQA
-from typen import ArucoMarkerPos
 import pandas as pd
+from common import Conf, ArucoMarkerPos
 
-import logging
-LOGGER = logging.getLogger(__name__)
+LOGGER = Conf.instance().get_logger()
 
 
 class MarkerChecker:

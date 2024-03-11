@@ -3,23 +3,22 @@
 
 """
 @author: Florian Timm
-@version: 2024.02.28
+@version: 2024.03.11
 """
 
 from flask import Flask, make_response, request
 from threading import Thread
-from configparser import ConfigParser
-from camera_control import CameraControl
+from camera.camera_control import CameraControl
 from json import dumps
-from typen import CamSettings, CamSettingsWithFilename, Config
 from typing import TypeVar
 from flask_cors import CORS
 
-conf = ConfigParser()
-conf.read("./config.ini")
+from common import CamSettings, CamSettingsWithFilename, Config, Conf
 
 CamSet = TypeVar("CamSet", CamSettings, CamSettingsWithFilename)
 
+conf = Conf.instance().load_conf()
+LOGGER = Conf.instance().get_logger()
 
 # web control
 app = Flask(__name__, static_url_path='/bilder',
@@ -187,7 +186,7 @@ def meta():
 
 def start_web(conf: Config):
     """ start web control """
-    print("Web server is starting...")
+    LOGGER.info("Web server is starting...")
     app.run('0.0.0.0', conf['kameras']['WebPort'])
 
 
