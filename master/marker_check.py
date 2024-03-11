@@ -12,7 +12,7 @@ import pandas as pd
 from common.conf import Conf
 from common.typen import ArucoMarkerPos
 
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class MarkerChecker:

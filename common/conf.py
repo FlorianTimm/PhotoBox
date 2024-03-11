@@ -10,21 +10,12 @@ import logging
 from configparser import ConfigParser
 import sys
 
+from common.singleton import SingletonMeta
 
-class Conf(object):
-    __instance = None
+
+class Conf(metaclass=SingletonMeta):
     __conf = None
     __LOGGER = None
-
-    def __init__(self):
-        pass  # raise RuntimeError('Call instance() instead')
-
-    @classmethod
-    def instance(cls):
-        if cls.__instance is None:
-            cls.__instance = cls.__new__(cls)
-            cls.__instance.__init__()
-        return cls.__instance
 
     def load_conf(self):
         if self.__conf is None:
@@ -33,16 +24,35 @@ class Conf(object):
         return self.__conf
 
     def get_logger(self):
-        conf = self.load_conf()
         if self.__LOGGER is None:
-            self.__LOGGER = logging.getLogger('PhotoBox')
+            conf = self.load_conf()
+            logLevel = logging.ERROR
+
             if conf['both']['LogLevel'] == "DEBUG":
-                self.__LOGGER.setLevel(logging.DEBUG)
+                logLevel = logging.DEBUG
             if conf['both']['LogLevel'] == "INFO":
-                self.__LOGGER.setLevel(logging.INFO)
+                logLevel = logging.INFO
             if conf['both']['LogLevel'] == "WARNING":
-                self.__LOGGER.setLevel(logging.WARNING)
-            else:
-                self.__LOGGER.setLevel(logging.ERROR)
-            self.__LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+                logLevel = logging.WARNING
+            if conf['both']['LogLevel'] == "ERROR":
+                logLevel = logging.ERROR
+            if conf['both']['LogLevel'] == "CRITICAL":
+                logLevel = logging.CRITICAL
+            if conf['both']['LogLevel'] == "NOTSET":
+                logLevel = logging.NOTSET
+
+            stdout_handler = logging.StreamHandler(stream=sys.stdout)
+            handlers: list[logging.Handler] = [stdout_handler]
+            if conf['both']['LogFile'] != "":
+                file_handler = logging.FileHandler(
+                    filename=conf['both']['LogFile'])
+                handlers.append(file_handler)
+
+            logging.basicConfig(
+                level=logLevel,
+                format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
+                handlers=handlers
+            )
+            self.__LOGGER = logging.getLogger('PhotoBoxLogger')
+            self.__LOGGER.info("Logger loaded")
         return self.__LOGGER

@@ -17,7 +17,7 @@ from json import dumps, loads as json_loads
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename
 from common.conf import Conf
 
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
 

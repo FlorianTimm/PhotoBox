@@ -14,7 +14,7 @@ from master.marker_check import MarkerChecker
 from common.typen import ArucoMarkerPos
 from common.conf import Conf
 
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class TestMarkerChecker:

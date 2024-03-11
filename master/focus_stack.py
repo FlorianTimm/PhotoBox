@@ -38,7 +38,7 @@ import numpy as np
 import numpy.typing as npt
 import cv2
 from common.conf import Conf
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 def findHomography(image_1_kp, image_2_kp, matches):

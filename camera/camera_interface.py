@@ -23,7 +23,7 @@ from socket import gethostname
 from common.typen import ArucoMarkerPos, CamSettings, CamSettingsWithFilename
 from typing import Callable
 from common.conf import Conf
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class CameraInterface(object):

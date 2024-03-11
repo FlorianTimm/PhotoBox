@@ -40,7 +40,7 @@ from numpy import uint8
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast
 from common.conf import Conf
 
-LOGGER = Conf.instance().get_logger()
+LOGGER = Conf().get_logger()
 
 
 class Control:
