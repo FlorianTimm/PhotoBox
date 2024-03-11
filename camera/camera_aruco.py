@@ -9,7 +9,8 @@
 from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPIX, detectMarkers, detectMarkers
 from cv2 import cvtColor, COLOR_BGR2GRAY
 
-from common import ArucoMarkerPos, Conf
+from common.typen import ArucoMarkerPos
+from common.conf import Conf
 
 LOGGER = Conf.instance().get_logger()
 

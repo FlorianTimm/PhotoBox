@@ -13,7 +13,8 @@ from json import dumps
 from typing import TypeVar
 from flask_cors import CORS
 
-from common import CamSettings, CamSettingsWithFilename, Config, Conf
+from common.typen import CamSettings, CamSettingsWithFilename, Config
+from common.conf import Conf
 
 CamSet = TypeVar("CamSet", CamSettings, CamSettingsWithFilename)
 

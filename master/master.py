@@ -6,7 +6,7 @@
 @version: 2024.03.11
 """
 
-from common import Conf
+from common.conf import Conf
 from flask import Flask, Response, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
 import uuid
@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Literal, NoReturn
 from requests import get, Response as GetResponse
 
-from master import Control
+from master.control import Control
 
 conf = Conf.instance().load_conf()
 LOGGER = Conf.instance().get_logger()
