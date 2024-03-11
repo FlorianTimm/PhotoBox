@@ -1,12 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 from configparser import ConfigParser
 import socket
 from threading import Thread
-from stoppable_thread import StoppableThread
+from master import StoppableThread
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from control import Control
+    from master import Control
+
+from common import Conf
+LOGGER = Conf.instance().get_logger()
 
 
 class CameraControlThread(StoppableThread):
@@ -27,16 +38,31 @@ class CameraControlThread(StoppableThread):
         Returns:
             None
         """
+
         socket_rec = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        socket_rec.bind(("0.0.0.0", int(self.__conf['both']['BroadCastPort'])))
+        port = int(self.__conf['both']['BroadCastPort'])
+        free_port_found = False
+        while free_port_found == False:
+            try:
+                socket_rec.bind(("0.0.0.0", port))
+                free_port_found = True
+                if port == int(self.__conf['both']['BroadCastPort']):
+                    LOGGER.info(
+                        "CameraControlThread is listening on port %s", port)
+                else:
+                    LOGGER.info("CameraControlThread is listening on port %s",
+                                port, "because port", self.__conf['both']['BroadCastPort'], "was already in use")
+            except OSError:
+                LOGGER.error("Port %s already in use", port)
+                port += 1
         while self.__control.is_system_stopping() == False:
             # sock.sendto(bytes("hello", "utf-8"), ip_co)
             data, addr = socket_rec.recvfrom(2024)
-            print("received message: %s" % data)
-            print(addr)
+            LOGGER.info("received message: %s", data)
+            LOGGER.info(addr)
             data = data.decode("utf-8")
-            print(addr[0] + ": " + data)
+            LOGGER.info("%s: %s", addr[0], data)
             if data[:4] == 'Moin':
                 Thread(target=self.__control.found_camera,
                        args=(data[5:], addr[0])).start()
@@ -44,7 +70,7 @@ class CameraControlThread(StoppableThread):
                 data = data[10:].split(":", 2)
                 self.__control.receive_photo(addr[0], data[0], data[1])
             elif data[:11] == 'arucoReady:':
-                print(data)
+                LOGGER.info(data)
                 self.__control.receive_aruco(data[11:])
             elif data[:5] == 'light':
                 self.__control.get_leds().photo_light()

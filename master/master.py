@@ -1,6 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
+from common import Conf
 from flask import Flask, Response, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
-import configparser
 import uuid
 from os import PathLike, path
 from json import dumps as json_dumps
@@ -9,10 +17,10 @@ from datetime import datetime
 from typing import Literal, NoReturn
 from requests import get, Response as GetResponse
 
-from control import Control
+from master import Control
 
-conf = configparser.ConfigParser()
-conf.read('./config.ini')
+conf = Conf.instance().load_conf()
+LOGGER = Conf.instance().get_logger()
 
 app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['server']['Folder'], template_folder='../template')
@@ -181,7 +189,7 @@ def marker_get() -> str:
 @app.route("/marker", methods=['POST'])
 def marker_post():
     """ Marker-File-Upload """
-    print("Upload marker file")
+    LOGGER.info("Upload marker file")
     if 'file' not in request.files:
         return redirect(request.url)
     file = request.files['file']

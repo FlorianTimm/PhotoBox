@@ -22,8 +22,12 @@
         "./.venv/lib64/python3.11/site-packages",
         "/usr/lib/x86_64-linux-gnu/python3.11/site-packages",
         "./master",
-        "./camera"
+        "./camera",
+        "./common"
     ],
+    "python.analysis.logLevel": "Information",
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.useLibraryCodeForTypes": true,
     "java.project.referencedLibraries": [
         "connector/lib/**/*.jar",
         "connector/lib/metashape-java-api.jar",

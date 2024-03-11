@@ -3,7 +3,7 @@
 
 """
 @author: Florian Timm
-@version: 2024.02.28
+@version: 2024.03.11
 """
 
 # stream: https://github.com/raspberrypi/picamera2/issues/366#issuecomment-1285888051
@@ -20,8 +20,10 @@ from libcamera import controls  # type: ignore
 from time import sleep
 import piexif
 from socket import gethostname
-from typen import ArucoMarkerPos, CamSettings, CamSettingsWithFilename
+from common.typen import ArucoMarkerPos, CamSettings, CamSettingsWithFilename
 from typing import Callable
+from common import Conf
+LOGGER = Conf.instance().get_logger()
 
 
 class CameraInterface(object):
@@ -41,7 +43,7 @@ class CameraInterface(object):
         w: int = scm[2]-scm[0]
         rect: tuple[int, int, int, int] = (
             scm[0]+2*w//5, scm[1]+2*h//5, w//5, h//5)
-        print("Fokus-Fenster: ", rect)
+        LOGGER.info("Fokus-Fenster:  %s", rect)
         self.__DEFAULT_CTRL: dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
             "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
@@ -64,10 +66,10 @@ class CameraInterface(object):
 
     def make_picture(self, settings: CamSettings = {}, preview=False) -> bytes:
         data = BytesIO()
-        print("Kamera aktiviert!")
+        LOGGER.info("Kamera aktiviert!")
         req, metadata, settings = self.__capture_photo(settings)
         req.save("main", data, format="jpeg")
-        print("Fokus (real): ", metadata["LensPosition"])
+        LOGGER.info("Fokus (real):  %s", metadata["LensPosition"])
         req.release()
         """
         if metadata["LensPosition"] != 0:
@@ -85,7 +87,7 @@ class CameraInterface(object):
         piexif.insert(exif_bytes, data)
         """
 
-        print("Bild gemacht!")
+        LOGGER.info("Bild gemacht!")
         data.seek(0)
         return data.read()
 
@@ -103,10 +105,10 @@ class CameraInterface(object):
         return req, metadata
 
     def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> list[dict[str, int | float]]:
-        print("Kamera aktiviert!")
+        LOGGER.info("Kamera aktiviert!")
         req, metadata, settings = self.__capture_photo(settings)
         file = self.__folder + settings['filename']
-        print("Fokus (real): ", metadata["LensPosition"])
+        LOGGER.info("Fokus (real):  %s", metadata["LensPosition"])
         req.save("main", file)
         aruco_marker = []
 
@@ -134,7 +136,7 @@ class CameraInterface(object):
         exif_bytes = piexif.dump(exif_dict)
         piexif.insert(exif_bytes, file)
 
-        print("Bild " + file + " gemacht!")
+        LOGGER.info("Bild %s gemacht!", file)
         return aruco_marker
 
     def meta(self) -> None | dict[str, Any]:
@@ -145,36 +147,36 @@ class CameraInterface(object):
     def set_settings(self, settings: CamSet) -> CamSet:
         if isinstance(settings, dict):
             if 'focus' in settings and settings['focus'] != 0:
-                print("focus: ", settings['focus'])
+                LOGGER.info("focus: %s", settings['focus'])
                 self.focus(settings['focus'])
             with self.__cam.controls as controls:
                 if 'iso' in settings:
-                    print("iso: ", settings['iso'])
+                    LOGGER.info("iso: %s", settings['iso'])
                     controls.AnalogueGain = settings['iso']/100.
                 if 'shutter_speed' in settings:
-                    print("shutter_speed: ", settings['shutter_speed'])
+                    LOGGER.info("shutter_speed: %s", settings['shutter_speed'])
                     controls.ExposureTime = settings['shutter_speed']
                 if 'white_balance' in settings:
-                    print("white_balance: ", settings['white_balance'])
+                    LOGGER.info("white_balance: %s", settings['white_balance'])
                     controls.AwbMode = settings['white_balance']
         return settings
 
     def focus(self, focus: float) -> str:
         if (focus == -2):
-            print("Fokus nicht verändern")
+            LOGGER.info("Fokus nicht verändern")
             pass
         elif (focus == -1):
-            print("Autofokus")
+            LOGGER.info("Autofokus")
             self.__cam.set_controls(self.__DEFAULT_CTRL)
             # self.cam.autofocus_cycle()
         else:
-            print("Fokus (soll): ", focus)
+            LOGGER.info("Fokus (soll): %s", focus)
             self.__cam.set_controls(
                 {"AfMode": controls.AfModeEnum.Manual, "LensPosition": focus})
             for i in range(10):
                 m = self.__cam.capture_metadata()
                 if abs(m["LensPosition"] - focus) < 0.01:  # type: ignore
-                    print("Fokus erreicht nach ", i*0.1, "s")
+                    LOGGER.info("Fokus erreicht nach  %s s", i*0.1)
                     break
                 sleep(0.1)
         return "Fokus"
@@ -197,7 +199,7 @@ class CameraInterface(object):
             image = self.__cam.switch_mode_and_capture_array(  # type: ignore
                 self.yuv_config, 'main', wait=True)[:h, :w]
 
-        print("Aruco Bild gemacht!")
+        LOGGER.info("Aruco Bild gemacht!")
         if inform_after_picture != None:
             inform_after_picture()
         return self.__aruco.detect(image)

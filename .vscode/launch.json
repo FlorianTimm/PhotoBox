@@ -8,7 +8,7 @@
             "name": "Master",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/master/master.py",
+            "module": "master.master",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": true

@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 from typing import Any, TypedDict, NotRequired
 
 

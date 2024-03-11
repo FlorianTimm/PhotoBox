@@ -1,22 +1,31 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
+
 from configparser import ConfigParser
 from re import findall
 from time import sleep
 from typing import TYPE_CHECKING
-
+from common import Conf
+LOGGER = Conf.instance().get_logger()
 
 if TYPE_CHECKING:
-    from control import Control
+    from master import Control
 
 led_available = False
 try:
-    from neopixel import NeoPixel, RGB as NeoPixelRGB
-    from board import D18
-    from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin
+    from neopixel import NeoPixel, RGB as NeoPixelRGB  # type: ignore
+    from board import D18  # type: ignore
+    from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin  # type: ignore
     led_available = True
 except ImportError:
-    print("GPIO not available")
+    LOGGER.warning("GPIO not available")
 except NotImplementedError:
-    print("GPIO not available")
+    LOGGER.warning("GPIO not available")
 
 
 class LedControl:
@@ -126,11 +135,11 @@ class LedControl:
         Returns:
             None
         """
-        if not self.__led_available and not self.__pixels:
+        if not self.__led_available or not self.__pixels or self.__pixels == None:
             return
         self.__pixels.fill(color)
 
-    def status_led(self, val=0) -> None:
+    def status_led(self, val: float = 0) -> None:
         """
         Sets the LEDs based on the status of the control object.
 
@@ -156,7 +165,7 @@ class LedControl:
             sleep(float(val))
             self.photo_light()
 
-    def photo_light(self, val=0) -> None:
+    def photo_light(self, val: float = 0) -> None:
         """
         Turns on white light and sets the LEDs to white color.
 

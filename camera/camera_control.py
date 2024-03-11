@@ -3,7 +3,7 @@
 
 """
 @author: Florian Timm
-@version: 2024.02.28
+@version: 2024.03.11
 """
 
 from threading import Thread
@@ -11,11 +11,12 @@ from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
 from typing import Any, Callable, TypeVar
-from camera_interface import CameraInterface
+from camera import CameraInterface
 import socket
 from json import dumps, loads as json_loads
-from typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename
+from common import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename, Conf
 
+LOGGER = Conf.instance().get_logger()
 CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
 
@@ -87,12 +88,12 @@ class CameraControl:
 
         """
         system("sleep 5s; sudo shutdown -h now")
-        print("Shutdown Raspberry...")
+        LOGGER.info("Shutdown Raspberry...")
         exit(0)
 
     def run(self):
         self.cam = CameraInterface(self.__conf['kameras']['Folder'])
-        print("Moin")
+        LOGGER.info("Moin")
 
     def __check_settings(self, settings: CamSet | str) -> CamSet:
         settingR: CamSet
@@ -198,7 +199,7 @@ class CameraControl:
         Returns:
             None
         """
-        print("Aruco: " + id, addr)
+        LOGGER.info("Aruco: %s %s", id, addr)
 
         def aruco_pic():
             self.__answer(addr[0], 'arucoImg:' + id +
@@ -247,7 +248,7 @@ class CameraControl:
         while True:
             data, addr = self.__sock.recvfrom(1024)
             data = data.decode("utf-8")
-            print(addr, data)
+            LOGGER.info("%s %s", addr, data)
             if data[:4] == 'Moin':
                 pass
             elif data == 'search':
@@ -262,17 +263,17 @@ class CameraControl:
                     z = float(data[6:])
                 except:
                     pass
-                print("Focus: " + str(z))
+                LOGGER.info("Focus: %s", z)
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
-                print("Einstellung", data[6:])
+                LOGGER.info("Einstellung %s", data[6:])
                 self.__take_photo(data, addr)
             elif data[:5] == 'stack':
-                print("Fokusstack: ", data[6:])
+                LOGGER.info("Fokusstack: %s", data[6:])
                 filename = data[6:]
                 self.__take_focusstack(filename, addr)
             elif data[:8] == 'settings':
-                print("Einstellung", data[9:])
+                LOGGER.info("Einstellung %s", data[9:])
                 jsonSettings: CamSettings
                 try:
                     jsonSettings = json_loads(data[9:])
@@ -289,17 +290,17 @@ class CameraControl:
                 self.resume()
             elif data == 'reboot':
                 system("sleep 5s; sudo reboot")
-                print("Reboot Raspberry...")
+                LOGGER.info("Reboot Raspberry...")
                 exit(0)
             elif data == 'restart':
                 system("systemctl restart PhotoBoxKamera.service")
-                print("Restart Script...")
+                LOGGER.info("Restart Script...")
                 exit(1)
             elif data == 'update':
-                print("Update Script...")
+                LOGGER.info("Update Script...")
                 system("sudo git -C /home/photo/PhotoBox pull")
             else:
-                print("Unknown command: " + data)
+                LOGGER.warning("Unknown command: %s", data)
 
     def __take_focusstack(self, filename: str, addr: tuple[str, int]):
         """
@@ -355,7 +356,7 @@ class CameraControl:
         Returns:
             None
         """
-        print("Answer: ", addr, msg)
+        LOGGER.info("Answer:  %s %s", addr, msg)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto((msg).encode("utf-8"),

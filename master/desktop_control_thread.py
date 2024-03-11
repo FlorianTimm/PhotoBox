@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@author: Florian Timm
+@version: 2024.03.11
+"""
 
 from configparser import ConfigParser
 from queue import Queue
@@ -5,10 +12,13 @@ import socket
 from threading import Timer
 from typing import TYPE_CHECKING
 
-from stoppable_thread import StoppableThread
+from master.stoppable_thread import StoppableThread
 
 if TYPE_CHECKING:
-    from control import Control
+    from master.control import Control
+
+from common import Conf
+LOGGER = Conf.instance().get_logger()
 
 
 class DesktopControlThread(StoppableThread):
@@ -56,7 +66,25 @@ class DesktopControlThread(StoppableThread):
 
         try:
             di_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            di_socket.bind(("", int(self.__conf['server']['DesktopPort'])))
+            # Bind to the port and listen for incoming connections
+            free_port_found = False
+            port = int(self.__conf['server']['DesktopPort'])
+
+            while free_port_found == False:
+                try:
+                    di_socket.bind(("", port))
+                    free_port_found = True
+                    if port == int(self.__conf['server']['DesktopPort']):
+                        LOGGER.info(
+                            "DesktopControlThread is listening on port %s", port)
+                    else:
+                        LOGGER.warning(
+                            "DesktopControlThread is listening on port %s because %s is already in use", port, self.__conf['server']['DesktopPort'])
+                except OSError:
+                    LOGGER.error("Port %s already in use",
+                                 self.__conf['server']['DesktopPort'])
+                    port += 1
+
             di_socket.listen()
             di_socket.settimeout(1)
 
@@ -82,12 +110,12 @@ class DesktopControlThread(StoppableThread):
 
                             data = conn.recv(1024).decode("utf-8")
                             if data != "":
-                                print(addr, data)
+                                LOGGER.info(addr, data)
 
                             parts = data.split(":", 2)
                             match parts[0]:
                                 case "Moin":
-                                    print("Client connected")
+                                    LOGGER.info("Client connected")
                                     conn.sendall(bytes("Moin\n", "utf-8"))
                                 case "time":
                                     self.__control.set_time(int(parts[1]))
@@ -100,7 +128,7 @@ class DesktopControlThread(StoppableThread):
                         except socket.timeout:
                             continue
                         except:
-                            print("Client disconnected")
+                            LOGGER.info("Client disconnected")
                             if hb:
                                 hb.cancel()
                             break
