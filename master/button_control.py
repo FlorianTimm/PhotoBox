@@ -7,7 +7,7 @@
 """
 
 from typing import TYPE_CHECKING
-from common import Conf
+from common.conf import Conf
 LOGGER = Conf.instance().get_logger()
 
 gpio_available = False
@@ -20,7 +20,7 @@ except NotImplementedError:
     LOGGER.warning("GPIO not available")
 
 if TYPE_CHECKING:
-    from master import Control
+    from master.control import Control
 
 
 class ButtonControl:

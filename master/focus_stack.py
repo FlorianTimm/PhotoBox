@@ -37,7 +37,7 @@ http://stackoverflow.com/questions/15911783/what-are-some-common-focus-stacking-
 import numpy as np
 import numpy.typing as npt
 import cv2
-from common import Conf
+from common.conf import Conf
 LOGGER = Conf.instance().get_logger()
 
 

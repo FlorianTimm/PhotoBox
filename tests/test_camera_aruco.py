@@ -9,10 +9,10 @@
 from json import dump
 import pytest
 
-from camera import Aruco
+from camera.camera_aruco import Aruco
 from cv2 import imread
 from cv2 import cvtColor, COLOR_BGR2GRAY
-from common import Conf
+from common.conf import Conf
 LOGGER = Conf.instance().get_logger()
 
 

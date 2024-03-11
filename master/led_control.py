@@ -10,11 +10,11 @@ from configparser import ConfigParser
 from re import findall
 from time import sleep
 from typing import TYPE_CHECKING
-from common import Conf
+from common.conf import Conf
 LOGGER = Conf.instance().get_logger()
 
 if TYPE_CHECKING:
-    from master import Control
+    from master.control import Control
 
 led_available = False
 try:

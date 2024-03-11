@@ -26,12 +26,19 @@ from cv2 import imread, imwrite
 from json import dump as json_dump
 from time import clock_settime, clock_gettime, CLOCK_REALTIME
 
-from master import DesktopControlThread, CameraControlThread, MarkerChecker, StoppableThread, ButtonControl, LedControl, focus_stack
+from master.desktop_control_thread import DesktopControlThread
+from master.camera_control_thread import CameraControlThread
+from master.marker_check import MarkerChecker
+from master.stoppable_thread import StoppableThread
+from master.button_control import ButtonControl
+from master.led_control import LedControl
+from master.focus_stack import focus_stack
 
 from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
-from common import ArucoMarkerPos, ArucoMetaBroadcast, Conf
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast
+from common.conf import Conf
 
 LOGGER = Conf.instance().get_logger()
 
@@ -185,7 +192,7 @@ class Control:
                 groups[name] = []
             groups[name].append(imread(i))  # type: ignore
         for camera, bilder in groups.items():
-            imwrite(folder + camera + ".jpg", focus_stack.focus_stack(bilder))
+            imwrite(folder + camera + ".jpg", focus_stack(bilder))
 
     def receive_aruco(self, data: str) -> None:
         i1: int = data.find(":")

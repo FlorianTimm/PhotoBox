@@ -17,7 +17,7 @@ from master.stoppable_thread import StoppableThread
 if TYPE_CHECKING:
     from master.control import Control
 
-from common import Conf
+from common.conf import Conf
 LOGGER = Conf.instance().get_logger()
 
 

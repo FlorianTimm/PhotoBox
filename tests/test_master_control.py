@@ -8,7 +8,7 @@
 
 from flask import Flask
 from configparser import ConfigParser
-from master import Control
+from master.control import Control
 
 
 class TestMasterControl:

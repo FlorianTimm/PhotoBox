@@ -9,14 +9,14 @@
 from configparser import ConfigParser
 import socket
 from threading import Thread
-from master import StoppableThread
+from master.stoppable_thread import StoppableThread
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from master import Control
+    from master.control import Control
 
-from common import Conf
+from common.conf import Conf
 LOGGER = Conf.instance().get_logger()
 
 

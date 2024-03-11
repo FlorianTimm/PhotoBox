@@ -11,10 +11,11 @@ from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
 from typing import Any, Callable, TypeVar
-from camera import CameraInterface
+from camera.camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
-from common import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename, Conf
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename
+from common.conf import Conf
 
 LOGGER = Conf.instance().get_logger()
 CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)

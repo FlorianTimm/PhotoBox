@@ -10,11 +10,9 @@ from json import load, dump
 import pandas as pd
 import pytest
 
-from master import MarkerChecker
-from common import ArucoMarkerPos
-
-
-from common import Conf
+from master.marker_check import MarkerChecker
+from common.typen import ArucoMarkerPos
+from common.conf import Conf
 
 LOGGER = Conf.instance().get_logger()
 
