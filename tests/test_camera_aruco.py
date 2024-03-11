@@ -1,3 +1,4 @@
+from json import dump
 import pytest
 
 from camera_aruco import Aruco
@@ -25,6 +26,7 @@ class TestCameraAruco:
         assert marker[0]['y'] >= 0
         assert marker[0]['x'] <= 4608
         assert marker[0]['y'] <= 2592
+        dump({"camera04": marker}, open('tests/aruco.json', 'w'))
 
     def test_detect(self, aruco: Aruco):
         marker = aruco.detect(self.img_sw)
