@@ -6,11 +6,11 @@
 @version: 2024.03.11
 """
 
-from configparser import ConfigParser
 from queue import Queue
 import socket
 from threading import Timer
 from typing import TYPE_CHECKING
+from common.logger import Logger
 
 from master.stoppable_thread import StoppableThread
 
@@ -18,32 +18,27 @@ if TYPE_CHECKING:
     from master.control import Control
 
 from common.conf import Conf
-LOGGER = Conf().get_logger()
 
 
 class DesktopControlThread(StoppableThread):
     """
-    A thread class for controlling the connection to connector.
+    A thread class for controlling the desktop application.
 
-    Args:
-        conf (ConfigParser): The configuration parser object.
-        control: The control object.
-        queue (Queue[str]): The queue object for storing messages.
+    This class extends the `StoppableThread` class and provides methods for sending heartbeat signals,
+    running the thread, and handling incoming connections from clients.
 
     Attributes:
-        conf (ConfigParser): The configuration parser object.
-        queue (Queue[str]): The queue object for storing messages.
-        control: The control object.
+        __queue (Queue[str]): The queue for storing messages to be sent to clients.
+        __control (Control): The control object for managing the desktop application.
 
     Methods:
-        __heartbeat: Sends a heartbeat signal to keep the connection alive.
-        run: The main method that runs the thread.
-
+        __heartbeat(): Sends a heartbeat signal to keep the connection alive.
+        run(): The main method that runs the thread.
     """
 
-    def __init__(self, conf: ConfigParser, control: 'Control', queue: Queue[str]):
+    def __init__(self, control: 'Control', queue: Queue[str]):
         StoppableThread.__init__(self)
-        self.__conf = conf
+        self.__conf = Conf().get()
         self.__queue = queue
         self.__control = control
 
@@ -75,14 +70,14 @@ class DesktopControlThread(StoppableThread):
                     di_socket.bind(("", port))
                     free_port_found = True
                     if port == int(self.__conf['server']['DesktopPort']):
-                        LOGGER.info(
+                        Logger().info(
                             "DesktopControlThread is listening on port %s", port)
                     else:
-                        LOGGER.warning(
+                        Logger().warning(
                             "DesktopControlThread is listening on port %s because %s is already in use", port, self.__conf['server']['DesktopPort'])
                 except OSError:
-                    LOGGER.error("Port %s already in use",
-                                 self.__conf['server']['DesktopPort'])
+                    Logger().error("Port %s already in use",
+                                   self.__conf['server']['DesktopPort'])
                     port += 1
 
             di_socket.listen()
@@ -110,12 +105,12 @@ class DesktopControlThread(StoppableThread):
 
                             data = conn.recv(1024).decode("utf-8")
                             if data != "":
-                                LOGGER.info(addr, data)
+                                Logger().info(addr, data)
 
                             parts = data.split(":", 2)
                             match parts[0]:
                                 case "Moin":
-                                    LOGGER.info("Client connected")
+                                    Logger().info("Client connected")
                                     conn.sendall(bytes("Moin\n", "utf-8"))
                                 case "time":
                                     self.__control.set_time(int(parts[1]))
@@ -128,7 +123,7 @@ class DesktopControlThread(StoppableThread):
                         except socket.timeout:
                             continue
                         except:
-                            LOGGER.info("Client disconnected")
+                            Logger().info("Client disconnected")
                             if hb:
                                 hb.cancel()
                             break

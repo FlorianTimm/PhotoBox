@@ -6,20 +6,16 @@
 @version: 2024.03.11
 """
 
+from common.logger import Logger
 from flask import Flask, make_response, request
 from threading import Thread
 from camera.camera_control import CameraControl
 from json import dumps
-from typing import TypeVar
 from flask_cors import CORS
-
-from common.typen import CamSettings, CamSettingsWithFilename, Config
 from common.conf import Conf
 
-CamSet = TypeVar("CamSet", CamSettings, CamSettingsWithFilename)
+conf = Conf().get()
 
-conf = Conf().load_conf()
-LOGGER = Conf().get_logger()
 
 # web control
 app = Flask(__name__, static_url_path='/bilder',
@@ -185,16 +181,17 @@ def meta():
     return dumps(cc.meta(), indent=2)
 
 
-def start_web(conf: Config):
+def start_web():
     """ start web control """
-    LOGGER.info("Web server is starting...")
-    app.run('0.0.0.0', conf['kameras']['WebPort'])
+    Logger().info("Web server is starting...")
+    conf = Conf().get()
+    app.run('0.0.0.0', int(conf['kameras']['WebPort']))
 
 
 if __name__ == '__main__':
 
-    cc = CameraControl(conf)
-    w = Thread(target=start_web, args=(conf,))
+    cc = CameraControl()
+    w = Thread(target=start_web)
     w.start()
     cc.run()
 

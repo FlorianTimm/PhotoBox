@@ -7,18 +7,15 @@
 """
 
 from threading import Thread
-from configparser import ConfigParser
 from os import system, makedirs, path
 from sys import exit
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable
+from common.logger import Logger
 from camera.camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename
 from common.conf import Conf
-
-LOGGER = Conf().get_logger()
-CamSet = TypeVar('CamSet', CamSettings, CamSettingsWithFilename)
 
 
 class CameraControl:
@@ -29,12 +26,11 @@ class CameraControl:
     setting camera settings, and handling broadcast messages.
 
     Attributes:
-        __conf (ConfigParser): The configuration parser object.
         __sock (socket.socket): The socket object for UDP communication.
         cam (CameraInterface): The camera interface object.
 
     Methods:
-        __init__(self, conf: ConfigParser): Initializes the CameraControl object.
+        __init__(self): Initializes the CameraControl object.
         shutdown(self): Shuts down the Raspberry Pi.
         run(self): Runs the camera.
         __check_settings(self, settings: CamSet | str) -> CamSet: Checks and converts camera settings.
@@ -56,17 +52,14 @@ class CameraControl:
         __answer(self, addr: str, msg: str): Sends an answer message to a client.
     """
 
-    def __init__(self, conf: ConfigParser):
+    def __init__(self):
         """
         Constructor for the CameraControl class.
-
-        Args:
-            conf (ConfigParser): The configuration parser object.
 
         Returns:
             None
         """
-        self.__conf = conf
+        self.__conf = Conf().get()
 
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -89,15 +82,15 @@ class CameraControl:
 
         """
         system("sleep 5s; sudo shutdown -h now")
-        LOGGER.info("Shutdown Raspberry...")
+        Logger().info("Shutdown Raspberry...")
         exit(0)
 
     def run(self):
         self.cam = CameraInterface(self.__conf['kameras']['Folder'])
-        LOGGER.info("Moin")
+        Logger().info("Moin")
 
-    def __check_settings(self, settings: CamSet | str) -> CamSet:
-        settingR: CamSet
+    def __check_settings(self, settings: CamSettings | str) -> CamSettings:
+        settingR: CamSettings
         if isinstance(settings, str):
             settingR = json_loads(settings)
         else:
@@ -200,7 +193,7 @@ class CameraControl:
         Returns:
             None
         """
-        LOGGER.info("Aruco: %s %s", id, addr)
+        Logger().info("Aruco: %s %s", id, addr)
 
         def aruco_pic():
             self.__answer(addr[0], 'arucoImg:' + id +
@@ -249,7 +242,7 @@ class CameraControl:
         while True:
             data, addr = self.__sock.recvfrom(1024)
             data = data.decode("utf-8")
-            LOGGER.info("%s %s", addr, data)
+            Logger().info("%s %s", addr, data)
             if data[:4] == 'Moin':
                 pass
             elif data == 'search':
@@ -264,17 +257,17 @@ class CameraControl:
                     z = float(data[6:])
                 except:
                     pass
-                LOGGER.info("Focus: %s", z)
+                Logger().info("Focus: %s", z)
                 self.focus(z)  # Autofokus
             elif data[:5] == 'photo':
-                LOGGER.info("Einstellung %s", data[6:])
+                Logger().info("Einstellung %s", data[6:])
                 self.__take_photo(data, addr)
             elif data[:5] == 'stack':
-                LOGGER.info("Fokusstack: %s", data[6:])
+                Logger().info("Fokusstack: %s", data[6:])
                 filename = data[6:]
                 self.__take_focusstack(filename, addr)
             elif data[:8] == 'settings':
-                LOGGER.info("Einstellung %s", data[9:])
+                Logger().info("Einstellung %s", data[9:])
                 jsonSettings: CamSettings
                 try:
                     jsonSettings = json_loads(data[9:])
@@ -291,17 +284,17 @@ class CameraControl:
                 self.resume()
             elif data == 'reboot':
                 system("sleep 5s; sudo reboot")
-                LOGGER.info("Reboot Raspberry...")
+                Logger().info("Reboot Raspberry...")
                 exit(0)
             elif data == 'restart':
                 system("systemctl restart PhotoBoxKamera.service")
-                LOGGER.info("Restart Script...")
+                Logger().info("Restart Script...")
                 exit(1)
             elif data == 'update':
-                LOGGER.info("Update Script...")
+                Logger().info("Update Script...")
                 system("sudo git -C /home/photo/PhotoBox pull")
             else:
-                LOGGER.warning("Unknown command: %s", data)
+                Logger().warning("Unknown command: %s", data)
 
     def __take_focusstack(self, filename: str, addr: tuple[str, int]):
         """
@@ -357,7 +350,7 @@ class CameraControl:
         Returns:
             None
         """
-        LOGGER.info("Answer:  %s %s", addr, msg)
+        Logger().info("Answer:  %s %s", addr, msg)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto((msg).encode("utf-8"),

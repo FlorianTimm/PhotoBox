@@ -6,7 +6,7 @@
 @version: 2024.03.11
 """
 
-from typing import Any, Required, TypedDict, NotRequired, Union
+from typing import Any, Required, TypedDict, NotRequired, Union,  TypeAlias
 
 
 class CamSettingsWithoutFilename(TypedDict):
@@ -23,7 +23,8 @@ class CamSettingsWithFilename(CamSettingsWithoutFilename):
     filename: Required[str]
 
 
-CamSettings = Union[CamSettingsOptionalFilename, CamSettingsWithFilename]
+CamSettings: TypeAlias = Union[CamSettingsOptionalFilename,
+                               CamSettingsWithFilename]
 
 
 class ConfigServer(TypedDict):

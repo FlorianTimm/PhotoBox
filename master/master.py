@@ -6,6 +6,7 @@
 @version: 2024.03.11
 """
 
+from common.logger import Logger
 from common.conf import Conf
 from flask import Flask, Response, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
@@ -19,14 +20,14 @@ from requests import get, Response as GetResponse
 
 from master.control import Control
 
-conf = Conf().load_conf()
-LOGGER = Conf().get_logger()
+conf = Conf().get()
+
 
 app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['server']['Folder'], template_folder='../template')
 CORS(app)
 
-control = Control(conf, app)
+control = Control(app)
 
 
 @app.route("/static/<path:filename>")
@@ -189,7 +190,7 @@ def marker_get() -> str:
 @app.route("/marker", methods=['POST'])
 def marker_post():
     """ Marker-File-Upload """
-    LOGGER.info("Upload marker file")
+    Logger().info("Upload marker file")
     if 'file' not in request.files:
         return redirect(request.url)
     file = request.files['file']

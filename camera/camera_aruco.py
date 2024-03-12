@@ -10,9 +10,7 @@ from cv2.aruco import Dictionary_create, DetectorParameters, CORNER_REFINE_SUBPI
 from cv2 import cvtColor, COLOR_BGR2GRAY
 
 from common.typen import ArucoMarkerPos
-from common.conf import Conf
-
-LOGGER = Conf().get_logger()
+from common.logger import Logger
 
 
 class Aruco:
@@ -34,5 +32,5 @@ class Aruco:
                                          'corner': int(eid),
                                          'x': float(e[0]),
                                          'y': float(e[1])} for ecke, id_ in zip(corners, ids) for eid, e in enumerate(ecke[0])]
-        LOGGER.info("Found Aruco: %d", len(marker))
+        Logger().info("Found Aruco: %d", len(marker))
         return marker

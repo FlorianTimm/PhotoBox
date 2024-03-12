@@ -9,10 +9,8 @@
 import cv2
 import numpy as np
 import pandas as pd
-from common.conf import Conf
+from common.logger import Logger
 from common.typen import ArucoMarkerPos
-
-LOGGER = Conf().get_logger()
 
 
 class MarkerChecker:
@@ -75,21 +73,21 @@ class MarkerChecker:
         Check the marker positions and filter them if necessary.
         """
         pdm = pd.DataFrame.from_dict(self.__metadata)
-        LOGGER.info(pdm)
+        Logger().info(pdm)
 
         data = []
 
         for hostname, positions in self.__marker_pos.items():
-            LOGGER.info(f"Processing {hostname}")
+            Logger().info(f"Processing {hostname}")
 
             lenspos = self.__metadata[hostname]['LensPosition']
             for pos in positions:
                 if not pos['id'] in self.__marker_coords:
-                    LOGGER.warning(
+                    Logger().warning(
                         f"Marker {pos['id']} not found in marker_coords")
                     continue
                 if not pos['corner'] in self.__marker_coords[pos['id']]:
-                    LOGGER.warning(
+                    Logger().warning(
                         f"Corner {pos['corner']} not found in marker_coords[{pos['id']}]")
                     continue
                 c = self.__marker_coords[pos['id']][pos['corner']]
@@ -100,10 +98,10 @@ class MarkerChecker:
                                          'id', 'corner', 'LensPosition', 'x', 'y', 'xw', 'yw', 'zw']).astype({'hostname': str, 'id': 'int32', 'corner': 'int32', 'LensPosition': 'float32', 'x': 'float32', 'y': 'float32', 'xw': 'float32', 'yw': 'float32', 'zw': 'float32'})
         df['inlier'] = None
 
-        LOGGER.info(df[['x', 'y', 'xw', 'yw', 'zw']])
+        Logger().info(df[['x', 'y', 'xw', 'yw', 'zw']])
 
         for (hostname, lensposition), group in df.groupby(['hostname', 'LensPosition']):
-            LOGGER.info(f"Processing {hostname}")
+            Logger().info(f"Processing {hostname}")
             cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
             objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
             imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
