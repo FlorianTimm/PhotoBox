@@ -6,18 +6,24 @@
 @version: 2024.03.11
 """
 
-from typing import Any, TypedDict, NotRequired
+from typing import Any, Required, TypedDict, NotRequired, Union
 
 
-class CamSettings(TypedDict):
+class CamSettingsWithoutFilename(TypedDict):
     focus: NotRequired[float]
-    filename: NotRequired[str]
     iso: NotRequired[float]
     shutter_speed: NotRequired[float]
 
 
-class CamSettingsWithFilename(CamSettings):
-    filename: str
+class CamSettingsOptionalFilename(CamSettingsWithoutFilename):
+    filename: NotRequired[str]
+
+
+class CamSettingsWithFilename(CamSettingsWithoutFilename):
+    filename: Required[str]
+
+
+CamSettings = Union[CamSettingsOptionalFilename, CamSettingsWithFilename]
 
 
 class ConfigServer(TypedDict):
