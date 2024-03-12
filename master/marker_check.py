@@ -94,11 +94,16 @@ class MarkerChecker:
                 data.append([hostname, pos['id'], pos['corner'], lenspos, pos['x'],
                             pos['y'], c[0], c[1], c[2]])
 
-        df = pd.DataFrame(data, columns=['hostname',
-                                         'id', 'corner', 'LensPosition', 'x', 'y', 'xw', 'yw', 'zw']).astype({'hostname': str, 'id': 'int32', 'corner': 'int32', 'LensPosition': 'float32', 'x': 'float32', 'y': 'float32', 'xw': 'float32', 'yw': 'float32', 'zw': 'float32'})
+        df: pd.DataFrame = pd.DataFrame(data, columns=['hostname',
+                                                       'id', 'corner', 'LensPosition', 'x', 'y', 'xw', 'yw', 'zw']).astype({'hostname': str, 'id': 'int32', 'corner': 'int32', 'LensPosition': 'float32', 'x': 'float32', 'y': 'float32', 'xw': 'float32', 'yw': 'float32', 'zw': 'float32'})
         df['inlier'] = None
+        if len(df) == 0:
+            Logger().warning("No data to process")
+            return
 
         Logger().info(df[['x', 'y', 'xw', 'yw', 'zw']])
+
+        cameras = {}
 
         for (hostname, lensposition), group in df.groupby(['hostname', 'LensPosition']):
             Logger().info(f"Processing {hostname}")
@@ -107,6 +112,8 @@ class MarkerChecker:
             imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
             ret, rvecs, tvecs, inliner = cv2.solvePnPRansac(
                 objp, imgp, cameraMatrix, distCoeffs, reprojectionError=10.0)
+            cameras[hostname] = {'cameraMatrix': cameraMatrix,
+                                 'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
             for i, ind in enumerate(group.index):
                 if i in inliner:
                     df.at[ind, 'inlier'] = True
@@ -114,6 +121,18 @@ class MarkerChecker:
                     df.at[ind, 'inlier'] = False
 
         self.__is_filtered = True
+
+        t = df.groupby(['id', 'corner'])['inlier'].agg(
+            [pd.Series.count, pd.Series.mode])
+        t = t[t['count'] > 2]
+        t = t[t['mode'] == False].reset_index()
+
+        for _, row in t.iterrows():
+            group = df[(df['id'] == row['id']) & (
+                df['corner'] == row['corner'])]
+            imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
+
+            # TODO: Berechnung der korrigierten Koordinaten mit cv2.triangulatePoints
 
         self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
                                              for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}

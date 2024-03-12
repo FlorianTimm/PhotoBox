@@ -7,7 +7,7 @@ import sys
 
 
 class Logger(metaclass=SingletonMeta):
-    __logger: logging.Logger
+    __logger: logging.Logger | None = None
 
     # Singleton-Fassade für Logger
 
@@ -20,7 +20,7 @@ class Logger(metaclass=SingletonMeta):
 
         logger.log(level, "Houston, we have a %s", "interesting problem", exc_info=1)
         """
-        return self.get().log(level, msg, *args, **kwargs)
+        return self.get().log(level, msg, *args, **kwargs, stacklevel=2)
 
     def info(self, msg, *args, **kwargs) -> None:
         """
@@ -31,7 +31,7 @@ class Logger(metaclass=SingletonMeta):
 
         logger.info("Houston, we have a %s", "interesting problem", exc_info=1)
         """
-        return self.get().info(msg, *args, **kwargs)
+        return self.get().info(msg, *args, **kwargs, stacklevel=2)
 
     def debug(self, msg, *args, **kwargs) -> None:
         """
@@ -43,7 +43,7 @@ class Logger(metaclass=SingletonMeta):
         logger.debug("Houston, we have a %s", "interesting problem", exc_info=1)
         """
 
-        return self.get().debug(msg, *args, **kwargs)
+        return self.get().debug(msg, *args, **kwargs, stacklevel=2)
 
     def warning(self, msg, *args, **kwargs) -> None:
         """
@@ -55,7 +55,7 @@ class Logger(metaclass=SingletonMeta):
         logger.warning("Houston, we have a %s", "interesting problem", exc_info=1)
         """
 
-        return self.get().warning(msg, *args, **kwargs)
+        return self.get().warning(msg, *args, **kwargs, stacklevel=2)
 
     def error(self, msg, *args, **kwargs) -> None:
         """
@@ -67,7 +67,7 @@ class Logger(metaclass=SingletonMeta):
         logger.error("Houston, we have a %s", "interesting problem", exc_info=1)
 
         """
-        return self.get().error(msg, *args, **kwargs)
+        return self.get().error(msg, *args, **kwargs, stacklevel=2)
 
     def critical(self, msg, *args, **kwargs) -> None:
         """
@@ -78,12 +78,10 @@ class Logger(metaclass=SingletonMeta):
 
         logger.critical("Houston, we have a %s", "interesting problem", exc_info=1)
         """
-        return self.get().critical(msg, *args, **kwargs)
+        return self.get().critical(msg, *args, **kwargs, stacklevel=2)
 
-    def __load(self) -> None:
-        if hasattr(self, '__logger'):
-            return
-        self.__logger = logging.getLogger('PhotoBoxLogger')
+    def __load(self) -> logging.Logger:
+        logger = logging.getLogger('PhotoBoxLogger')
         conf = Conf().get()
         logLevel = logging.ERROR
 
@@ -113,8 +111,10 @@ class Logger(metaclass=SingletonMeta):
             handlers=handlers
         )
 
-        self.__logger.info("Logger loaded")
+        logger.info("Logger loaded")
+        return logger
 
     def get(self) -> logging.Logger:
-        self.__load()
+        if self.__logger is None:
+            self.__logger = self.__load()
         return self.__logger

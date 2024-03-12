@@ -30,7 +30,7 @@ class TestMarkerChecker:
             marker[id][c] = (r['x'], r['y'], r['z'])
         dump(marker, open('tests/marker.json', 'w'))
 
-    def test___init__(self):
+    def test_false_position(self):
         marker_coords = load(open('tests/marker.json', 'r'))
         marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
                          for k, v in marker_coords.items()}
@@ -41,9 +41,28 @@ class TestMarkerChecker:
         marker_pos["camera04"][7]['x'] += 20
 
         metadata: dict[str, dict[str, int | float]] = {
-            'camera04': {'LensPosition': 1.}}
+            key: {'LensPosition': 1.} for key in marker_pos.keys()}
         marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
         marker_checker.check()
         c = marker_checker.get_corrected_coordinates()
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04'])+1 == len(marker_pos['camera04'])
+
+    def test_false_coordinate(self):
+        marker_coords = load(open('tests/marker.json', 'r'))
+        marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
+                         for k, v in marker_coords.items()}
+
+        marker_coords[15][1][2] += 0.1
+
+        marker_pos: dict[str, list[ArucoMarkerPos]] = load(
+            open('tests/aruco.json', 'r'))
+        # create a difference to test the filter
+
+        metadata: dict[str, dict[str, int | float]] = {
+            key: {'LensPosition': 1.} for key in marker_pos.keys()}
+        marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
+        marker_checker.check()
+        c = marker_checker.get_corrected_coordinates()
+        p = marker_checker.get_filtered_positions()
+        assert len(p['camera04']) == len(marker_pos['camera04'])
