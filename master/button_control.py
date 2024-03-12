@@ -7,17 +7,17 @@
 """
 
 from typing import TYPE_CHECKING
-from common.conf import Conf
-LOGGER = Conf().get_logger()
+from common.logger import Logger
+
 
 gpio_available = False
 try:
     from gpiozero import Button  # type: ignore
     gpio_available = True
 except ImportError:
-    LOGGER.warning("GPIO not available")
+    Logger().warning("GPIO not available")
 except NotImplementedError:
-    LOGGER.warning("GPIO not available")
+    Logger().warning("GPIO not available")
 
 if TYPE_CHECKING:
     from master.control import Control
@@ -51,7 +51,7 @@ class ButtonControl:
         self.__gpio_available = gpio_available
 
         if self.__gpio_available and Button:
-            LOGGER.info("Buttons are starting...")
+            Logger().info("Buttons are starting...")
             self.__button_blue = Button(
                 24, pull_up=True, hold_time=2, bounce_time=0.1)
             self.__button_blue.when_released = self.__blue_button_released
@@ -77,7 +77,7 @@ class ButtonControl:
         Handles the event when the red button is held.
         """
         self.__button_red_was_held = True
-        LOGGER.info("Shutdown pressed...")
+        Logger().info("Shutdown pressed...")
         self.__control.system_control('shutdown')
 
     def __red_button_released(self, ) -> None:
@@ -85,7 +85,7 @@ class ButtonControl:
         Handles the event when the red button is released.
         """
         if not self.__button_red_was_held:
-            LOGGER.info("Red pressed...")
+            Logger().info("Red pressed...")
             self.__control.switch_pause_resume()
             pass
         self.__button_red_was_held = False
@@ -95,7 +95,7 @@ class ButtonControl:
         Handles the event when the blue button is released.
         """
         if not self.__button_blue_was_held:
-            LOGGER.info("Photo pressed...")
+            Logger().info("Photo pressed...")
             self.__control.capture_photo('photo')
         self.__button_blue_was_held = False
 
@@ -104,7 +104,7 @@ class ButtonControl:
         Handles the event when the blue button is held.
         """
         self.__button_blue_was_held = True
-        LOGGER.info("Stack pressed...")
+        Logger().info("Stack pressed...")
         self.__control.capture_photo('stack')
 
     def __green_button_released(self, ) -> None:
@@ -112,7 +112,7 @@ class ButtonControl:
         Handles the event when the green button is released.
         """
         if not self.__button_green_was_held:
-            LOGGER.info("Status LED pressed...")
+            Logger().info("Status LED pressed...")
             self.__control.get_leds().status_led(5)
         self.__button_green_was_held = False
 
@@ -121,5 +121,5 @@ class ButtonControl:
         Handles the event when the green button is held.
         """
         self.__button_green_was_held = True
-        LOGGER.info("Search pressed...")
+        Logger().info("Search pressed...")
         self.__control.search_cameras()

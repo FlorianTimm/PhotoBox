@@ -12,8 +12,7 @@ import pytest
 from camera.camera_aruco import Aruco
 from cv2 import imread
 from cv2 import cvtColor, COLOR_BGR2GRAY
-from common.conf import Conf
-LOGGER = Conf().get_logger()
+from common.logger import Logger
 
 
 class TestCameraAruco:
@@ -26,7 +25,7 @@ class TestCameraAruco:
 
     def test_detect_from_rgb(self, aruco: Aruco):
         marker = aruco.detect_from_rgb(self.img)
-        LOGGER.info(len(marker))
+        Logger().info(len(marker))
         assert len(marker) == 24
         assert type(marker[0]['id']) == int
         assert type(marker[0]['corner']) == int

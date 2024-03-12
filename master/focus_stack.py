@@ -37,8 +37,7 @@ http://stackoverflow.com/questions/15911783/what-are-some-common-focus-stacking-
 import numpy as np
 import numpy.typing as npt
 import cv2
-from common.conf import Conf
-LOGGER = Conf().get_logger()
+from common.logger import Logger
 
 
 def findHomography(image_1_kp, image_2_kp, matches):
@@ -73,13 +72,13 @@ def align_images(images: list[npt.NDArray[np.uint8]]) -> list[npt.NDArray[np.uin
         detector = cv2.ORB_create(1000)
 
     #   We assume that image 0 is the "base" image and align everything to it
-    LOGGER.info("Detecting features of base image")
+    Logger().info("Detecting features of base image")
     outimages.append(images[0])
     image1gray = cv2.cvtColor(images[0], cv2.COLOR_BGR2GRAY)
     image_1_kp, image_1_desc = detector.detectAndCompute(image1gray, None)
 
     for i in range(1, len(images)):
-        LOGGER.info("Aligning image {}".format(i))
+        Logger().info("Aligning image {}".format(i))
         image_i_kp, image_i_desc = detector.detectAndCompute(images[i], None)
 
         if use_sift:
@@ -131,14 +130,14 @@ def doLap(image: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
 def focus_stack(unimages: list[npt.NDArray[np.uint8]]) -> npt.NDArray[np.uint8]:
     images = align_images(unimages)
 
-    LOGGER.info("Computing the laplacian of the blurred images")
+    Logger().info("Computing the laplacian of the blurred images")
     laps = []
     for i in range(len(images)):
-        LOGGER.info("Lap {}".format(i))
+        Logger().info("Lap {}".format(i))
         laps.append(doLap(cv2.cvtColor(images[i], cv2.COLOR_BGR2GRAY)))
 
     laps = np.asarray(laps)
-    LOGGER.info("Shape of array of laplacians = {}".format(laps.shape))
+    Logger().info("Shape of array of laplacians = {}".format(laps.shape))
 
     output = np.zeros(shape=images[0].shape, dtype=images[0].dtype)
 

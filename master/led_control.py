@@ -6,12 +6,12 @@
 @version: 2024.03.11
 """
 
-from configparser import ConfigParser
 from re import findall
 from time import sleep
 from typing import TYPE_CHECKING
+from common.logger import Logger
 from common.conf import Conf
-LOGGER = Conf().get_logger()
+
 
 if TYPE_CHECKING:
     from master.control import Control
@@ -23,9 +23,9 @@ try:
     from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin  # type: ignore
     led_available = True
 except ImportError:
-    LOGGER.warning("GPIO not available")
+    Logger().warning("GPIO not available")
 except NotImplementedError:
-    LOGGER.warning("GPIO not available")
+    Logger().warning("GPIO not available")
 
 
 class LedControl:
@@ -42,7 +42,7 @@ class LedControl:
         __LIGHTRED (tuple): RGB values for light red color.
 
     Methods:
-        __init__(self, conf: configparser.ConfigParser, control): Initializes the LedControl object.
+        __init__(self, conf: configparser.Conf, control): Initializes the LedControl object.
         switch_off(self): Turns off all LEDs.
         starting(self): Sets the LEDs to blue color.
         waiting(self): Sets the LEDs to yellow color.
@@ -60,19 +60,18 @@ class LedControl:
     __YELLOW = (255, 255, 100)
     __LIGHTRED = (50, 0, 0)
 
-    def __init__(self, conf: ConfigParser, control: 'Control'):
+    def __init__(self, control: 'Control'):
         """
         Initializes the LedControl object.
 
         Args:
-            conf (configparser.ConfigParser): The configuration parser object.
             control: The control object.
 
         Raises:
             None
         """
         global __gpio_available
-        self.__conf = conf
+        self.__conf = Conf().get()
         self.__control = control
         self.__led_available = led_available
 

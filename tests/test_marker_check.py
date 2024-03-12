@@ -12,9 +12,7 @@ import pytest
 
 from master.marker_check import MarkerChecker
 from common.typen import ArucoMarkerPos
-from common.conf import Conf
-
-LOGGER = Conf().get_logger()
+from common.logger import Logger
 
 
 class TestMarkerChecker:
