@@ -7,6 +7,7 @@
 """
 
 import cv2
+import camera
 import numpy as np
 import pandas as pd
 from common.logger import Logger
@@ -140,11 +141,6 @@ class MarkerChecker:
             Logger().info("Something changed")
             cameras, df = self.__check_marker_position()
 
-        df.to_excel('tests/debug_positions.xlsx')
-
-        self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
-                                             for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}
-
         self.__is_filtered = True
 
     def __check_marker_position(self) -> tuple[dict[str, dict[str, np.ndarray]], pd.DataFrame]:
@@ -155,6 +151,34 @@ class MarkerChecker:
             A tuple containing the cameras and the marker positions.
         """
 
+        df = self.__create_dataframe()
+        if len(df) == 0:
+            Logger().warning("No data to process")
+            return {}, df
+
+        cameras = {}
+
+        for (hostname, lensposition), group in df.groupby(['hostname', 'LensPosition']):
+            Logger().info(f"Processing {hostname}")
+            cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
+            objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
+            imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
+            ret, rvecs, tvecs, inliner = cv2.solvePnPRansac(
+                objp, imgp, cameraMatrix, distCoeffs, reprojectionError=10.0)
+            cameras[hostname] = {'cameraMatrix': cameraMatrix,
+                                 'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
+            for i, ind in enumerate(group.index):
+                if i in inliner:
+                    df.at[ind, 'inlier'] = True
+                else:
+                    df.at[ind, 'inlier'] = False
+
+        self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
+                                             for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}
+        df.to_excel('tests/debug_positions.xlsx')
+        return cameras, df
+
+    def __create_dataframe(self) -> pd.DataFrame:
         data = []
 
         for hostname, positions in self.__marker_pos.items():
@@ -177,27 +201,7 @@ class MarkerChecker:
         df: pd.DataFrame = pd.DataFrame(data, columns=['hostname',
                                                        'id', 'corner', 'LensPosition', 'x', 'y', 'xw', 'yw', 'zw']).astype({'hostname': str, 'id': 'int32', 'corner': 'int32', 'LensPosition': 'float32', 'x': 'float32', 'y': 'float32', 'xw': 'float32', 'yw': 'float32', 'zw': 'float32'})
         df['inlier'] = None
-        if len(df) == 0:
-            Logger().warning("No data to process")
-            return {}, df
-
-        cameras = {}
-
-        for (hostname, lensposition), group in df.groupby(['hostname', 'LensPosition']):
-            Logger().info(f"Processing {hostname}")
-            cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
-            objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
-            imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
-            ret, rvecs, tvecs, inliner = cv2.solvePnPRansac(
-                objp, imgp, cameraMatrix, distCoeffs, reprojectionError=10.0)
-            cameras[hostname] = {'cameraMatrix': cameraMatrix,
-                                 'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
-            for i, ind in enumerate(group.index):
-                if i in inliner:
-                    df.at[ind, 'inlier'] = True
-                else:
-                    df.at[ind, 'inlier'] = False
-        return cameras, df
+        return df
 
     def get_corrected_coordinates(self) -> dict[int, dict[int, tuple[float, float, float]]]:
         """
