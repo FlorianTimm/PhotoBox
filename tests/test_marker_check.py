@@ -6,6 +6,7 @@
 @version: 2024.03.11
 """
 
+from copy import deepcopy
 from json import load, dump
 import pandas as pd
 import pytest
@@ -52,7 +53,7 @@ class TestMarkerChecker:
         marker_coords = load(open('tests/marker.json', 'r'))
         marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
                          for k, v in marker_coords.items()}
-
+        marker_coords_org = deepcopy(marker_coords)
         marker_coords[15][1][2] += 0.1
 
         marker_pos: dict[str, list[ArucoMarkerPos]] = load(
@@ -66,3 +67,7 @@ class TestMarkerChecker:
         c = marker_checker.get_corrected_coordinates()
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04']) == len(marker_pos['camera04'])
+        assert abs(marker_coords[15][1][2] -
+                   marker_coords_org[15][1][2]) < 0.01
+        Logger().info(f"Original: {marker_coords_org[15][1][2]}")
+        Logger().info(f"Corrected: {marker_coords[15][1][2]}")
