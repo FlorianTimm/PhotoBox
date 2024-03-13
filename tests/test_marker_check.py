@@ -67,7 +67,5 @@ class TestMarkerChecker:
         c = marker_checker.get_corrected_coordinates()
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04']) == len(marker_pos['camera04'])
-        assert abs(marker_coords[15][1][2] -
+        assert abs(c[15][1][2] -
                    marker_coords_org[15][1][2]) < 0.01
-        Logger().info(f"Original: {marker_coords_org[15][1][2]}")
-        Logger().info(f"Corrected: {marker_coords[15][1][2]}")
