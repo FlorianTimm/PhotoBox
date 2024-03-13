@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from common.logger import Logger
 from common.typen import ArucoMarkerPos
+from scipy import stats
 
 
 class MarkerChecker:
@@ -75,6 +76,85 @@ class MarkerChecker:
         pdm = pd.DataFrame.from_dict(self.__metadata)
         Logger().info(pdm)
 
+        cameras, df = self.__check_marker_position()
+
+        # check outliers on wrong coordinates
+        t = df.groupby(['id', 'corner'])['inlier'].agg(
+            [pd.Series.count, pd.Series.mode])
+        t = t[t['count'] > 2]
+        t = t[t['mode'] == False].reset_index()
+
+        # recalculate coordinates
+        something_changed = False
+        for _, row in t.iterrows():
+            group: pd.DataFrame = df[(df['id'] == row['id']) & (
+                df['corner'] == row['corner'])]
+            # group['index'] = df.reset_index().index
+
+            coord_neu = []
+            j = group.add_suffix('_a').merge(
+                group.add_suffix('_b'), how='cross')
+            j = j[j['hostname_a'] < j['hostname_b']]
+
+            for _, view in j.iterrows():
+                camera1 = cameras[view['hostname_a']]
+                camera2 = cameras[view['hostname_b']]
+                r1, _ = cv2.Rodrigues(camera1['rvecs'])
+                r2, _ = cv2.Rodrigues(camera2['rvecs'])
+                P1 = np.c_[r1, camera1['tvecs']]
+                P2 = np.c_[r2, camera2['tvecs']]
+                v1 = cv2.undistortPoints(
+                    np.array([[[view['x_a'], view['y_a']]]]), camera1['cameraMatrix'], camera1['distCoeffs'])
+                v2 = cv2.undistortPoints(
+                    np.array([[[view['x_b'], view['y_b']]]]), camera2['cameraMatrix'], camera2['distCoeffs'])
+                coord = cv2.triangulatePoints(P1, P2, v1, v2)
+                coord = coord / coord[3]
+                coord_neu.append(coord[:3].flatten())
+            if len(coord_neu) == 0:
+                continue
+            Logger().info(coord_neu)
+            coords_neu = pd.DataFrame(coord_neu, columns=['x', 'y', 'z'])
+            # df.loc[(df['id'] == row['id']) & (df['corner'] == row['corner']),
+            #       ['x', 'y']] = coord_neu[:2]
+            Logger().info(f"Korrigiere {row['id']} {row['corner']}")
+            zscore = np.abs(stats.zscore(coords_neu[["x", "y", "z"]]))
+            # print(zscore)
+            Logger().info(zscore)
+            # Identify outliers as students with a z-score greater than 3
+            threshold = 2
+            coords_neu = coords_neu[zscore <= threshold].dropna()
+            Logger().info(coords_neu.mean())
+            Logger().info(group[['xw', 'yw', 'zw']])
+
+            self.__marker_coords[row['id']][row['corner']] = (
+                coords_neu['x'].mean(), coords_neu['y'].mean(), coords_neu['z'].mean())
+            # TODO: Korrektur der Koordinaten funktioniert nicht
+            Logger().info(
+                f"Korrigiert: {self.__marker_coords[row['id']][row['corner']]}")
+            Logger().info(
+                f"Original: {group[['xw', 'yw', 'zw']].mean().to_numpy()}")
+            # Logger().info(self.__marker_coords)
+            something_changed = True
+
+        if something_changed:
+            Logger().info("Something changed")
+            cameras, df = self.__check_marker_position()
+
+        df.to_excel('tests/debug_positions.xlsx')
+
+        self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
+                                             for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}
+
+        self.__is_filtered = True
+
+    def __check_marker_position(self) -> tuple[dict[str, dict[str, np.ndarray]], pd.DataFrame]:
+        """
+        Check the marker positions and filter them if necessary.
+
+        Returns:
+            A tuple containing the cameras and the marker positions.
+        """
+
         data = []
 
         for hostname, positions in self.__marker_pos.items():
@@ -99,9 +179,7 @@ class MarkerChecker:
         df['inlier'] = None
         if len(df) == 0:
             Logger().warning("No data to process")
-            return
-
-        Logger().info(df[['x', 'y', 'xw', 'yw', 'zw']])
+            return {}, df
 
         cameras = {}
 
@@ -119,25 +197,7 @@ class MarkerChecker:
                     df.at[ind, 'inlier'] = True
                 else:
                     df.at[ind, 'inlier'] = False
-
-        self.__is_filtered = True
-
-        t = df.groupby(['id', 'corner'])['inlier'].agg(
-            [pd.Series.count, pd.Series.mode])
-        t = t[t['count'] > 2]
-        t = t[t['mode'] == False].reset_index()
-
-        for _, row in t.iterrows():
-            group = df[(df['id'] == row['id']) & (
-                df['corner'] == row['corner'])]
-            imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
-
-            # TODO: Berechnung der korrigierten Koordinaten mit cv2.triangulatePoints
-
-        self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
-                                             for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}
-
-        # TODO: Filter coordinates
+        return cameras, df
 
     def get_corrected_coordinates(self) -> dict[int, dict[int, tuple[float, float, float]]]:
         """
