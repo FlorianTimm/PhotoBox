@@ -1,3 +1,4 @@
+import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -9,6 +10,8 @@ import com.agisoft.metashape.Progress;
 public class MetashapeClient implements Progress, SfmClient {
 
     private final Connector connector;
+    private Document project;
+    private String projectFileName;
 
     public MetashapeClient(Connector connector) {
         this.connector = connector;
@@ -34,22 +37,30 @@ public class MetashapeClient implements Progress, SfmClient {
         return true;
     }
 
-    public boolean createProject() {
-        return createProject("project.psx");
-    }
-
-    public boolean createProject(String filename) {
+    private boolean createProject(String filename) throws RuntimeException {
         try {
-            Document doc = new Document();
-            doc.save("project.psx", this);
-            doc.close();
+            this.projectFileName = filename;
+            this.project = new Document();
+            this.project.save(this.projectFileName, this);
+            // doc.close();
             connector.log("Project created");
             return true;
         } catch (Exception e) {
             this.connector.log(e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Failed to create project");
         }
-        return false;
+    }
+
+    private void closeAndSaveProject(Document doc) {
+        try {
+            this.project.save(this.projectFileName, this);
+            this.project.close();
+        } catch (Exception e) {
+            this.connector.log(e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save and close project");
+        }
     }
 
     private boolean loadLibrary() {
@@ -98,6 +109,39 @@ public class MetashapeClient implements Progress, SfmClient {
     }
 
     @Override
+    public void processPhotos(String destDir) {
+        this.connector.log("Processing photos");
+        try {
+            this.createProject(destDir + "/project.psx");
+            this.addPhotos(destDir);
+            this.closeAndSaveProject(this.project);
+        } catch (Exception e) {
+            this.connector.log(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void addPhotos(String destDir) {
+        this.connector.log("Adding photos");
+        try {
+            File[] files = new File(destDir).listFiles();
+            ArrayList<String> photoPaths = new ArrayList<String>();
+            for (File file : files) {
+                if (file.isFile() && file.getName().endsWith(".jpg")) {
+                    photoPaths.add(file.getAbsolutePath());
+                }
+            }
+            this.project.addChunk().addPhotos(photoPaths.toArray(new String[photoPaths.size()]), this);
+        } catch (Exception e) {
+            this.connector.log(e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to add photos");
+        }
+    }
+
+    // implement Progress
+
+    @Override
     public void progress(double progress) {
         this.connector.log("Progress: " + progress);
     }
@@ -112,4 +156,5 @@ public class MetashapeClient implements Progress, SfmClient {
         this.connector.log("Aborted");
         return false;
     }
+
 }

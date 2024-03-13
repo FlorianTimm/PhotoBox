@@ -53,22 +53,30 @@ class Connector {
             return false;
         }
 
-        if (this.software.equals("Metashape")) {
-            this.sfmClient = new MetashapeClient(this);
-        } else if (this.software.equals("ODM")) {
-            this.sfmClient = new ODMClient(this);
-        } else {
-            this.sfmClient = new DownloadClient();
-        }
-
         if (!this.sfmClient.connect()) {
             this.photoBox.disconnect();
             return false;
         }
-
+        this.photoBox.setSfmClient(this.sfmClient);
         this.gui.setConnected();
         this.isConnected = true;
         return true;
+    }
+
+    public void processPhotos(String destDir) {
+        if (this.sfmClient == null) {
+            this.setSoftware(this.software);
+            return;
+        }
+        boolean wasConnected = this.isConnected;
+        if (!wasConnected) {
+            this.gui.log("Not connected");
+            this.sfmClient.connect();
+        }
+        this.sfmClient.processPhotos(destDir);
+        if (!wasConnected) {
+            this.sfmClient.disconnect();
+        }
     }
 
     public void takePhoto() {
@@ -104,8 +112,18 @@ class Connector {
         this.port = port;
     }
 
-    public void setSoftware(String software) {
+    public void setSoftware(String software) throws IllegalArgumentException {
         this.software = software;
+        if (this.software.equals("Metashape")) {
+            this.sfmClient = new MetashapeClient(this);
+        } else if (this.software.equals("ODM")) {
+            this.sfmClient = new ODMClient(this);
+        } else if (this.software.equals("Download")) {
+            this.sfmClient = new DownloadClient();
+        } else {
+            this.gui.log("Invalid software");
+            throw new IllegalArgumentException("Invalid software");
+        }
     }
 
     public String getHost() {

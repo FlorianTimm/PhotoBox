@@ -12,7 +12,8 @@ public class DownloadClient implements SfmClient {
         return true;
     }
 
-    public boolean createProject(String filename) {
-        return true;
+    @Override
+    public void processPhotos(String destDir) {
+        return;
     }
 }
