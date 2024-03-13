@@ -7,7 +7,6 @@
 """
 
 import cv2
-import camera
 import numpy as np
 import pandas as pd
 from common.logger import Logger
@@ -75,7 +74,7 @@ class MarkerChecker:
         Check the marker positions and filter them if necessary.
         """
         pdm = pd.DataFrame.from_dict(self.__metadata)
-        Logger().info(pdm)
+        Logger().debug(pdm)
 
         cameras, df = self.__check_marker_position()
 
@@ -113,32 +112,32 @@ class MarkerChecker:
                 coord_neu.append(coord[:3].flatten())
             if len(coord_neu) == 0:
                 continue
-            Logger().info(coord_neu)
+            Logger().debug(coord_neu)
             coords_neu = pd.DataFrame(coord_neu, columns=['x', 'y', 'z'])
             # df.loc[(df['id'] == row['id']) & (df['corner'] == row['corner']),
             #       ['x', 'y']] = coord_neu[:2]
             Logger().info(f"Korrigiere {row['id']} {row['corner']}")
             zscore = np.abs(stats.zscore(coords_neu[["x", "y", "z"]]))
             # print(zscore)
-            Logger().info(zscore)
+            Logger().debug(zscore)
             # Identify outliers as students with a z-score greater than 3
             threshold = 2
             coords_neu = coords_neu[zscore <= threshold].dropna()
-            Logger().info(coords_neu.mean())
-            Logger().info(group[['xw', 'yw', 'zw']])
+            Logger().debug(coords_neu.mean())
+            Logger().debug(group[['xw', 'yw', 'zw']])
 
             self.__marker_coords[row['id']][row['corner']] = (
                 coords_neu['x'].mean(), coords_neu['y'].mean(), coords_neu['z'].mean())
-            # TODO: Korrektur der Koordinaten funktioniert nicht
+
             Logger().info(
                 f"Korrigiert: {self.__marker_coords[row['id']][row['corner']]}")
-            Logger().info(
+            Logger().debug(
                 f"Original: {group[['xw', 'yw', 'zw']].mean().to_numpy()}")
-            # Logger().info(self.__marker_coords)
+            Logger().debug(self.__marker_coords)
             something_changed = True
 
         if something_changed:
-            Logger().info("Something changed")
+            Logger().info("Some coordinates have changed")
             cameras, df = self.__check_marker_position()
 
         self.__is_filtered = True
@@ -159,7 +158,7 @@ class MarkerChecker:
         cameras = {}
 
         for (hostname, lensposition), group in df.groupby(['hostname', 'LensPosition']):
-            Logger().info(f"Processing {hostname}")
+            Logger().debug(f"Processing {hostname}")
             cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
             objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
             imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
@@ -175,14 +174,14 @@ class MarkerChecker:
 
         self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
                                              for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}
-        df.to_excel('tests/debug_positions.xlsx')
+        # df.to_excel('tests/debug_positions.xlsx')
         return cameras, df
 
     def __create_dataframe(self) -> pd.DataFrame:
         data = []
 
         for hostname, positions in self.__marker_pos.items():
-            Logger().info(f"Processing {hostname}")
+            Logger().debug(f"Processing {hostname}")
 
             lenspos = self.__metadata[hostname]['LensPosition']
             for pos in positions:
