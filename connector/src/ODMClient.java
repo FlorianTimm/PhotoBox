@@ -19,9 +19,10 @@ public class ODMClient implements SfmClient {
         return true;
     }
 
-    public boolean createProject(String filename) {
-        // TODO: Implement connection to OpenDroneMap
-        return true;
+    @Override
+    public void processPhotos(String destDir) {
+        // TODO Auto-generated method stub
+        return;
     }
 
 }

@@ -23,6 +23,7 @@ public class PhotoBoxClient {
     private Connector connector;
     private Socket socket;
     private Thread receiver;
+    private SfmClient sfmClient;
 
     public PhotoBoxClient(String host, int port, Connector connector) {
         this.host = host;
@@ -184,6 +185,10 @@ public class PhotoBoxClient {
             zis.closeEntry();
             zis.close();
             fis.close();
+            connector.log("Unzipped " + zipFilePath);
+            if (sfmClient != null) {
+                sfmClient.processPhotos(destDir);
+            }
         } catch (FileNotFoundException e) {
             connector.log(zipFilePath + " not found");
             e.printStackTrace();
@@ -193,8 +198,6 @@ public class PhotoBoxClient {
         } catch (IOException e) {
             connector.log("Could not unzip " + zipFilePath);
             e.printStackTrace();
-        } finally {
-            connector.log("Unzipped " + zipFilePath);
         }
     }
 
@@ -224,6 +227,10 @@ public class PhotoBoxClient {
             this.connector.log(e.getMessage());
         }
         return false;
+    }
+
+    public void setSfmClient(SfmClient sfmClient) {
+        this.sfmClient = sfmClient;
     }
 
 }

@@ -18,7 +18,8 @@
             "name": "PhotoBoxConnector",
             "request": "launch",
             "classPaths": [
-                "${workspaceFolder}/connector/bin"
+                "${workspaceFolder}/connector/bin",
+                "${workspaceFolder}/connector/lib/metashape-java-api.jar"
             ],
             "mainClass": "Connector",
             //"projectName": "connector_3847253a",

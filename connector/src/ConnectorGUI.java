@@ -10,6 +10,10 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -45,6 +49,37 @@ public class ConnectorGUI extends JFrame {
             e.printStackTrace();
         }
 
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+
+        JMenuItem loadFolder = new JMenuItem("Load Folder");
+        loadFolder.addActionListener((e) -> {
+            JFileChooser fileChooser = new JFileChooser(connector.getDirectory());
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int option = fileChooser.showOpenDialog(this);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                this.connector.processPhotos(file.getAbsolutePath());
+            }
+        });
+        menu.add(loadFolder);
+
+        JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener((e) -> {
+            System.exit(0);
+        });
+        menu.add(exit);
+        menuBar.add(menu);
+
+        JMenu about = new JMenu("About...");
+        about.addActionListener((e) -> {
+            JOptionPane.showMessageDialog(null, "PhotoBoxConnector\n\nAuthor: Florian Timm\nVersion: 0.1",
+                    "About PhotoBoxConnector", JOptionPane.INFORMATION_MESSAGE);
+        });
+        menuBar.add(about);
+
+        this.setJMenuBar(menuBar);
+
         Container cp = this.getContentPane();
         cp.setLayout(new BorderLayout());
 
@@ -70,21 +105,31 @@ public class ConnectorGUI extends JFrame {
         this.rDownload.setActionCommand("Download");
         this.rDownload.setSelected(connector.getSoftware().equals("Download"));
         left.add(this.rDownload);
+        this.rDownload.addActionListener((e) -> {
+            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+        });
 
         this.rMetashape = new JRadioButton("Agisoft Metashape");
         this.rMetashape.setActionCommand("Metashape");
         this.rMetashape.setSelected(connector.getSoftware().equals("Metashape"));
         left.add(this.rMetashape);
+        this.rMetashape.addActionListener((e) -> {
+            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+        });
 
         this.rODM = new JRadioButton("OpenDroneMap");
         this.rODM.setActionCommand("ODM");
         this.rODM.setSelected(connector.getSoftware().equals("ODM"));
         left.add(this.rODM);
+        this.rODM.addActionListener((e) -> {
+            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+        });
 
         this.selectSfmSoftware = new ButtonGroup();
         this.selectSfmSoftware.add(rMetashape);
         this.selectSfmSoftware.add(rODM);
         this.selectSfmSoftware.add(rDownload);
+
         this.connect = new JButton("Connect");
         this.connect.addActionListener((e) -> {
             connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
