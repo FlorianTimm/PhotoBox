@@ -19,7 +19,8 @@
             "request": "launch",
             "classPaths": [
                 "${workspaceFolder}/connector/bin",
-                "${workspaceFolder}/connector/lib/metashape-java-api.jar"
+                "${workspaceFolder}/connector/lib/metashape-java-api.jar",
+                "${workspaceFolder}/connector/lib/json-20240205.jar"
             ],
             "mainClass": "Connector",
             //"projectName": "connector_3847253a",

@@ -61,6 +61,10 @@ public class PhotoBoxClient {
                                     connector.log("Aruco downloading: " + w[1]);
                                     downloadAruco(w[1]);
                                     break;
+                                case "marker":
+                                    connector.log("Marker downloading: " + w[1]);
+                                    downloadMarker(w[1]);
+                                    break;
                                 case "heartbeat":
                                     break;
                                 default:
@@ -117,6 +121,12 @@ public class PhotoBoxClient {
         download(urlString, filename);
     }
 
+    private void downloadMarker(String markerName) {
+        String urlString = "http://" + markerName;
+        String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
+        download(urlString, filename);
+    }
+
     private String download(String urlString, String filename) {
         connector.log("Downloading photos");
         File dir = connector.getDirectory();
@@ -128,15 +138,15 @@ public class PhotoBoxClient {
             connector.log(dir.getAbsolutePath() + " is created as a directory.");
         }
         connector.log("Downloading photos to " + dir.getAbsolutePath());
-        String zipTarget = dir.getAbsolutePath() + "/" + filename;
+        String targetPath = dir.getAbsolutePath() + "/" + filename;
         try {
             URL website = new URL(urlString);
             ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-            FileOutputStream fos = new FileOutputStream(zipTarget);
+            FileOutputStream fos = new FileOutputStream(targetPath);
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             fos.close();
             connector.log("Downloaded " + filename);
-            return zipTarget;
+            return targetPath;
         } catch (MalformedURLException e) {
             connector.log(urlString + " is not a valid URL");
             e.printStackTrace();
