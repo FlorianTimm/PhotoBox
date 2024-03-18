@@ -3,6 +3,7 @@ package photobox;
 import java.io.File;
 
 import photobox.metashape.MetashapeClient;
+import photobox.odm.ODMClient;
 
 public class Connector {
     private int port = 50267;

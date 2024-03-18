@@ -171,4 +171,9 @@ public class PhotoBoxFolderReader {
     public PbImage[] getImages() {
         return this.images.toArray(new PbImage[this.images.size()]);
     }
+
+    public String getFolderName() {
+        File folder = new File(this.projectFolder);
+        return folder.getName();
+    }
 }

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 public class PbCamera {
     private int cameraId = -1;
     private String cameraName;
+    private int width = 4608;
+    private int height = 3456;
     private double focalLength = 3451.31891;
     private double principalPointX = 2.75058;
     private double principalPointY = 28.0038;
@@ -60,4 +62,17 @@ public class PbCamera {
     public double[] getP() {
         return p;
     }
+
+    public String toString() {
+        return this.cameraName;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
 }
