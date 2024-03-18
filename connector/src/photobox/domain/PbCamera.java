@@ -7,11 +7,11 @@ public class PbCamera {
     private String cameraName;
     private int width = 4608;
     private int height = 3456;
-    private double focalLength = 3451.31891;
-    private double principalPointX = 2.75058;
-    private double principalPointY = 28.0038;
-    private double k[] = { -0.0365779, 0.792583, -2.57419, 2.54451 };
-    private double p[] = { 0.00613243, 0.00806988 };
+    private double focalLength = 3421.29912;
+    private double principalPointX = 14.3951;
+    private double principalPointY = 32.3689;
+    private double k[] = { 0.0646574, -0.0800227, 0.0181199, 0 };
+    private double p[] = { 0.000629941, 0.00168843 };
     private ArrayList<PbImage> images;
 
     public PbCamera(String cameraName) {
