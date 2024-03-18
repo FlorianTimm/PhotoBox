@@ -88,8 +88,6 @@ public class MetashapeProject implements Progress {
             String path = photo.getPath();
             int index = getIndexOfArray(imagePaths, path);
             if (index == -1) {
-                System.out.println(imagePaths[0]);
-                System.out.println(path);
                 throw new RuntimeException("Failed to find index of image path");
             }
             PbImage image = images[index];

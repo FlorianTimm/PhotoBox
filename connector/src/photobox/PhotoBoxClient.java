@@ -87,17 +87,10 @@ public class PhotoBoxClient {
             this.receiver.setName("Receiver");
             this.receiver.start();
 
-            // BufferedReader reader = new BufferedReader(new
-            // InputStreamReader(inputStream));
-
             String message = "time:" + System.currentTimeMillis() + "\n";
 
             outputStream.write(message.getBytes());
             outputStream.flush();
-
-            // String line = reader.readLine();
-
-            // System.out.println(line);
 
             return true;
         } catch (IOException e) {
@@ -180,7 +173,7 @@ public class PhotoBoxClient {
             while (ze != null) {
                 String fileName = ze.getName();
                 File newFile = new File(destDir + File.separator + fileName);
-                System.out.println("Unzipping to " + newFile.getAbsolutePath());
+                this.connector.log("Unzipping to " + newFile.getAbsolutePath());
                 // create directories for sub directories in zip
                 new File(newFile.getParent()).mkdirs();
                 FileOutputStream fos = new FileOutputStream(newFile);

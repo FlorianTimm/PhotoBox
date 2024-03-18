@@ -53,7 +53,7 @@ public class ConnectorGUI extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
 
-        JMenuItem loadFolder = new JMenuItem("Load Folder");
+        JMenuItem loadFolder = new JMenuItem("Load Pictures from Folder...");
         loadFolder.addActionListener((e) -> {
             JFileChooser fileChooser = new JFileChooser(connector.getDirectory());
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -64,6 +64,7 @@ public class ConnectorGUI extends JFrame {
             }
         });
         menu.add(loadFolder);
+        loadFolder.setEnabled(false);
 
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener((e) -> {
@@ -107,6 +108,7 @@ public class ConnectorGUI extends JFrame {
         this.rDownload.setSelected(connector.getSoftware().equals("Download"));
         left.add(this.rDownload);
         this.rDownload.addActionListener((e) -> {
+            loadFolder.setEnabled(false);
             connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
         });
 
@@ -115,6 +117,7 @@ public class ConnectorGUI extends JFrame {
         this.rMetashape.setSelected(connector.getSoftware().equals("Metashape"));
         left.add(this.rMetashape);
         this.rMetashape.addActionListener((e) -> {
+            loadFolder.setEnabled(true);
             connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
         });
 
@@ -123,6 +126,7 @@ public class ConnectorGUI extends JFrame {
         this.rODM.setSelected(connector.getSoftware().equals("ODM"));
         left.add(this.rODM);
         this.rODM.addActionListener((e) -> {
+            loadFolder.setEnabled(true);
             connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
         });
 

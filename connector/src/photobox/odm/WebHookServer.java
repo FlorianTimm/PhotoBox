@@ -17,6 +17,7 @@ public class WebHookServer implements HttpHandler {
 
     private Connector connector;
     private ODMClient odmClient;
+    private Thread thread;
 
     public WebHookServer(Connector connector, ODMClient odmClient) {
         super();
@@ -31,10 +32,18 @@ public class WebHookServer implements HttpHandler {
 
             server.createContext("/webhook", this);
             server.setExecutor(null); // creates a default executor
-            server.start();
+            this.thread = new Thread(() -> {
+                server.start();
+            });
+            this.thread.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+    }
+
+    public void stop() {
+        this.thread.interrupt();
     }
 
     @Override
