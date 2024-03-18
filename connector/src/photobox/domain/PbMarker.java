@@ -46,8 +46,6 @@ public class PbMarker {
 
     public void addMarkerPosition(PbMarkerPosition markerPosition) {
         this.markerPositions.add(markerPosition);
-        System.out.println("markerPosition = " + markerPosition);
-        System.out.println("markerPositions(size) = " + markerPositions.size());
     }
 
     public String toString() {
@@ -59,7 +57,6 @@ public class PbMarker {
     }
 
     public PbMarkerPosition[] getMarkerPositions() {
-        System.out.println("markerPositions.size() = " + this.markerPositions.size());
         return this.markerPositions.toArray(new PbMarkerPosition[markerPositions.size()]);
     }
 

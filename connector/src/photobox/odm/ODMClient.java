@@ -100,18 +100,32 @@ public class ODMClient implements SfmClient {
         camParameter.put("projection_type", "brown");
         camParameter.put("width", cam.getWidth());
         camParameter.put("height", cam.getHeight());
-        camParameter.put("focal_x", cam.getFocalLength() / cam.getWidth());
-        camParameter.put("focal_y", cam.getFocalLength() / cam.getWidth());
-        camParameter.put("c_x", cam.getPrincipalPointX() / cam.getWidth());
-        camParameter.put("c_y", cam.getPrincipalPointY() / cam.getWidth());
-        camParameter.put("k1", cam.getK()[0]);
-        camParameter.put("k2", cam.getK()[1]);
-        camParameter.put("p1", cam.getP()[0]);
-        camParameter.put("p2", cam.getP()[1]);
-        camParameter.put("k3", cam.getK()[2]);
+
+        // TODO: Replace with actual camera parameters
+        camParameter.put("focal_x", 0.742411768569596);
+        camParameter.put("focal_y", 0.742411768569596);
+        camParameter.put("c_x", 0.001966772527179585);
+        camParameter.put("c_y", 0.0049603303245847295);
+        camParameter.put("k1", 0.04624957024186535);
+        camParameter.put("k2", -0.02315359409038173);
+        camParameter.put("p1", 0.0003167781080551945);
+        camParameter.put("p2", 5.496613842429826e-05);
+        camParameter.put("k3", -0.03875582329858454);
+
+        /*
+         * camParameter.put("focal_x", cam.getFocalLength() / cam.getWidth());
+         * camParameter.put("focal_y", cam.getFocalLength() / cam.getWidth());
+         * camParameter.put("c_x", cam.getPrincipalPointX() / cam.getWidth());
+         * camParameter.put("c_y", cam.getPrincipalPointY() / cam.getWidth());
+         * camParameter.put("k1", cam.getK()[0]);
+         * camParameter.put("k2", cam.getK()[1]);
+         * camParameter.put("p1", cam.getP()[0]);
+         * camParameter.put("p2", cam.getP()[1]);
+         * camParameter.put("k3", cam.getK()[2]);
+         */
 
         JSONObject cams = new JSONObject();
-        cams.put("raspberry pi /base/soc/i2c0mux/i2c@1/imx708@1a 4608 2592 brown 0.85", camParameter.toString());
+        cams.put("raspberry pi /base/soc/i2c0mux/i2c@1/imx708@1a 4608 2592 brown 0.85", camParameter);
 
         JSONObject optionCameras = new JSONObject();
         optionCameras.put("name", "cameras");
@@ -119,10 +133,12 @@ public class ODMClient implements SfmClient {
 
         options.put(optionCameras);
 
-        JSONObject optionBoundary = new JSONObject();
-        optionBoundary.put("name", "auto-boundary");
-        optionBoundary.put("value", "true");
-        options.put(optionBoundary);
+        /*
+         * JSONObject optionBoundary = new JSONObject();
+         * optionBoundary.put("name", "auto-boundary");
+         * optionBoundary.put("value", "true");
+         * options.put(optionBoundary);
+         */
 
         parameter.put("options", options.toString());
 
@@ -152,6 +168,12 @@ public class ODMClient implements SfmClient {
                 str.append(markerPosition.getY());
                 str.append(" ");
                 str.append(markerPosition.getImage().getFile().getName());
+                str.append(" ");
+                str.append(markerPosition.getImage().getCamera().getCameraName());
+                str.append("_");
+                str.append(marker.getMarkerId());
+                str.append("_");
+                str.append(marker.getMarkerEdgeId());
                 str.append("\n");
             }
         }
@@ -162,7 +184,7 @@ public class ODMClient implements SfmClient {
     private File createFileFromString(String str, String fileName, String ending) throws IOException {
         // Create a temporary file
         File file = File.createTempFile(fileName, "." + ending);
-        System.out.println("File path: " + file.getAbsolutePath());
+        this.connector.log("File path: " + file.getAbsolutePath());
 
         // Write the string data to the file
         try (FileWriter writer = new FileWriter(file)) {
@@ -243,7 +265,6 @@ public class ODMClient implements SfmClient {
             }
             reader.close();
             JSONObject jsonResponse = new JSONObject(response.toString());
-            System.out.println(jsonResponse);
             // Close the connection
             connection.disconnect();
             return jsonResponse;
@@ -302,7 +323,6 @@ public class ODMClient implements SfmClient {
             }
             reader.close();
             JSONObject jsonResponse = new JSONObject(response.toString());
-            System.out.println(jsonResponse);
             // Close the connection
             connection.disconnect();
             return jsonResponse;
