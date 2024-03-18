@@ -131,6 +131,12 @@ public class ODMClient implements SfmClient {
         optionCameras.put("name", "cameras");
         optionCameras.put("value", cams.toString());
 
+        /*
+         * Parameter 3D-Modell:
+         * --use-3dmesh --mesh-size 300000 --mesh-octree-depth 12 --auto-boundary
+         * --pc-quality high --pc-ept --cog --gltf
+         */
+
         options.put(optionCameras);
 
         /*
@@ -230,7 +236,20 @@ public class ODMClient implements SfmClient {
 
     }
 
+    private void uploadFile(String urlPart, File file) throws IOException {
+        uploadFile(urlPart, file, file.getName());
+    }
+
+    private JSONObject uploadFile(String urlPart, File file, String fileName) throws IOException {
+        return apiRequest(urlPart, null, file, fileName);
+    }
+
     private JSONObject apiRequest(String urlPart, Map<String, String> parameter) throws IOException {
+        return apiRequest(urlPart, parameter, null, null);
+    }
+
+    private JSONObject apiRequest(String urlPart, Map<String, String> parameter, File file,
+            String fileName) throws IOException {
         URL url = new URL(baseURL + urlPart);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
@@ -242,56 +261,16 @@ public class ODMClient implements SfmClient {
 
         OutputStream outputStream = connection.getOutputStream();
 
-        for (Map.Entry<String, String> entry : parameter.entrySet()) {
-            outputStream.write(("--" + boundary + "\r\n").getBytes());
-            outputStream.write(("Content-Disposition: form-data; name=\"" + entry.getKey() + "\"\r\n").getBytes());
-            outputStream.write(("\r\n").getBytes());
-            outputStream.write((entry.getValue() + "\r\n").getBytes());
-        }
-        outputStream.write(("\r\n").getBytes());
-        outputStream.write(("--" + boundary + "--\r\n").getBytes());
-
-        // Get the response code
-        int responseCode = connection.getResponseCode();
-
-        // Check if the request was successful
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            // Read the response from the API
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
+        if (parameter != null) {
+            for (Map.Entry<String, String> entry : parameter.entrySet()) {
+                outputStream.write(("--" + boundary + "\r\n").getBytes());
+                outputStream.write(("Content-Disposition: form-data; name=\"" + entry.getKey() + "\"\r\n").getBytes());
+                outputStream.write(("\r\n").getBytes());
+                outputStream.write((entry.getValue() + "\r\n").getBytes());
             }
-            reader.close();
-            JSONObject jsonResponse = new JSONObject(response.toString());
-            // Close the connection
-            connection.disconnect();
-            return jsonResponse;
-        } else {
-            connection.disconnect();
-            throw new IOException("Failed to connect to OpenDroneMap");
         }
-    }
 
-    public void uploadFile(String urlPart, File file) throws IOException {
-        uploadFile(urlPart, file, file.getName());
-    }
-
-    public JSONObject uploadFile(String urlPart, File file, String fileName) throws IOException {
-        URL url = new URL(baseURL + urlPart);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-
-        // Set the content type to multipart/form-data
-        String boundary = "---------------------------" + System.currentTimeMillis();
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-
-        try (OutputStream outputStream = connection.getOutputStream();
-                FileInputStream fileInputStream = new FileInputStream(file)) {
-
-            // Write the file data to the request body
+        if (file != null) {
             outputStream.write(("--" + boundary + "\r\n").getBytes());
             outputStream.write(
                     ("Content-Disposition: form-data; name=\"images\"; filename=\"" + fileName + "\"\r\n")
@@ -301,13 +280,16 @@ public class ODMClient implements SfmClient {
 
             byte[] buffer = new byte[4096];
             int bytesRead;
-            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
+            try (FileInputStream fileInputStream = new FileInputStream(file)) {
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
             }
-
             outputStream.write(("\r\n").getBytes());
-            outputStream.write(("--" + boundary + "--\r\n").getBytes());
         }
+
+        outputStream.write(("\r\n").getBytes());
+        outputStream.write(("--" + boundary + "--\r\n").getBytes());
 
         // Get the response code
         int responseCode = connection.getResponseCode();
