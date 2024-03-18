@@ -1,6 +1,10 @@
+package photobox;
+
 import java.io.File;
 
-class Connector {
+import photobox.metashape.MetashapeClient;
+
+public class Connector {
     private int port = 50267;
     private String host = "localhost";
     private ConnectorGUI gui;

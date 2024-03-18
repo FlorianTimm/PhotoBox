@@ -1,3 +1,5 @@
+package photobox;
+
 public class DownloadClient implements SfmClient {
     /**
      * Placeholder, if no Software is selected. Does nothing.

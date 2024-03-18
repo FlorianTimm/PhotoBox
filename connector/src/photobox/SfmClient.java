@@ -1,3 +1,5 @@
+package photobox;
+
 public interface SfmClient {
     public boolean connect();
 

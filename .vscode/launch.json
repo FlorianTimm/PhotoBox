@@ -22,11 +22,9 @@
                 "${workspaceFolder}/connector/lib/metashape-java-api.jar",
                 "${workspaceFolder}/connector/lib/json-20240205.jar"
             ],
-            "mainClass": "Connector",
-            //"projectName": "connector_3847253a",
+            "mainClass": "photobox.Connector",
             "args": "localhost:50267",
-            "cwd": "${workspaceFolder}/connector/",
-            //"vmArgs": "-Djava.library.path=${workspaceFolder}/lib/jniLibs/linux64"
+            "cwd": "${workspaceFolder}/connector/"
         }
     ]
 }
