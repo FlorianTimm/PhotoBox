@@ -57,7 +57,7 @@ class CameraControlThread(StoppableThread):
                 port += 1
         while self.__control.is_system_stopping() == False:
             # sock.sendto(bytes("hello", "utf-8"), ip_co)
-            data, addr = socket_rec.recvfrom(2024)
+            data, addr = socket_rec.recvfrom(10000)
             Logger().info("received message: %s", data)
             Logger().info(addr)
             data = data.decode("utf-8")
