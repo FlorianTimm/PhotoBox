@@ -59,4 +59,4 @@ class TestCameraAruco:
             img_sw = cvtColor(img, COLOR_BGR2GRAY)
             marker[camera] = aruco.detect(img_sw)
 
-        dump(marker, open('tests/aruco.json', 'w'), indent=4)
+        dump(marker, open('tests/aruco.json', 'w'), indent=2)

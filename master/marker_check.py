@@ -157,7 +157,7 @@ class MarkerChecker:
 
         cameras = {}
 
-        for (hostname, lensposition), group in df.groupby(['hostname', 'LensPosition']):
+        for (hostname, lensposition), group in df[df["xw"] != None].groupby(['hostname', 'LensPosition']):
             Logger().debug(f"Processing {hostname}")
             cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
             objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
@@ -175,7 +175,7 @@ class MarkerChecker:
                     df.at[ind, 'inlier'] = False
 
         self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
-                                             for _, row in group.iterrows()] for (hostname,), group in df[df['inlier'] == True].groupby(['hostname'])}
+                                             for _, row in group.iterrows()] for hostname, group in df[df['inlier'] == True].groupby(['hostname'])}
         # df.to_excel('tests/debug_positions.xlsx')
         return cameras, df
 
@@ -187,15 +187,15 @@ class MarkerChecker:
 
             lenspos = self.__metadata[hostname]['LensPosition']
             for pos in positions:
+                c = [None, None, None]
                 if not pos['id'] in self.__marker_coords:
                     Logger().warning(
                         f"Marker {pos['id']} not found in marker_coords")
-                    continue
-                if not pos['corner'] in self.__marker_coords[pos['id']]:
+                elif not pos['corner'] in self.__marker_coords[pos['id']]:
                     Logger().warning(
                         f"Corner {pos['corner']} not found in marker_coords[{pos['id']}]")
-                    continue
-                c = self.__marker_coords[pos['id']][pos['corner']]
+                else:
+                    c = self.__marker_coords[pos['id']][pos['corner']]
                 data.append([hostname, pos['id'], pos['corner'], lenspos, pos['x'],
                             pos['y'], c[0], c[1], c[2]])
 
