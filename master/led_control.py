@@ -154,7 +154,7 @@ class LedControl:
         for led, pi in enumerate(self.__leds):
             self.__pixels[led] = self.__RED
             liste_aktuell = self.__control.get_hostnames()
-            for hostname, ip in liste_aktuell:
+            for hostname in liste_aktuell:
                 n = findall(r"\d{2}", hostname)
                 if len(n) > 0:
                     t = int(n[0])
