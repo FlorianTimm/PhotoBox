@@ -69,3 +69,24 @@ class TestMarkerChecker:
         assert len(p['camera04']) == len(marker_pos['camera04'])
         assert abs(c[15][1][2] -
                    marker_coords_org[15][1][2]) < 0.01
+
+    def test_missing_coordinate(self):
+        marker_coords = load(open('tests/marker.json', 'r'))
+        marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
+                         for k, v in marker_coords.items()}
+        marker_coords_org = deepcopy(marker_coords)
+        del marker_coords[15]
+
+        marker_pos: dict[str, list[ArucoMarkerPos]] = load(
+            open('tests/aruco.json', 'r'))
+        # create a difference to test the filter
+
+        metadata: dict[str, dict[str, int | float]] = {
+            key: {'LensPosition': 1.} for key in marker_pos.keys()}
+        marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
+        marker_checker.check()
+        c = marker_checker.get_corrected_coordinates()
+        p = marker_checker.get_filtered_positions()
+        assert len(p['camera04']) == len(marker_pos['camera04'])
+        assert abs(c[15][1][2] -
+                   marker_coords_org[15][1][2]) < 0.01
