@@ -52,6 +52,9 @@ class CameraControl:
         __answer(self, addr: str, msg: str): Sends an answer message to a client.
     """
 
+    __sock: socket.socket
+    __cam: CameraInterface
+
     def __init__(self):
         """
         Constructor for the CameraControl class.
@@ -59,15 +62,13 @@ class CameraControl:
         Returns:
             None
         """
-        self.__conf = Conf().get()
-
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__sock.bind(
-            ("0.0.0.0", int(self.__conf['both']['BroadCastPort'])))
+            ("0.0.0.0", int(Conf().get()['both']['BroadCastPort'])))
 
-        if not path.exists(self.__conf['kameras']['Folder']):
-            makedirs(self.__conf['kameras']['Folder'])
+        if not path.exists(Conf().get()['kameras']['Folder']):
+            makedirs(Conf().get()['kameras']['Folder'])
 
         t = Thread(target=self.__receive_broadcast)
         t.start()
@@ -86,7 +87,7 @@ class CameraControl:
         exit(0)
 
     def run(self):
-        self.cam = CameraInterface(self.__conf['kameras']['Folder'])
+        self.__cam = CameraInterface(Conf().get()['kameras']['Folder'])
         Logger().info("Moin")
 
     def __check_settings(self, settings: CamSettings | str) -> CamSettings:
@@ -116,7 +117,7 @@ class CameraControl:
                 settingR = json_loads(settings)
             except:
                 settingR = {}
-        return self.cam.make_picture(settingR)
+        return self.__cam.make_picture(settingR)
 
     def set_settings(self, settings: CamSettings | str):
         """
@@ -151,7 +152,7 @@ class CameraControl:
                 settingR = json_loads(settings)
             except:
                 settingR = {}
-        return self.cam.set_settings(settingR)
+        return self.__cam.set_settings(settingR)
 
     def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None):
         """
@@ -170,17 +171,17 @@ class CameraControl:
             settingsR = json_loads(settings)
         else:
             settingsR = settings
-        return self.cam.save_picture(settingsR, aruco_callback=aruco_callback)
+        return self.__cam.save_picture(settingsR, aruco_callback=aruco_callback)
 
     def preview(self, settings: CamSettings | str = {}):
         settings = self.__check_settings(settings)
-        return self.cam.make_picture(settings, preview=True)
+        return self.__cam.make_picture(settings, preview=True)
 
     def focus(self, focus: float) -> str:
-        return self.cam.focus(focus)
+        return self.__cam.focus(focus)
 
     def aruco(self) -> list[ArucoMarkerPos]:
-        return self.cam.find_aruco()
+        return self.__cam.find_aruco()
 
     def __aruco_broadcast(self, addr: tuple[str, int], id: str):
         """
@@ -198,7 +199,7 @@ class CameraControl:
         def aruco_pic():
             self.__answer(addr[0], 'arucoImg:' + id +
                           ':' + socket.gethostname())
-        marker = self.cam.find_aruco(aruco_pic)
+        marker = self.__cam.find_aruco(aruco_pic)
         # open(self.conf['kameras']['Folder'] + id +
         #     '.json', 'w').write(dumps(m, indent=2))
         self.__send_aruco_data(addr, id, marker)
@@ -210,13 +211,13 @@ class CameraControl:
                       socket.gethostname() + ':' + json_str)
 
     def meta(self) -> None | dict[str, int]:
-        return self.cam.meta()
+        return self.__cam.meta()
 
     def pause(self):
-        self.cam.pause()
+        self.__cam.pause()
 
     def resume(self):
-        self.cam.resume()
+        self.__cam.resume()
         self.say_moin()
 
     def say_moin(self):
