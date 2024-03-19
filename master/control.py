@@ -105,11 +105,10 @@ class Control:
             (4 if action == "stack" else 1)
         self.__pending_photo_count[id] = photo_count
         self.__pending_download_count[id] = photo_count
-        self.__pending_aruco_count[id] = photo_count
+        if action == "photo":
+            self.__pending_aruco_count[id] = photo_count
         self.__pending_photo_types[id] = action
         self.send_to_all(f'{action}:{id}')
-        sleep(1 if action == "photo" else 5)
-        self.__led_control.status_led()
 
     def send_to_desktop(self, message: str) -> None:
         self.__desktop_message_queue.put(message)
@@ -140,7 +139,7 @@ class Control:
         Thread(target=self.__download_photo, args=(
             ip, id, filename, hostname)).start()
         if self.__pending_photo_count[id] == 0:
-            self.__led_control.status_led()
+            self.__led_control.status_led(1)
             del self.__pending_photo_count[id]
             Logger().info("All photos taken!")
 
@@ -164,7 +163,6 @@ class Control:
             Logger().info("Collecting photos done!")
             del self.__pending_download_count[id]
             if self.__pending_photo_types[id] == "stack":
-                pass
                 self.__stack_photos(id)
             del self.__pending_photo_types[id]
             make_archive(self.__conf['server']['Folder'] + id, 'zip', folder)
