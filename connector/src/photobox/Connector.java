@@ -6,8 +6,11 @@ import photobox.metashape.MetashapeClient;
 import photobox.odm.ODMClient;
 
 public class Connector {
-    private int port = 50267;
-    private String host = "localhost";
+    // TODO: Save the last used host and port in a file
+    // https://www.codejava.net/coding/reading-and-writing-configuration-for-java-application-using-properties-class
+
+    private int port = 50268;
+    private String host = "10.42.0.13";
     private ConnectorGUI gui;
     private boolean isConnected = false;
     private PhotoBoxClient photoBox;
@@ -149,7 +152,7 @@ public class Connector {
 
     public void log(String message) {
         System.out.println(message);
-        this.gui.log(message);
+        // this.gui.log(message);
     }
 
     public File getDirectory() {

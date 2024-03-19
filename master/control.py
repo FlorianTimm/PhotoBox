@@ -170,7 +170,7 @@ class Control:
             make_archive(self.__conf['server']['Folder'] + id, 'zip', folder)
             self.__led_control.photo_light()
             self.send_to_desktop(
-                f"photoZip:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
+                f"photoZip:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
 
     def __check_folder(self, id):
         folder = self.__conf['server']['Folder'] + id + "/"
@@ -226,9 +226,9 @@ class Control:
                 folder + 'aruco.json', "w"), indent=2)
 
             self.send_to_desktop(
-                f"aruco:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
+                f"aruco:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
             self.send_to_desktop(
-                f"meta:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
+                f"meta:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
 
     def set_marker_from_csv(self, file) -> None:
         m = pd.read_csv(file)

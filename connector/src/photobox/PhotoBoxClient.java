@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.zip.ZipEntry;
@@ -50,29 +51,31 @@ public class PhotoBoxClient {
                     while (true) {
                         String line = reader.readLine();
                         if (line != null) {
-                            String[] w = line.split(":", 2);
+                            String[] w = line.split(":", 3);
                             for (int i = 0; i < w.length; i++) {
                                 w[i] = w[i].trim();
                             }
                             switch (w[0]) {
                                 case "photoZip":
                                     connector.log("Photos downloading: " + w[1]);
-                                    downloadPhotos(w[1]);
+                                    downloadPhotos(w[1], w[2]);
                                     break;
                                 case "aruco":
                                     connector.log("Aruco downloading: " + w[1]);
-                                    downloadAruco(w[1]);
+                                    downloadText(w[1], w[2]);
                                     break;
                                 case "marker":
                                     connector.log("Marker downloading: " + w[1]);
-                                    downloadMarker(w[1]);
+                                    downloadText(w[1], w[2]);
                                     break;
                                 case "heartbeat":
+                                    connector.log("Heartbeat");
                                     break;
                                 default:
                                     connector.log("Unknown message: " + line);
                                     break;
                             }
+                            connector.log("Received: " + line);
                         }
                         if (Thread.interrupted()) {
                             break;
@@ -100,43 +103,51 @@ public class PhotoBoxClient {
         return false;
     }
 
-    private void downloadPhotos(String zipName) {
+    private void downloadPhotos(String id, String zipName) {
         String urlString = "http://" + zipName;
         String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
-        String zipTarget = download(urlString, filename);
+        String zipTarget = download(urlString, id, filename);
         if (zipTarget == null) {
             return;
         }
         unzipFile(zipTarget);
     }
 
-    private void downloadAruco(String arucoName) {
+    private void downloadText(String id, String arucoName) {
         String urlString = "http://" + arucoName;
         String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
-        download(urlString, filename);
+        download(urlString, id, filename);
     }
 
-    private void downloadMarker(String markerName) {
-        String urlString = "http://" + markerName;
-        String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
-        download(urlString, filename);
-    }
-
-    private String download(String urlString, String filename) {
+    private String download(String urlString, String id, String filename) {
         connector.log("Downloading photos");
         File dir = connector.getDirectory();
         if (dir == null) {
             connector.log("No directory selected");
             return null;
-        } else if (!dir.isDirectory()) {
-            dir.mkdir();
-            connector.log(dir.getAbsolutePath() + " is created as a directory.");
         }
-        connector.log("Downloading photos to " + dir.getAbsolutePath());
-        String targetPath = dir.getAbsolutePath() + "/" + filename;
+
+        File targetDir = new File(dir.getAbsolutePath() + File.separator + id);
+        if (!targetDir.isDirectory()) {
+            targetDir.mkdir();
+            connector.log(targetDir.getAbsolutePath() + " is created as a directory.");
+        }
+        connector.log("Downloading photos to " + targetDir.getAbsolutePath());
+        String targetPath = targetDir.getAbsolutePath() + "/" + filename;
         try {
             URL website = new URL(urlString);
-            ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+            InputStream websiteStream;
+            try {
+                websiteStream = website.openStream();
+            } catch (UnknownHostException e) {
+                String path = website.toString();
+                connector.log("Unknown host: " + website.getHost());
+                connector.log("Trying to download from " + this.host);
+                website = new URL(path.replace("http://" + website.getHost(), "http://" + this.host));
+                websiteStream = website.openStream();
+            }
+
+            ReadableByteChannel rbc = Channels.newChannel(websiteStream);
             FileOutputStream fos = new FileOutputStream(targetPath);
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             fos.close();
@@ -157,8 +168,7 @@ public class PhotoBoxClient {
             // from:
             // https://www.digitalocean.com/community/tutorials/java-unzip-file-example
             connector.log("Unzipping " + zipFilePath);
-            String destDir = new File(zipFilePath).getAbsolutePath()
-                    .substring(0, zipFilePath.lastIndexOf('.'));
+            String destDir = new File(zipFilePath).getParent();
             File desFile = new File(destDir);
             if (!desFile.exists()) {
                 desFile.mkdir();
