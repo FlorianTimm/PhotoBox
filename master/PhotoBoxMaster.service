@@ -7,7 +7,7 @@ After=network-online.target
 User=root
 WorkingDirectory=/home/photo/PhotoBox/
 ExecStartPre=/home/photo/PhotoBox/update.sh
-ExecStart=/home/photo/PhotoBox/master/.venv/bin/python3 -m master.control
+ExecStart=/home/photo/PhotoBox/master/.venv/bin/python3 -m master.master
 Restart=always
 RestartSec=3
 
