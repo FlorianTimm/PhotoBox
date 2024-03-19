@@ -105,7 +105,7 @@ class DesktopControlThread(StoppableThread):
 
                             data = conn.recv(1024).decode("utf-8")
                             if data != "":
-                                Logger().info(addr, data)
+                                Logger().info(addr[0]+": "+data)
 
                             parts = data.split(":", 2)
                             match parts[0]:
