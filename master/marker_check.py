@@ -167,6 +167,8 @@ class MarkerChecker:
             cameras[hostname] = {'cameraMatrix': cameraMatrix,
                                  'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
             for i, ind in enumerate(group.index):
+                if inliner is None:
+                    df.at[ind, 'inlier'] = False
                 if i in inliner:
                     df.at[ind, 'inlier'] = True
                 else:
