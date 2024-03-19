@@ -173,7 +173,7 @@ class MarkerChecker:
                     df.at[ind, 'inlier'] = False
 
         self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
-                                             for _, row in group.iterrows()] for (hostname), group in df[df['inlier'] == True].groupby(['hostname'])}
+                                             for _, row in group.iterrows()] for (hostname,), group in df[df['inlier'] == True].groupby(['hostname'])}
         # df.to_excel('tests/debug_positions.xlsx')
         return cameras, df
 

@@ -2,6 +2,7 @@ package photobox;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -114,7 +115,7 @@ public class PhotoBoxClient {
         if (zipTarget == null) {
             return;
         }
-        unzipFile(zipTarget);
+        unzipFile(id, zipTarget);
     }
 
     private void downloadText(String id, String arucoName) {
@@ -156,6 +157,7 @@ public class PhotoBoxClient {
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             fos.close();
             connector.log("Downloaded " + filename);
+            checkReady(id, targetDir.getAbsolutePath());
             return targetPath;
         } catch (MalformedURLException e) {
             connector.log(urlString + " is not a valid URL");
@@ -167,7 +169,7 @@ public class PhotoBoxClient {
         return null;
     }
 
-    private void unzipFile(String zipFilePath) {
+    private void unzipFile(String id, String zipFilePath) {
         try {
             // from:
             // https://www.digitalocean.com/community/tutorials/java-unzip-file-example
@@ -205,9 +207,7 @@ public class PhotoBoxClient {
             zis.close();
             fis.close();
             connector.log("Unzipped " + zipFilePath);
-            if (sfmClient != null) {
-                sfmClient.processPhotos(destDir);
-            }
+            checkReady(id, destDir);
         } catch (FileNotFoundException e) {
             connector.log(zipFilePath + " not found");
             e.printStackTrace();
@@ -218,6 +218,41 @@ public class PhotoBoxClient {
             connector.log("Could not unzip " + zipFilePath);
             e.printStackTrace();
         }
+    }
+
+    private void checkReady(String id, String destDir) {
+        if (sfmClient == null) {
+            connector.log("SfmClient is not set");
+            return;
+        }
+        if (!(new File(destDir + File.separator + "aruco.json").exists())) {
+            connector.log("Aruco not found");
+            return;
+        }
+        if (!(new File(destDir + File.separator + "marker.json").exists())) {
+            connector.log("Marker not found");
+            return;
+        }
+        if (!(new File(destDir + File.separator + "meta.json").exists())) {
+            connector.log("Meta not found");
+            return;
+        }
+
+        File files = new File(destDir);
+        File[] jpg = files.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                if (pathname.getName().toLowerCase().endsWith(".jpg")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+        if (jpg.length == 0) {
+            connector.log("No jpg files found");
+            return;
+        }
+        sfmClient.processPhotos(destDir);
     }
 
     private void send(String message) {
