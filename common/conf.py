@@ -8,8 +8,6 @@
 
 from configparser import ConfigParser
 
-from pyparsing import C
-
 from common.singleton import SingletonMeta
 
 
