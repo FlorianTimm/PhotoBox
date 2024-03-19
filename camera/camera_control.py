@@ -224,7 +224,7 @@ class CameraControl:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto(('Moin:'+socket.gethostname()).encode("utf-8"), ('255.255.255.255', int(
-                self.__conf['both']['BroadCastPort'])))
+                Conf().get()['both']['BroadCastPort'])))
 
     def __receive_broadcast(self):
         """
@@ -355,4 +355,4 @@ class CameraControl:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto((msg).encode("utf-8"),
-                        (addr, int(self.__conf['both']['BroadCastPort'])))
+                        (addr, int(Conf().get()['both']['BroadCastPort'])))
