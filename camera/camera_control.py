@@ -308,12 +308,14 @@ class CameraControl:
         Returns:
             None
         """
+        id = filename
         for f in [1, 3, 4, 5]:
             cs: CamSettingsWithFilename = {
                 'focus': f,
                 'filename': filename + '_' + str(f) + '.jpg'}
             self.__save(cs)
-            self.__answer(addr[0], 'photoDone:' + cs['filename'])
+            self.__answer(addr[0], 'photoDone:' +
+                          filename + ':' + cs['filename'])
 
     def __take_photo(self, data: str, addr: tuple[str, int]):
         """

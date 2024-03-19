@@ -110,7 +110,9 @@ public class MetashapeProject implements Progress {
                 calib.setK4(image.getCamera().getK()[3]);
                 calib.setP1(image.getCamera().getP()[0]);
                 calib.setP2(image.getCamera().getP()[1]);
+
                 sensor.setUserCalib(Optional.of(calib));
+                sensor.setFixed(true);
             } else {
                 camera.setSensor(this.chunk.getSensor(image.getCamera().getCameraId()));
             }
