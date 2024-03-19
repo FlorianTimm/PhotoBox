@@ -225,10 +225,15 @@ class Control:
             json_dump(self.__detected_markers[id], open(
                 folder + 'aruco.json', "w"), indent=2)
 
+            json_dump(self.__marker, open(
+                folder + 'marker.json', "w"), indent=2)
+
             self.send_to_desktop(
                 f"aruco:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
             self.send_to_desktop(
                 f"meta:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
+            self.send_to_desktop(
+                f"marker:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/marker.json")
 
     def set_marker_from_csv(self, file) -> None:
         m = pd.read_csv(file)

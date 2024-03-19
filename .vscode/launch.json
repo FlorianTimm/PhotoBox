@@ -23,7 +23,7 @@
                 "${workspaceFolder}/connector/lib/json-20240205.jar"
             ],
             "mainClass": "photobox.Connector",
-            "args": "localhost:50267",
+            //"args": "localhost:50267",
             "cwd": "${workspaceFolder}/connector/"
         }
     ]
