@@ -28,7 +28,7 @@ from common.logger import Logger
 class CameraInterface(object):
     def __init__(self, folder: str):
         tuning: dict[str, Any] = Picamera2.load_tuning_file(
-            "imx708.json", dir='../camera/tuning/')
+            "imx708.json", dir='./camera/tuning/')
         self.__cam: Picamera2 = Picamera2(tuning=tuning)
         self.__rgb_config: dict[str,
                                 Any] = self.__cam.create_still_configuration()
