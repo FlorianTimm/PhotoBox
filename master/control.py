@@ -329,7 +329,6 @@ class Control:
     # Getter
 
     def get_hostnames(self, ) -> dict[str, str]:
-        Logger().info("get_hostnames")
         return dict(sorted(self.__list_of_cameras.items()))
 
     def get_cams_started(self) -> bool:
