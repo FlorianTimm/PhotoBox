@@ -9,7 +9,7 @@ public class Connector {
     // TODO: Save the last used host and port in a file
     // https://www.codejava.net/coding/reading-and-writing-configuration-for-java-application-using-properties-class
 
-    private int port = 50268;
+    private int port = 50267;
     private String host = "10.42.0.13";
     private ConnectorGUI gui;
     private boolean isConnected = false;

@@ -56,6 +56,9 @@ public class PhotoBoxClient {
                                 w[i] = w[i].trim();
                             }
                             switch (w[0]) {
+                                case "heartbeat":
+                                    // connector.log("Heartbeat");
+                                    break;
                                 case "photoZip":
                                     connector.log("Photos downloading: " + w[1]);
                                     downloadPhotos(w[1], w[2]);
@@ -68,8 +71,9 @@ public class PhotoBoxClient {
                                     connector.log("Marker downloading: " + w[1]);
                                     downloadText(w[1], w[2]);
                                     break;
-                                case "heartbeat":
-                                    connector.log("Heartbeat");
+                                case "meta":
+                                    connector.log("Meta downloading: " + w[1]);
+                                    downloadText(w[1], w[2]);
                                     break;
                                 default:
                                     connector.log("Unknown message: " + line);
