@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from common.logger import Logger
 from common.typen import ArucoMarkerPos
+from common.conf import Conf
 from scipy import stats
 
 
@@ -27,10 +28,6 @@ class MarkerChecker:
     __marker_coords: dict[int, dict[int, tuple[float, float, float]]] = {}
     __marker_pos: dict[str, list[ArucoMarkerPos]] = {}
     __metadata:  dict[str, dict[str, int | float]] = {}
-    __params = np.array([2.63572488e+01,  6.31322513e-01, -9.88069511e+00,  2.92706002e+01,
-                         -4.15690296e-03, -1.99188205e-02, -1.01408404e-04,  2.60612862e-06,
-                         2.79208519e-02,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
-                         0.00000000e+00,  0.00000000e+00])
 
     def __init__(self, marker_coords: dict[int, dict[int, tuple[float, float, float]]], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, dict[str, int | float]]):
         """
@@ -59,14 +56,24 @@ class MarkerChecker:
         Returns:
             A tuple containing the camera matrix and distortion coefficients.
         """
-        x = self.__params.tolist()
-        if len(x) == 9:
-            [x.append(0) for _ in range(5)]
-        c = 3385 + x[0] + c_offset + x[3] * lens_position
-        cx = 2304 + x[1] + cx_offset
-        cy = 1296 + x[2] + cy_offset
+        param = Conf().get()['calibration']
+        c = float(param['f']) + c_offset + \
+            lens_position * float(param['f_factor'])
+        cx = float(param['cx']) + cx_offset + \
+            lens_position * float(param['cx_factor'])
+        cy = float(param['cy']) + cy_offset + \
+            lens_position * float(param['cy_factor'])
         cameraMatrix = np.array([[c, 0, cx], [0, c, cy], [0, 0, 1]])
-        distCoeffs = np.array([x[9:14]]) + np.array([x[4:9]]) * lens_position
+        distCoeffs = np.array([float(param['k1']) + lens_position *
+                               float(param['k1_factor']),
+                               float(param['k2']) + lens_position *
+                               float(param['k2_factor']),
+                               float(param['p1']) + lens_position *
+                               float(param['p1_factor']),
+                               float(param['p2']) + lens_position *
+                               float(param['p2_factor']),
+                               float(param['k3']) + lens_position *
+                               float(param['k3_factor'])])
         return cameraMatrix, distCoeffs
 
     def check(self) -> None:
