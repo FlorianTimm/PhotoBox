@@ -80,9 +80,12 @@ class MarkerChecker:
         """
         Check the marker positions and filter them if necessary.
         """
+
+        # read metadata
         pdm = pd.DataFrame.from_dict(self.__metadata)
         Logger().debug(pdm)
 
+        # check and mark marker positions
         cameras, df = self.__check_marker_position()
 
         # check outliers on wrong coordinates
@@ -92,6 +95,27 @@ class MarkerChecker:
         t = t[t['mode'] == False].reset_index()
 
         # recalculate coordinates
+        something_changed = self.recalculate_coordinates(cameras, df, t)
+
+        if something_changed:
+            Logger().info("Some coordinates have changed")
+            cameras, df = self.__check_marker_position()
+
+        self.__is_filtered = True
+
+    def recalculate_coordinates(self, cameras: dict[str, dict[str, np.ndarray]], df: pd.DataFrame, t: pd.DataFrame) -> bool:
+        """
+        Recalculate the coordinates.
+
+        Args:
+            cameras: A dictionary containing the cameras.
+            df: A dataframe containing the marker positions.
+            t: A dataframe containing the marker positions.
+
+        Returns:
+            A boolean indicating if the coordinates have been recalculated.
+        """
+
         something_changed = False
         for _, row in t.iterrows():
             group: pd.DataFrame = df[(df['id'] == row['id']) & (
@@ -142,12 +166,7 @@ class MarkerChecker:
                 f"Original: {group[['xw', 'yw', 'zw']].mean().to_numpy()}")
             Logger().debug(self.__marker_coords)
             something_changed = True
-
-        if something_changed:
-            Logger().info("Some coordinates have changed")
-            cameras, df = self.__check_marker_position()
-
-        self.__is_filtered = True
+        return something_changed
 
     def __check_marker_position(self) -> tuple[dict[str, dict[str, np.ndarray]], pd.DataFrame]:
         """
