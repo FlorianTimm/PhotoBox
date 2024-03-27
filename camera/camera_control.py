@@ -154,7 +154,7 @@ class CameraControl:
                 settingR = {}
         return self.__cam.set_settings(settingR)
 
-    def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None):
+    def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None) -> tuple[str, dict[str, Any]]:
         """
         Saves a picture using the specified settings.
 
@@ -163,7 +163,7 @@ class CameraControl:
             aruco_callback (None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None], optional): A callback function to be called after the picture is saved. Defaults to None.
 
         Returns:
-            The result of the `save_picture` method of the `cam` object.
+            tuple[str, dict[str, Any]]: The filename and metadata of the saved picture.
 
         """
         settingsR: CamSettingsWithFilename
@@ -309,13 +309,22 @@ class CameraControl:
             None
         """
         id = filename
+        metadata: dict[str, dict[str, Any]] = {}
+
         for f in [1, 3, 4, 5]:
             cs: CamSettingsWithFilename = {
                 'focus': f,
                 'filename': filename + '_' + str(f) + '.jpg'}
-            self.__save(cs)
+            filename, metadata = self.__save(cs)
+            metadata[filename] = metadata
             self.__answer(addr[0], 'photoDone:' +
                           filename + ':' + cs['filename'])
+
+        for f, m in metadata.items():
+            def aruco_callback(data: list[ArucoMarkerPos], metadata: dict[str, Any]):
+                self.__send_aruco_data(addr, id, data, metadata)
+            self.__cam.aruco_search_in_background_from_file(
+                f, m, aruco_callback)
 
     def __take_photo(self, data: str, addr: tuple[str, int]):
         """
