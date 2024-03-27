@@ -25,9 +25,9 @@ class MarkerChecker:
         __is_filtered (bool): A boolean indicating if the marker positions have been filtered.
     """
 
-    __marker_coords: dict[int, dict[int, tuple[float, float, float]]] = {}
-    __marker_pos: dict[str, list[ArucoMarkerPos]] = {}
-    __metadata:  dict[str, dict[str, int | float]] = {}
+    __marker_coords: pd.DataFrame
+    __marker_pos: pd.DataFrame
+    __metadata:  pd.DataFrame
 
     def __init__(self, marker_coords: dict[int, dict[int, tuple[float, float, float]]], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, dict[str, int | float]]):
         """
@@ -38,10 +38,52 @@ class MarkerChecker:
             marker_pos (dict[str, list[ArucoMarkerPos]]): A dictionary containing marker positions.
             metadata (dict[str, dict[str, int | float]]): A dictionary containing metadata.
         """
-        self.__marker_coords = marker_coords
-        self.__marker_pos = marker_pos
-        self.__metadata = metadata
+        self.__marker_coords = self.__create_marker_coords_dataframe(
+            marker_coords)
+        self.__marker_pos = self.__create_marker_pos_dataframe(marker_pos)
+        self.__metadata = self.__create_metadata_dataframe(metadata)
         self.__is_filtered = False
+
+    def __create_marker_coords_dataframe(self, marker_coords: dict[int, dict[int, tuple[float, float, float]]]) -> pd.DataFrame:
+        """
+        Create a dataframe containing the marker coordinates.
+
+        Returns:
+            A dataframe containing the marker coordinates.
+        """
+        data = []
+        for id, corners in marker_coords.items():
+            for corner, coord in corners.items():
+                data.append([id, corner, coord[0], coord[1], coord[2]])
+        return pd.DataFrame(data, columns=['id', 'corner', 'wx', 'wy', 'wz']).set_index(['id', 'corner'])
+
+    def __create_marker_pos_dataframe(self, marker_pos: dict[str, list[ArucoMarkerPos]]) -> pd.DataFrame:
+        """
+        Create a dataframe containing the marker positions.
+
+        Returns:
+            A dataframe containing the marker positions.
+        """
+        data = []
+        for hostname, positions in marker_pos.items():
+            for pos in positions:
+                data.append(
+                    [hostname, pos['id'], pos['corner'], pos['x'], pos['y'], None])
+        d = pd.DataFrame(
+            data, columns=['hostname', 'id', 'corner', 'x', 'y', 'inlier']).set_index(['hostname', 'id', 'corner'])
+        return d
+
+    def __create_metadata_dataframe(self, metadata: dict[str, dict[str, int | float]]) -> pd.DataFrame:
+        """
+        Create a dataframe containing the metadata.
+
+        Returns:
+            A dataframe containing the metadata.
+        """
+        # read metadata
+        pdm = pd.DataFrame.from_dict(metadata, orient='index', dtype='float32').reset_index().rename(
+            columns={'index': 'hostname'}).astype({'hostname': str}).set_index('hostname')
+        return pdm
 
     def __camera_matrix(self, lens_position: float, c_offset: float = 0, cx_offset: float = 0, cy_offset: float = 0) -> tuple[np.ndarray, np.ndarray]:
         """
@@ -81,29 +123,27 @@ class MarkerChecker:
         Check the marker positions and filter them if necessary.
         """
 
-        # read metadata
-        pdm = pd.DataFrame.from_dict(self.__metadata)
-        Logger().debug(pdm)
-
         # check and mark marker positions
-        cameras, df = self.__check_marker_position()
+        cameras = self.__check_marker_position()
 
         # check outliers on wrong coordinates
-        t = df.groupby(['id', 'corner'])['inlier'].agg(
+        t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
         t = t[t['count'] > 2]
         t = t[t['mode'] == False].reset_index()
 
+        Logger().info(t)
+
         # recalculate coordinates
-        something_changed = self.recalculate_coordinates(cameras, df, t)
+        something_changed = self.recalculate_coordinates(cameras, t)
 
         if something_changed:
             Logger().info("Some coordinates have changed")
-            cameras, df = self.__check_marker_position()
+            cameras = self.__check_marker_position()
 
         self.__is_filtered = True
 
-    def recalculate_coordinates(self, cameras: dict[str, dict[str, np.ndarray]], df: pd.DataFrame, t: pd.DataFrame) -> bool:
+    def recalculate_coordinates(self, cameras: dict[str, dict[str, np.ndarray]], t: pd.DataFrame) -> bool:
         """
         Recalculate the coordinates.
 
@@ -115,6 +155,7 @@ class MarkerChecker:
         Returns:
             A boolean indicating if the coordinates have been recalculated.
         """
+        df = self.__create_dataframe()
 
         something_changed = False
         for _, row in t.iterrows():
@@ -144,31 +185,36 @@ class MarkerChecker:
             if len(coord_neu) == 0:
                 continue
             Logger().debug(coord_neu)
-            coords_neu = pd.DataFrame(coord_neu, columns=['x', 'y', 'z'])
+            coords_neu = pd.DataFrame(coord_neu, columns=['wx', 'wy', 'wz'])
             # df.loc[(df['id'] == row['id']) & (df['corner'] == row['corner']),
             #       ['x', 'y']] = coord_neu[:2]
             Logger().info(f"Korrigiere {row['id']} {row['corner']}")
-            zscore = np.abs(stats.zscore(coords_neu[["x", "y", "z"]]))
+            zscore = np.abs(stats.zscore(coords_neu[["wx", "wy", "wz"]]))
             # print(zscore)
             Logger().debug(zscore)
             # Identify outliers as students with a z-score greater than 3
             threshold = 2
             coords_neu = coords_neu[zscore <= threshold].dropna()
             Logger().debug(coords_neu.mean())
-            Logger().debug(group[['xw', 'yw', 'zw']])
+            Logger().debug(group[['wx', 'wy', 'wz']])
 
-            self.__marker_coords[row['id']][row['corner']] = (
-                coords_neu['x'].mean(), coords_neu['y'].mean(), coords_neu['z'].mean())
+            neu = coords_neu.mean().to_numpy()
+            self.__marker_coords.at[(row['id'], row['corner']), 'wx'] = neu[0]
+            self.__marker_coords.at[(row['id'], row['corner']), 'wy'] = neu[1]
+            self.__marker_coords.at[(row['id'], row['corner']), 'wz'] = neu[2]
 
-            Logger().info(
-                f"Korrigiert: {self.__marker_coords[row['id']][row['corner']]}")
+            # row['id']) & (
+            #   self.__marker_coords['corner'] == row['corner']), ['wx', 'wy', 'wz']] = coords_neu.mean().to_numpy()
+            # self.__marker_coords[row['id']][row['corner']] = (
+            #    coords_neu['wx'].mean(), coords_neu['wy'].mean(), coords_neu['wz'].mean())
+
             Logger().debug(
-                f"Original: {group[['xw', 'yw', 'zw']].mean().to_numpy()}")
+                f"Original: {group[['wx', 'wy', 'wz']].mean().to_numpy()}")
             Logger().debug(self.__marker_coords)
             something_changed = True
         return something_changed
 
-    def __check_marker_position(self) -> tuple[dict[str, dict[str, np.ndarray]], pd.DataFrame]:
+    def __check_marker_position(self) -> dict[str, dict[str, np.ndarray]]:
         """
         Check the marker positions and filter them if necessary.
 
@@ -179,56 +225,39 @@ class MarkerChecker:
         df = self.__create_dataframe()
         if len(df) == 0:
             Logger().warning("No data to process")
-            return {}, df
-
+            return {}
         cameras = {}
 
-        for (hostname, lensposition), group in df[df["xw"] != None].groupby(['hostname', 'LensPosition']):
+        for (hostname, lensposition), group in df[df["wx"] != None].groupby(['hostname', 'LensPosition']):
             Logger().debug(f"Processing {hostname}")
             cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
-            objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
+            objp = group[['wx', 'wy', 'wz']].to_numpy(dtype=np.float32)
             imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
-            ret, rvecs, tvecs, inliner = cv2.solvePnPRansac(
+            ret, rvecs, tvecs, inlier = cv2.solvePnPRansac(
                 objp, imgp, cameraMatrix, distCoeffs, reprojectionError=10.0)
             cameras[hostname] = {'cameraMatrix': cameraMatrix,
                                  'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
             for i, ind in enumerate(group.index):
-                if inliner is None:
-                    df.at[ind, 'inlier'] = False
-                if i in inliner:
-                    df.at[ind, 'inlier'] = True
+                id = df.at[ind, 'id']
+                corner = df.at[ind, 'corner']
+                if inlier is None:
+                    self.__marker_pos.at[(
+                        hostname, id, corner), 'inlier'] = False
+                if i in inlier:
+                    self.__marker_pos.at[(
+                        hostname, id, corner), 'inlier'] = True
                 else:
-                    df.at[ind, 'inlier'] = False
+                    self.__marker_pos.at[(
+                        hostname, id, corner), 'inlier'] = False
 
-        self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
-                                             for _, row in group.iterrows()] for hostname, group in df[df['inlier'] == True].groupby(['hostname'])}
-        # df.to_excel('tests/debug_positions.xlsx')
-        return cameras, df
+        return cameras
 
     def __create_dataframe(self) -> pd.DataFrame:
-        data = []
-
-        for hostname, positions in self.__marker_pos.items():
-            Logger().debug(f"Processing {hostname}")
-
-            lenspos = self.__metadata[hostname]['LensPosition']
-            for pos in positions:
-                c = [None, None, None]
-                if not pos['id'] in self.__marker_coords:
-                    Logger().warning(
-                        f"Marker {pos['id']} not found in marker_coords")
-                elif not pos['corner'] in self.__marker_coords[pos['id']]:
-                    Logger().warning(
-                        f"Corner {pos['corner']} not found in marker_coords[{pos['id']}]")
-                else:
-                    c = self.__marker_coords[pos['id']][pos['corner']]
-                data.append([hostname, pos['id'], pos['corner'], lenspos, pos['x'],
-                            pos['y'], c[0], c[1], c[2]])
-
-        df: pd.DataFrame = pd.DataFrame(data, columns=['hostname',
-                                                       'id', 'corner', 'LensPosition', 'x', 'y', 'xw', 'yw', 'zw']).astype({'hostname': str, 'id': 'int32', 'corner': 'int32', 'LensPosition': 'float32', 'x': 'float32', 'y': 'float32', 'xw': 'float32', 'yw': 'float32', 'zw': 'float32'})
-        df['inlier'] = None
-        return df
+        return pd.merge(self.__marker_pos.reset_index(), self.__marker_coords.reset_index(),
+                        left_on=['id', 'corner'],
+                        right_on=['id', 'corner'], how='outer'). \
+            merge(self.__metadata.reset_index(), left_on='hostname',
+                  right_on='hostname')
 
     def get_corrected_coordinates(self) -> dict[int, dict[int, tuple[float, float, float]]]:
         """
@@ -239,7 +268,13 @@ class MarkerChecker:
         """
         if not self.__is_filtered:
             self.check()
-        return self.__marker_coords
+        d = {}
+        for id, corners in self.__marker_coords.reset_index().groupby('id'):
+            d[id] = {}
+            for _, coord in corners.iterrows():
+                d[id][int(coord['corner'])] = (
+                    coord['wx'], coord['wy'], coord['wz'])
+        return d
 
     def get_filtered_positions(self) -> dict[str, list[ArucoMarkerPos]]:
         """
@@ -250,4 +285,11 @@ class MarkerChecker:
         """
         if not self.__is_filtered:
             self.check()
-        return self.__marker_pos
+        d = {}
+
+        for hostname, positions in self.__marker_pos[self.__marker_pos['inlier']].reset_index().groupby('hostname'):
+            d[hostname] = []
+            for _, pos in positions.iterrows():
+                d[hostname].append(
+                    {'id': pos['id'], 'corner': pos['corner'], 'x': pos['x'], 'y': pos['y']})
+        return d
