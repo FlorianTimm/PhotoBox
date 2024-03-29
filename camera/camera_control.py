@@ -320,6 +320,7 @@ class CameraControl:
             self.__answer(addr[0], 'photoDone:' +
                           filename + ':' + cs['filename'])
 
+        Logger().info("Focusstack: %s", metadata)
         for f, m in metadata.items():
             def aruco_callback(data: list[ArucoMarkerPos], metadata: dict[str, Any]):
                 self.__send_aruco_data(addr, id, data, metadata)

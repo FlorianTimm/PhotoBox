@@ -105,8 +105,7 @@ class Control:
             (4 if action == "stack" else 1)
         self.__pending_photo_count[id] = photo_count
         self.__pending_download_count[id] = photo_count
-        if action == "photo":
-            self.__pending_aruco_count[id] = photo_count
+        self.__pending_aruco_count[id] = photo_count
         self.__pending_photo_types[id] = action
         self.send_to_all(f'{action}:{id}')
 
@@ -126,9 +125,14 @@ class Control:
         self.__list_of_cameras[hostname] = ip
         self.__led_control.status_led(5)
 
-    def receive_photo(self, ip: str, id: str, filename: str) -> None:
+    def receive_photo(self, ip: str, id_lens: str, filename: str) -> None:
         global photo_count
         Logger().info("Photo received: %s", filename)
+        id = id_lens.split("_")[0]
+        Logger().info("Photo received: ID %s", id)
+        if not id in self.__pending_photo_count:
+            Logger().info("Error: Photo not requested!")
+            return
         self.__pending_photo_count[id] -= 1
         hostname = self.__get_hostname(ip)
         if len(hostname) > 0:
