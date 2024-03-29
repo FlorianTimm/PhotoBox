@@ -179,8 +179,8 @@ class CameraInterface(object):
             aruco_marker = self.__aruco.detect_from_rgb(img)
             dump(aruco_marker, open(file + ".aruco", "w"), indent=2)
             aruco_callback(aruco_marker, metadata)
-        Thread(target=aruco_search, args=(
-            img, aruco_callback), name="Aruco").start()
+        Thread(target=aruco_search, args=(self,
+                                          img, aruco_callback), name="Aruco").start()
 
     def meta(self) -> None | dict[str, Any]:
         self.resume()
