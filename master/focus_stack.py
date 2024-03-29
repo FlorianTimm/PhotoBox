@@ -40,13 +40,16 @@ import cv2
 from common.logger import Logger
 
 
-def findHomography(image_1_kp, image_2_kp, matches):
+def findHomography(image_1_kp, image_2_kp, matches) -> npt.NDArray[np.float32]:
     image_1_points = np.zeros((len(matches), 1, 2), dtype=np.float32)
     image_2_points = np.zeros((len(matches), 1, 2), dtype=np.float32)
 
     for i in range(0, len(matches)):
         image_1_points[i] = image_1_kp[matches[i].queryIdx].pt
         image_2_points[i] = image_2_kp[matches[i].trainIdx].pt
+
+    if len(image_1_points) < 4 or len(image_2_points) < 4:
+        raise ValueError("Not enough points to compute homography")
 
     homography, mask = cv2.findHomography(
         image_1_points, image_2_points, cv2.RANSAC, ransacReprojThreshold=2.0)
@@ -95,12 +98,14 @@ def align_images(images: list[npt.NDArray[np.uint8]]) -> list[npt.NDArray[np.uin
 
         sortMatches = sorted(rawMatches, key=lambda x: x.distance)
         matches = sortMatches[0:128]
+        try:
+            hom = findHomography(image_i_kp, image_1_kp, matches)
+            newimage = cv2.warpPerspective(
+                images[i], hom, (images[i].shape[1], images[i].shape[0]), flags=cv2.INTER_LINEAR)
 
-        hom = findHomography(image_i_kp, image_1_kp, matches)
-        newimage = cv2.warpPerspective(
-            images[i], hom, (images[i].shape[1], images[i].shape[0]), flags=cv2.INTER_LINEAR)
-
-        outimages.append(newimage)
+            outimages.append(newimage)
+        except ValueError:
+            Logger().info("Could not align image {}".format(i))
         # If you find that there's a large amount of ghosting, it may be because one or more of the input
         # images gets misaligned.  Outputting the aligned images may help diagnose that.
         # cv2.imwrite("aligned{}.png".format(i), newimage)

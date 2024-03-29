@@ -80,8 +80,9 @@ def photo_html(id: str = "") -> str:
 
 
 @app.route("/stack")
-def stack_html() -> str:
-    return capture_html("stack")
+@app.route("/stack/<id>")
+def stack_html(id: str = "") -> str:
+    return capture_html("stack", id)
 
 
 def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
@@ -89,9 +90,9 @@ def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> s
         id = control.capture_photo(action)
         return render_template('wait.htm', time=5,
                                target_url=f"/{action}/{id}", title="Photo...")
-    else:
-        hnames = dict(sorted(control.get_cameras().items()))
-        return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
+
+    hnames = dict(sorted(control.get_cameras().items()))
+    return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
 
 
 @app.route("/preview")
