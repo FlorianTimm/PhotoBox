@@ -316,8 +316,8 @@ class CameraControl:
             cs: CamSettingsWithFilename = {
                 'focus': f,
                 'filename': filename}
-            pfad, metadata = self.__save(cs)
-            metadata[filename] = metadata
+            _, md = self.__save(cs)
+            metadata[filename] = md
             self.__answer(addr[0], 'photoDone:' +
                           filename + ':' + cs['filename'])
 
