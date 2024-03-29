@@ -297,7 +297,7 @@ class CameraControl:
             else:
                 Logger().warning("Unknown command: %s", data)
 
-    def __take_focusstack(self, filename: str, addr: tuple[str, int]):
+    def __take_focusstack(self, id: str, addr: tuple[str, int]):
         """
         Takes a focus stack of photos with different focus levels.
 
@@ -308,14 +308,15 @@ class CameraControl:
         Returns:
             None
         """
-        id = filename
+
         metadata: dict[str, dict[str, Any]] = {}
 
         for f in [1, 3, 4, 5]:
+            filename = id + '_' + str(f) + '.jpg'
             cs: CamSettingsWithFilename = {
                 'focus': f,
-                'filename': filename + '_' + str(f) + '.jpg'}
-            filename, metadata = self.__save(cs)
+                'filename': filename}
+            pfad, metadata = self.__save(cs)
             metadata[filename] = metadata
             self.__answer(addr[0], 'photoDone:' +
                           filename + ':' + cs['filename'])

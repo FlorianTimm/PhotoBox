@@ -152,7 +152,7 @@ class CameraInterface(object):
         Logger().info("Bild %s gemacht!", file)
         return file, metadata
 
-    def aruco_search_in_background_from_file(self, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> None:
+    def aruco_search_in_background_from_file(self, filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> None:
         """
         Start a background thread that searches for Aruco markers in the given image file.
 
@@ -161,8 +161,8 @@ class CameraInterface(object):
             metadata: The metadata of the image.
             aruco_callback: A callback function that is called with the Aruco markers found in the image.
         """
-        img = imread(file)
-        return self.aruco_search_in_background(img, file, metadata, aruco_callback)
+        img = imread(self.__folder + filename)
+        return self.aruco_search_in_background(img, filename, metadata, aruco_callback)
 
     def aruco_search_in_background(self, img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> None:
         """
