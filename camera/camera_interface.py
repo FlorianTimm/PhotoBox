@@ -27,6 +27,35 @@ from common.logger import Logger
 
 
 class CameraInterface(object):
+    '''
+    This class is used to interact with the camera.
+
+    Attributes:
+    - __cam: Picamera2
+    - __rgb_config: dict[str, Any]
+    - __yuv_config: dict[str, Any]
+    - __folder: str
+    - __aruco: Aruco
+    - __DEFAULT_CTRL: dict[str, Any]
+
+    Methods:
+    + __init__(folder: str)
+    + make_picture(settings: CamSettings = {}, preview=False): bytes
+    + save_picture(settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): tuple[str, dict[str, Any]]
+    + aruco_search_in_background_from_file(filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): None
+    + aruco_search_in_background(img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): None
+    + meta(): None | dict[str, Any]
+    + find_aruco(inform_after_picture: None | Callable[[], None] = None): list[ArucoMarkerPos]
+    + pause()
+    + resume()
+    + set_settings(settings: CamSettings): CamSettings
+    + focus(focus: float): str
+    - __get_status(): dict[str, Any]
+    - __capture_photo(settings: CamSettings): tuple[CompletedRequest, dict[str, Any], CamSettings]
+    - __request_capture_with_meta(): tuple[CompletedRequest, dict[str, Any]
+
+    '''
+
     def __init__(self, folder: str):
         tuning: dict[str, Any] = Picamera2.load_tuning_file(
             "imx708.json", dir='./camera/tuning/')

@@ -19,38 +19,39 @@ from common.conf import Conf
 
 
 class CameraControl:
-    """
-    The CameraControl class represents the main script for controlling the camera.
-
-    It provides methods for starting and controlling the camera, taking photos,
-    setting camera settings, and handling broadcast messages.
+    '''
+    This class is used to control the camera and perform various operations such as taking photos, setting camera settings, and broadcasting Aruco information.
 
     Attributes:
-        __sock (socket.socket): The socket object for UDP communication.
-        cam (CameraInterface): The camera interface object.
+    - __sock: socket.socket
+    - __cam: CameraInterface
 
     Methods:
-        __init__(self): Initializes the CameraControl object.
-        shutdown(self): Shuts down the Raspberry Pi.
-        run(self): Runs the camera.
-        __check_settings(self, settings: CamSet | str) -> CamSet: Checks and converts camera settings.
-        photo(self, settings: CamSettings | str): Takes a photo with the camera.
-        set_settings(self, settings: CamSettings | str): Sets camera settings.
-        __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None): Saves a photo with the camera.
-        preview(self, settings: CamSettings | str = {}): Takes a preview photo with the camera.
-        focus(self, focus: float) -> str: Sets the focus of the camera.
-        aruco(self) -> list[ArucoMarkerPos]: Finds ArUco markers in the camera image.
-        __aruco_broadcast(self, addr: tuple[str, int], id: str): Broadcasts ArUco marker information.
-        __send_aruco_data(self, addr: tuple[str, int], id: str, marker: list[ArucoMarkerPos], meta: dict[str, Any] = {}): Sends ArUco marker data to a client.
-        meta(self) -> None | dict[str, int]: Gets camera metadata.
-        pause(self): Pauses the camera.
-        resume(self): Resumes the camera.
-        say_moin(self): Sends a broadcast message.
-        __receive_broadcast(self): Receives and processes broadcast messages.
-        __take_focusstack(self, filename: str, addr: tuple[str, int]): Takes a focus stack of photos.
-        __take_photo(self, data: str, addr: tuple[str, int]): Takes a photo with the camera.
-        __answer(self, addr: str, msg: str): Sends an answer message to a client.
-    """
+    + __init__()
+    - run()
+    - __check_settings(settings: CamSettings | str): CamSettings
+    + photo(settings: CamSettings | str): bytes
+    + set_settings(settings: CamSettings | str): dict[str, Any]
+    - __save(settings: CamSettingsWithFilename | str, 
+            aruco_callback: None | Callable[[list[ArucoMarkerPos], 
+            dict[str, Any]], None] = None): 
+            tuple[str, dict[str, Any]]
+    + preview(settings: CamSettings | str = {}): bytes
+    + focus(focus: float): str
+    + aruco():list[ArucoMarkerPos]
+    - __aruco_broadcast(addr: tuple[str, int], id: str)
+    - __send_aruco_data(addr: tuple[str, int], id: str, 
+            marker: list[ArucoMarkerPos], meta: dict[str, Any] = {})
+    + meta():None | dict[str, int]
+    + pause()
+    + resume()
+    + shutdown()
+    + say_moin()
+    - __receive_broadcast()
+    - __take_focusstack(id: str, addr: tuple[str, int])
+    - __take_photo(data: str, addr: tuple[str, int])
+    - __answer(addr: str, msg: str)
+    '''
 
     __sock: socket.socket
     __cam: CameraInterface

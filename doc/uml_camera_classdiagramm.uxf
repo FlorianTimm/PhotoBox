@@ -1,0 +1,178 @@
+<diagram program="umletino" version="15.1">
+    <zoom_level>10</zoom_level>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>0</x>
+            <y>130</y>
+            <w>360</w>
+            <h>440</h>
+        </coordinates>
+        <panel_attributes>CameraControl
+--
+- __sock: socket.socket
+- __cam: CameraInterface
+--
++ __init__()
+- run()
+- __check_settings(settings: CamSettings | str): CamSettings
++ photo(settings: CamSettings | str): bytes
++ set_settings(settings: CamSettings | str): dict[str, Any]
+- __save(settings: CamSettingsWithFilename | str, 
+          aruco_callback: None | Callable[[list[ArucoMarkerPos], 
+          dict[str, Any]], None] = None): 
+          tuple[str, dict[str, Any]]
++ preview(settings: CamSettings | str = {}): bytes
++ focus(focus: float): str
++ aruco():list[ArucoMarkerPos]
+- __aruco_broadcast(addr: tuple[str, int], id: str)
+- __send_aruco_data(addr: tuple[str, int], id: str, 
+          marker: list[ArucoMarkerPos], meta: dict[str, Any] = {})
++ meta():None | dict[str, int]
++ pause()
++ resume()
++ shutdown()
++ say_moin()
+- __receive_broadcast()
+- __take_focusstack(id: str, addr: tuple[str, int])
+- __take_photo(data: str, addr: tuple[str, int])
+- __answer(addr: str, msg: str)</panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>880</x>
+            <y>210</y>
+            <w>320</w>
+            <h>100</h>
+        </coordinates>
+        <panel_attributes>CameraAruco
+--
+- __parameter: DetectorParameters
+- __dict: Dictionary
+--
++ detect_from_rgb(image: bytes): list[ArucoMarkerPos]
++ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>490</x>
+            <y>90</y>
+            <w>280</w>
+            <h>350</h>
+        </coordinates>
+        <panel_attributes>CameraInterface
+--
+- __cam: Picamera2
+- __rgb_config: dict[str, Any]
+- __yuv_config: dict[str, Any]
+- __folder: str
+- __aruco: Aruco
+- __DEFAULT_CTRL: dict[str, Any]
+--
++ __init__(folder: str)
++ make_picture(settings: CamSettings = {}, preview=False): bytes
++ save_picture(settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): tuple[str, dict[str, Any]]
++ aruco_search_in_background_from_file(filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): None
++ aruco_search_in_background(img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): None
++ meta(): None | dict[str, Any]
++ find_aruco(inform_after_picture: None | Callable[[], None] = None): list[ArucoMarkerPos]
++ pause()
++ resume()
++ set_settings(settings: CamSettings): CamSettings
++ focus(focus: float): str
+- __get_status(): dict[str, Any]
+- __capture_photo(settings: CamSettings): tuple[CompletedRequest, dict[str, Any], CamSettings]
+- __request_capture_with_meta(): tuple[CompletedRequest, dict[str, Any]</panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>Relation</id>
+        <coordinates>
+            <x>350</x>
+            <y>160</y>
+            <w>160</w>
+            <h>30</h>
+        </coordinates>
+        <panel_attributes>lt=&lt;-</panel_attributes>
+        <additional_attributes>140;10;10;10</additional_attributes>
+    </element>
+    <element>
+        <id>Relation</id>
+        <coordinates>
+            <x>760</x>
+            <y>260</y>
+            <w>140</w>
+            <h>30</h>
+        </coordinates>
+        <panel_attributes>lt=&lt;-</panel_attributes>
+        <additional_attributes>120;10;10;10</additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>70</x>
+            <y>0</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>Camera
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>Relation</id>
+        <coordinates>
+            <x>150</x>
+            <y>60</y>
+            <w>30</w>
+            <h>90</h>
+        </coordinates>
+        <panel_attributes>lt=&lt;-</panel_attributes>
+        <additional_attributes>10;70;10;10</additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>570</x>
+            <y>520</y>
+            <w>210</w>
+            <h>90</h>
+        </coordinates>
+        <panel_attributes>CamSettings
+--
+focus: float
+iso: float
+shutter_speed: float
+filename: str {optional}</panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>570</x>
+            <y>680</y>
+            <w>210</w>
+            <h>60</h>
+        </coordinates>
+        <panel_attributes>CamSettingsWithFilename
+--
+filename: str</panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>Relation</id>
+        <coordinates>
+            <x>660</x>
+            <y>600</y>
+            <w>30</w>
+            <h>100</h>
+        </coordinates>
+        <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+        <additional_attributes>10;10;10;80</additional_attributes>
+    </element>
+</diagram>

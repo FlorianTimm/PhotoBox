@@ -14,10 +14,23 @@ from common.logger import Logger
 
 
 class Aruco:
+    '''
+    This class is used to detect Aruco markers in images.
+
+    Attributes:
+    - __parameter: DetectorParameters
+    - __dict: Dictionary
+
+
+    Methods:
+    - detect_from_rgb(image: bytes) -> list[ArucoMarkerPos]
+    - detect(image: bytes) -> list[ArucoMarkerPos]
+    '''
+
     def __init__(self):
-        self.parameter = DetectorParameters.create()
-        self.parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
-        self.dict = Dictionary_create(32, 3)
+        self.__parameter = DetectorParameters.create()
+        self.__parameter.cornerRefinementMethod = CORNER_REFINE_SUBPIX
+        self.__dict = Dictionary_create(32, 3)
 
     def detect_from_rgb(self, image: bytes) -> list[ArucoMarkerPos]:
         img = cvtColor(image, COLOR_BGR2GRAY)
@@ -25,7 +38,7 @@ class Aruco:
 
     def detect(self, image: bytes) -> list[ArucoMarkerPos]:
         corners, ids, _ = detectMarkers(
-            image, self.dict, parameters=self.parameter)
+            image, self.__dict, parameters=self.__parameter)
         if ids is None:
             return []
         marker: list[ArucoMarkerPos] = [{'id': int(id_[0]),
