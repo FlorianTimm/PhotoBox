@@ -1,0 +1,120 @@
+<diagram program="umletino" version="15.1">
+    <zoom_level>10</zoom_level>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>470</x>
+            <y>270</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>ButtonControl
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>150</x>
+            <y>250</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>CameraControl
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>200</x>
+            <y>380</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>Control
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>480</x>
+            <y>390</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>DesktopControl
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>560</x>
+            <y>550</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>FocusStack
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>790</x>
+            <y>430</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>LedControl
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>780</x>
+            <y>280</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>MarkerCheck
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>760</x>
+            <y>160</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>Master
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+    <element>
+        <id>UMLClass</id>
+        <coordinates>
+            <x>470</x>
+            <y>140</y>
+            <w>210</w>
+            <h>70</h>
+        </coordinates>
+        <panel_attributes>StoppableThread
+--
+        </panel_attributes>
+        <additional_attributes></additional_attributes>
+    </element>
+</diagram>
