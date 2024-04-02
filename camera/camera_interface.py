@@ -105,7 +105,7 @@ class CameraInterface(object):
             focus = 0
         focus = int(focus*100)
 
-        
+
         exif_dict = piexif.load(data)
         exif_dict["Exif"][piexif.ExifIFD.FocalLength] = (474, 100)
         exif_dict["Exif"][piexif.ExifIFD.SubjectDistance] = (focus, 100)

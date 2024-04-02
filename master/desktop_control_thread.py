@@ -24,8 +24,9 @@ class DesktopControlThread(StoppableThread):
     """
     A thread class for controlling the desktop application.
 
-    This class extends the `StoppableThread` class and provides methods for sending heartbeat signals,
-    running the thread, and handling incoming connections from clients.
+    This class extends the `StoppableThread` class and provides methods for
+    sending heartbeat signals, running the thread, and handling incoming
+    connections from clients.
 
     Attributes:
         __queue (Queue[str]): The queue for storing messages to be sent to clients.

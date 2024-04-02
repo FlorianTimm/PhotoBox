@@ -32,15 +32,15 @@ class CameraControl:
     - __check_settings(settings: CamSettings | str): CamSettings
     + photo(settings: CamSettings | str): bytes
     + set_settings(settings: CamSettings | str): CamSettings
-    - __save(settings: CamSettingsWithFilename | str, 
-            aruco_callback: None | Callable[[list[ArucoMarkerPos], 
-            dict[str, Any]], None] = None): 
+    - __save(settings: CamSettingsWithFilename | str,
+            aruco_callback: None | Callable[[list[ArucoMarkerPos],
+            dict[str, Any]], None] = None):
             tuple[str, dict[str, Any]]
     + preview(settings: CamSettings | str = {}): bytes
     + focus(focus: float): str
     + aruco():list[ArucoMarkerPos]
     - __aruco_broadcast(addr: tuple[str, int], id: str)
-    - __send_aruco_data(addr: tuple[str, int], id: str, 
+    - __send_aruco_data(addr: tuple[str, int], id: str,
             marker: list[ArucoMarkerPos], meta: dict[str, Any] = {})
     + meta():None | dict[str, int]
     + pause()
@@ -72,7 +72,7 @@ class CameraControl:
         t.start()
 
     def shutdown(self):
-        """ 
+        """
         Shutdown Raspberry Pi.
 
         This method shuts down the Raspberry Pi by executing the shutdown command.

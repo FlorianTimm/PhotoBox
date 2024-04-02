@@ -134,7 +134,7 @@ class LedControl:
         Returns:
             None
         """
-        if not self.__led_available or not self.__pixels or self.__pixels == None:
+        if not self.__led_available or not self.__pixels or self.__pixels is None:
             return
         self.__pixels.fill(color)
 

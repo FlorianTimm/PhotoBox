@@ -152,7 +152,8 @@ def aruco() -> str:
 @app.route("/arucoErg")
 def aruco_erg() -> str:
     """ Aruco """
-    return render_template('aruco.htm', json_data=json_dumps(control.get_detected_markers(), indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
+    return render_template('aruco.htm', json_data=json_dumps(control.get_detected_markers(),
+                                                             indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
 
 
 @app.route("/test")
@@ -160,14 +161,16 @@ def test() -> str:
     """ Test """
     control.send_to_all('test')
     control.send_to_desktop("test")
-    return render_template('wait.htm', time=5, target_url="/overview", title="Test...")
+    return render_template('wait.htm', time=5, target_url="/overview",
+                           title="Test...")
 
 
 @app.route("/light")
 @app.route("/light/<int:val>")
 def photo_light_html(val: int = 0) -> str:
     try:
-        return render_template('wait.htm', time=1, target_url="/", title="Light...")
+        return render_template('wait.htm', time=1, target_url="/",
+                               title="Light...")
     finally:
         control.get_leds().photo_light(val)
 
@@ -176,7 +179,8 @@ def photo_light_html(val: int = 0) -> str:
 @app.route("/status/<val>")
 def status_led_html(val: int = 0) -> str:
     try:
-        return render_template('wait.htm', time=1, target_url="/", title="Status...")
+        return render_template('wait.htm', time=1, target_url="/",
+                               title="Status...")
     finally:
         control.get_leds().status_led(val)
 

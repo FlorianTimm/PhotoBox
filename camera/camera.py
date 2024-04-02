@@ -97,7 +97,7 @@ def photo_view():
             focus.onclick= function() {
                 fetch("focus/-1")
             }
-        }   
+        }
     </script>
     <a href="./photo"><img id="img" src="preview/-2" width="640" height="480" /></a>
     <br /><button id="focus">Autofokus</button>
