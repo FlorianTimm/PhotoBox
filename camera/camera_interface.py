@@ -282,7 +282,7 @@ class CameraInterface(object):
                 self.yuv_config, 'main', wait=True)[:h, :w]
 
         Logger().info("Aruco Bild gemacht!")
-        if inform_after_picture != None:
+        if inform_after_picture is not None:
             inform_after_picture()
         return self.__aruco.detect(image)
 
