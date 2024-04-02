@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 
 from master.marker_check import MarkerChecker
-from common.typen import ArucoMarkerPos
+from common.typen import ArucoMarkerCorners, ArucoMarkerPos, Metadata, Point3D
 from common.logger import Logger
 
 
@@ -32,16 +32,13 @@ class TestMarkerChecker:
         dump(marker, open('tests/marker.json', 'w'))
 
     def test_false_position(self):
-        marker_coords = load(open('tests/marker.json', 'r'))
-        marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
-                         for k, v in marker_coords.items()}
-
+        marker_coords = self.load_marker_coords()
         marker_pos: dict[str, list[ArucoMarkerPos]] = load(
             open('tests/aruco.json', 'r'))
         # create a difference to test the filter
         marker_pos["camera04"][7]['x'] += 20
 
-        metadata: dict[str, dict[str, int | float]] = {
+        metadata: dict[str, Metadata] = {
             key: {'LensPosition': 1.} for key in marker_pos.keys()}
         marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
         marker_checker.check()
@@ -49,31 +46,45 @@ class TestMarkerChecker:
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04'])+1 == len(marker_pos['camera04'])
 
+    def load_marker_coords(self) -> dict[int, ArucoMarkerCorners]:
+        marker_coord_str: dict[str, dict[str, list[float]]] = load(
+            open('tests/marker.json', 'r'))
+        marker_coords: dict[int, ArucoMarkerCorners] = {int(marker): ArucoMarkerCorners({int(corner): Point3D(coords[0], coords[1], coords[2]) for corner, coords in marker_corners.items()}) for marker,
+                                                        marker_corners in marker_coord_str.items()}
+
+        return marker_coords
+
     def test_false_coordinate(self):
-        marker_coords = load(open('tests/marker.json', 'r'))
-        marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
-                         for k, v in marker_coords.items()}
+        marker_coords = self.load_marker_coords()
         marker_coords_org = deepcopy(marker_coords)
-        marker_coords[15][1][2] += 0.1
+
+        mc = marker_coords[15][1]
+        if mc is not None:
+            mc_neu = Point3D(mc[0], mc[1], mc[2]+0.1)
+            marker_coords[15][1] = mc_neu
+        else:
+            assert False
 
         marker_pos: dict[str, list[ArucoMarkerPos]] = load(
             open('tests/aruco.json', 'r'))
         # create a difference to test the filter
 
-        metadata: dict[str, dict[str, int | float]] = {
+        metadata: dict[str, Metadata] = {
             key: {'LensPosition': 1.} for key in marker_pos.keys()}
         marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
         marker_checker.check()
         c = marker_checker.get_corrected_coordinates()
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04']) == len(marker_pos['camera04'])
-        assert abs(c[15][1][2] -
-                   marker_coords_org[15][1][2]) < 0.01
+        c15_1 = c[15][1]
+        mco15_1 = marker_coords_org[15][1]
+        assert c15_1 is not None
+        assert mco15_1 is not None
+        if c15_1 is not None and mco15_1 is not None:
+            assert abs(c15_1[2] - mco15_1[2]) < 0.01
 
     def test_missing_coordinate(self):
-        marker_coords = load(open('tests/marker.json', 'r'))
-        marker_coords = {int(k): {int(corner): pos for corner, pos in v.items()}
-                         for k, v in marker_coords.items()}
+        marker_coords = self.load_marker_coords()
         marker_coords_org = deepcopy(marker_coords)
         del marker_coords[15]
 
@@ -81,12 +92,16 @@ class TestMarkerChecker:
             open('tests/aruco.json', 'r'))
         # create a difference to test the filter
 
-        metadata: dict[str, dict[str, int | float]] = {
+        metadata: dict[str, Metadata] = {
             key: {'LensPosition': 1.} for key in marker_pos.keys()}
         marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
         marker_checker.check()
         c = marker_checker.get_corrected_coordinates()
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04']) == len(marker_pos['camera04'])
-        assert abs(c[15][1][2] -
-                   marker_coords_org[15][1][2]) < 0.01
+        c15_1 = c[15][1]
+        mco15_1 = marker_coords_org[15][1]
+        assert c15_1 is not None
+        assert mco15_1 is not None
+        if c15_1 is not None and mco15_1 is not None:
+            assert abs(c15_1[2] - mco15_1[2]) < 0.01

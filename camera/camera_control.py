@@ -14,7 +14,7 @@ from common.logger import Logger
 from camera.camera_interface import CameraInterface
 import socket
 from json import dumps, loads as json_loads
-from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename, Metadata
 from common.conf import Conf
 
 
@@ -155,7 +155,7 @@ class CameraControl:
                 settingR = {}
         return self.__cam.set_settings(settingR)
 
-    def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None) -> tuple[str, dict[str, Any]]:
+    def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], Metadata], None] = None) -> tuple[str, dict[str, Any]]:
         """
         Saves a picture using the specified settings.
 
@@ -164,7 +164,7 @@ class CameraControl:
             aruco_callback (None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None], optional): A callback function to be called after the picture is saved. Defaults to None.
 
         Returns:
-            tuple[str, dict[str, Any]]: The filename and metadata of the saved picture.
+            tuple[str, Metadata]: The filename and metadata of the saved picture.
 
         """
         settingsR: CamSettingsWithFilename
@@ -205,7 +205,7 @@ class CameraControl:
         #     '.json', 'w').write(dumps(m, indent=2))
         self.__send_aruco_data(addr, id, marker)
 
-    def __send_aruco_data(self, addr: tuple[str, int], id: str, marker: list[ArucoMarkerPos], meta: dict[str, Any] = {}):
+    def __send_aruco_data(self, addr: tuple[str, int], id: str, marker: list[ArucoMarkerPos], meta: Metadata = {}):
         data: ArucoMetaBroadcast = {"aruco": marker, "meta": meta}
         json_str = dumps(data, indent=None, separators=(",", ":"))
         self.__answer(addr[0], 'arucoReady:' + id + ':' +
@@ -324,7 +324,7 @@ class CameraControl:
 
         Logger().info("Focusstack: %s", metadata)
         for f, m in metadata.items():
-            def aruco_callback(data: list[ArucoMarkerPos], metadata: dict[str, Any]):
+            def aruco_callback(data: list[ArucoMarkerPos], metadata: Metadata):
                 self.__send_aruco_data(addr, id, data, metadata)
             self.__cam.aruco_search_in_background_from_file(
                 f, m, aruco_callback)
@@ -349,7 +349,7 @@ class CameraControl:
             json = {'filename': data[6:] + '.jpg'}
             id = data[6:]
 
-        def aruco_callback(data: list[ArucoMarkerPos], metadata: dict[str, Any]):
+        def aruco_callback(data: list[ArucoMarkerPos], metadata: Metadata):
             self.__send_aruco_data(addr, id, data, metadata)
         self.__save(json, aruco_callback)
         self.__answer(addr[0], 'photoDone:' + id + ':' + json['filename'])

@@ -185,6 +185,7 @@ def status_led_html(val: int = 0) -> str:
 @app.route("/marker", methods=['GET'])
 def marker_get() -> str:
     """ Marker """
+    # TODO: Single-Marker-Insert
     return render_template('marker.htm', markers=control.get_marker())
 
 

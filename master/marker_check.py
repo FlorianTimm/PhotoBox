@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from common.logger import Logger
-from common.typen import ArucoMarkerPos
+from common.typen import ArucoMarkerPos, ArucoMarkerCorners, Metadata
 from common.conf import Conf
 from scipy import stats
 
@@ -19,9 +19,9 @@ class MarkerChecker:
     """A class to check marker positions and filter them if necessary.
 
     Attributes:
-        __marker_coords (dict[int, dict[int, tuple[float, float, float]]]): A dictionary containing marker coordinates.
+        __marker_coords (dict[int, ArucoMarkerCorners]): A dictionary containing marker coordinates.
         __marker_pos (dict[str, list[ArucoMarkerPos]]): A dictionary containing marker positions.
-        __metadata (dict[str, dict[str, int | float]]): A dictionary containing metadata.
+        __metadata (dict[str, Metadata]): A dictionary containing metadata.
         __is_filtered (bool): A boolean indicating if the marker positions have been filtered.
     """
 
@@ -29,14 +29,14 @@ class MarkerChecker:
     __marker_pos: pd.DataFrame
     __metadata:  pd.DataFrame
 
-    def __init__(self, marker_coords: dict[int, dict[int, tuple[float, float, float]]], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, dict[str, int | float]]):
+    def __init__(self, marker_coords: dict[int, ArucoMarkerCorners], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, Metadata]):
         """
         Initialize the MarkerChecker class.
 
         Args:
-            marker_coords (dict[int, dict[int, tuple[float, float, float]]]): A dictionary containing marker coordinates.
+            marker_coords (dict[int, ArucoMarkerCorners]): A dictionary containing marker coordinates.
             marker_pos (dict[str, list[ArucoMarkerPos]]): A dictionary containing marker positions.
-            metadata (dict[str, dict[str, int | float]]): A dictionary containing metadata.
+            metadata (dict[str, Metadata]): A dictionary containing metadata.
         """
         self.__marker_coords = self.__create_marker_coords_dataframe(
             marker_coords)
@@ -44,17 +44,19 @@ class MarkerChecker:
         self.__metadata = self.__create_metadata_dataframe(metadata)
         self.__is_filtered = False
 
-    def __create_marker_coords_dataframe(self, marker_coords: dict[int, dict[int, tuple[float, float, float]]]) -> pd.DataFrame:
+    def __create_marker_coords_dataframe(self, marker_coords: dict[int, ArucoMarkerCorners]) -> pd.DataFrame:
         """
         Create a dataframe containing the marker coordinates.
 
         Returns:
             A dataframe containing the marker coordinates.
         """
-        data = []
+        data: list[tuple[int, int, float, float, float]] = []
         for id, corners in marker_coords.items():
-            for corner, coord in corners.items():
-                data.append([id, corner, coord[0], coord[1], coord[2]])
+            for corner, coord in enumerate(corners):
+                if coord is None:
+                    continue
+                data.append((id, corner, coord.x, coord.y, coord.z))
         return pd.DataFrame(data, columns=['id', 'corner', 'wx', 'wy', 'wz']).set_index(['id', 'corner'])
 
     def __create_marker_pos_dataframe(self, marker_pos: dict[str, list[ArucoMarkerPos]]) -> pd.DataFrame:
@@ -73,7 +75,7 @@ class MarkerChecker:
             data, columns=['hostname', 'id', 'corner', 'x', 'y', 'inlier']).set_index(['hostname', 'id', 'corner'])
         return d
 
-    def __create_metadata_dataframe(self, metadata: dict[str, dict[str, int | float]]) -> pd.DataFrame:
+    def __create_metadata_dataframe(self, metadata: dict[str, Metadata]) -> pd.DataFrame:
         """
         Create a dataframe containing the metadata.
 
@@ -259,7 +261,7 @@ class MarkerChecker:
             merge(self.__metadata.reset_index(), left_on='hostname',
                   right_on='hostname')
 
-    def get_corrected_coordinates(self) -> dict[int, dict[int, tuple[float, float, float]]]:
+    def get_corrected_coordinates(self) -> dict[int, ArucoMarkerCorners]:
         """
         Get the corrected marker coordinates.
 

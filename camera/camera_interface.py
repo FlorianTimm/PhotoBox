@@ -21,7 +21,7 @@ from libcamera import controls  # type: ignore
 from time import sleep
 import piexif
 from socket import gethostname
-from common.typen import ArucoMarkerPos, CamSettings, CamSettingsOptionalFilename, CamSettingsWithFilename
+from common.typen import ArucoMarkerPos, CamSettings, CamSettingsOptionalFilename, CamSettingsWithFilename, Metadata
 from typing import Callable
 from common.logger import Logger
 
@@ -139,7 +139,7 @@ class CameraInterface(object):
         metadata: dict[str, Any] = req.get_metadata()
         return req, metadata
 
-    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> tuple[str, dict[str, Any]]:
+    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], Metadata], None]) -> tuple[str, dict[str, Any]]:
         """
         Capture a photo and save it to the given filename.
 
@@ -181,7 +181,7 @@ class CameraInterface(object):
         Logger().info("Bild %s gemacht!", file)
         return file, metadata
 
-    def aruco_search_in_background_from_file(self, filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> None:
+    def aruco_search_in_background_from_file(self, filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], Metadata], None]) -> None:
         """
         Start a background thread that searches for Aruco markers in the given image file.
 
@@ -193,7 +193,7 @@ class CameraInterface(object):
         img = imread(self.__folder + filename)
         return self.aruco_search_in_background(img, filename, metadata, aruco_callback)
 
-    def aruco_search_in_background(self, img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> None:
+    def aruco_search_in_background(self, img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], Metadata], None]) -> None:
         """
         Start a background thread that searches for Aruco markers in the given image.
 

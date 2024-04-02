@@ -7,9 +7,11 @@
 """
 
 import atexit
+from math import fabs
 from queue import Queue
 import socket
 import pandas as pd
+from sympy import false
 from common.logger import Logger
 
 from flask import Flask, render_template
@@ -37,7 +39,7 @@ from master.focus_stack import focus_stack
 from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
-from common.typen import ArucoMarkerPos, ArucoMetaBroadcast
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, Metadata, Point3D, ArucoMarkerCorners
 from common.conf import Conf
 
 
@@ -52,8 +54,8 @@ class Control:
     __pending_photo_types: dict[str, Literal["photo", "stack"]] = {}
     __cams_in_standby = True
     __desktop_message_queue: Queue[str] = Queue()
-    __marker: dict[int, dict[int, tuple[float, float, float]]] = {}
-    __metadata: dict[str, dict[str, dict[str, int | float]]] = {}
+    __marker: dict[int, ArucoMarkerCorners] = {}
+    __metadata: dict[str, dict[str, Metadata]] = {}
 
     def __init__(self,  app: Flask) -> None:
         self.__webapp = app
@@ -65,6 +67,7 @@ class Control:
         self.__led_control = LedControl(self)
         self.__button_control = ButtonControl(self)
         self.__load_markers()
+        Logger().info("Control started!")
 
     def start(self):
         self.thread_webinterface = StoppableThread(
@@ -206,7 +209,7 @@ class Control:
             self.__metadata[id] = {}
         j: ArucoMetaBroadcast = json_loads(data[i1+i2+2:])
         aruco = j['aruco']
-        meta = j['meta']
+        meta: Metadata = j['meta']  # type: ignore
         self.__detected_markers[id][hostname] = aruco
         self.__metadata[id][hostname] = meta
         self.__pending_aruco_count[id] -= 1
@@ -237,33 +240,35 @@ class Control:
             self.send_to_desktop(
                 f"marker:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/marker.json")
 
-    def set_marker_from_csv(self, file) -> None:
+    def set_marker_from_csv(self, file, save=True) -> None:
         m = pd.read_csv(file)
 
         for _, r in m.iterrows():
             id = int(r['id'])
 
             if not id in self.__marker:
-                self.__marker[id] = {}
+                self.__marker[id] = ArucoMarkerCorners()
             c = int(r['corner'])
-            self.__marker[id][c] = (r['x'], r['y'], r['z'])
-        Logger().info(self.__marker)
-        self.__save_markers()
+            self.__marker[id][c] = Point3D(r['x'], r['y'], r['z'])
+        if save:
+            self.__save_markers()
 
     def __save_markers(self, ) -> None:
         with open(self.__conf['server']['Folder'] + "marker.csv", "w") as f:
             f.write("id,corner,x,y,z\n")
             for id, corners in self.__marker.items():
-                for corner, pos in corners.items():
-                    f.write(f"{id},{corner},{pos[0]},{pos[1]},{pos[2]}\n")
+                for corner, pos in enumerate(corners):
+                    if pos is None:
+                        continue
+                    f.write(f"{id},{corner},{pos.x},{pos.y},{pos.z}\n")
 
     def __load_markers(self, ) -> None:
         try:
             self.set_marker_from_csv(
-                self.__conf['server']['Folder'] + "marker.csv")
+                self.__conf['server']['Folder'] + "marker.csv", False)
             Logger().info("Marker loaded!")
-        except:
-            pass
+        except Exception as e:
+            Logger().error("Error loading marker! %s", e)
 
     def switch_pause_resume(self, ):
         if self.__cams_in_standby:

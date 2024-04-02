@@ -28,14 +28,14 @@
         <th>Y</th>
         <th>Z</th>
     </tr>
-    {% for marker, m in markers.items() %}
-    {% for ecke, c in m.items() %}
+    {% for marker, m in markers|dictsort %}
+    {% for ecke in m %}
     <tr>
         <td>{{ marker }}</td>
-        <td>{{ ecke }}</td>
-        <td>{{ c[0] }}</td>
-        <td>{{ c[1] }}</td>
-        <td>{{ c[2] }}</td>
+        <td>{{ loop.index }}</td>
+        <td>{{ ecke[0] }}</td>
+        <td>{{ ecke[1] }}</td>
+        <td>{{ ecke[2] }}</td>
     </tr>
     {% endfor %}
     {% endfor %}
