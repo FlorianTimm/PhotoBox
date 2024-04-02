@@ -34,7 +34,7 @@ from master.button_control import ButtonControl
 from master.led_control import LedControl
 from master.focus_stack import focus_stack
 
-from typing import Literal
+from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, Metadata, Point3D, ArucoMarkerCorners
@@ -198,6 +198,12 @@ class Control:
         for camera, bilder in groups.items():
             imwrite(folder + camera + ".jpg", focus_stack(bilder))
 
+    def find_aruco(self):
+        Logger().info("Searching for Aruco...")
+        id = str(uuid.uuid4())
+        self.send_to_all('aruco:' + id)
+        self.__pending_aruco_count[id] = len(self.__list_of_cameras)
+
     def receive_aruco(self, data: str) -> None:
         i1: int = data.find(":")
         i2: int = data[i1+1:].find(":")
@@ -299,7 +305,7 @@ class Control:
             return "updated: " + str(neu)
         return "keeped: " + str(alt)
 
-    def system_control(self, action: Literal['shutdown', 'reboot']) -> None:
+    def system_control(self, action: Literal['shutdown', 'reboot']) -> NoReturn:
         """ Controls the system based on the action """
         self.send_to_all(action)
         self.__led_control.switch_off()

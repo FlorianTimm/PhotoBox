@@ -10,7 +10,6 @@ from common.logger import Logger
 from common.conf import Conf
 from flask import Flask, Response, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
-import uuid
 from os import PathLike, path
 from json import dumps as json_dumps
 from glob import glob
@@ -146,7 +145,7 @@ def update() -> str:
 @app.route("/aruco")
 def aruco() -> str:
     """ Aruco """
-    control.send_to_all('aruco:' + str(uuid.uuid4()))
+    control.find_aruco()
     return render_template('wait.htm', time=5, target_url="/arucoErg", title="Search for Aruco...")
 
 

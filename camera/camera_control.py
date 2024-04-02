@@ -13,7 +13,7 @@ from typing import Any, Callable
 from common.logger import Logger
 from camera.camera_interface import CameraInterface
 import socket
-from json import dumps, loads as json_loads
+from json import JSONDecodeError, dumps, loads as json_loads
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename, Metadata
 from common.conf import Conf
 
@@ -125,7 +125,7 @@ class CameraControl:
         else:
             try:
                 settingR = json_loads(settings)
-            except:
+            except JSONDecodeError:
                 settingR = {}
         return self.__cam.make_picture(settingR)
 
@@ -160,7 +160,7 @@ class CameraControl:
         else:
             try:
                 settingR = json_loads(settings)
-            except:
+            except JSONDecodeError:
                 settingR = {}
         return self.__cam.set_settings(settingR)
 
@@ -266,7 +266,7 @@ class CameraControl:
                 z = -1
                 try:
                     z = float(data[6:])
-                except:
+                except ValueError:
                     pass
                 Logger().info("Focus: %s", z)
                 self.focus(z)  # Autofokus
@@ -282,7 +282,7 @@ class CameraControl:
                 jsonSettings: CamSettings
                 try:
                     jsonSettings = json_loads(data[9:])
-                except:
+                except JSONDecodeError:
                     jsonSettings = {}
                 self.set_settings(jsonSettings)
             elif data == 'preview':
@@ -354,7 +354,7 @@ class CameraControl:
             json = json_loads(data[6:])
             id = json['filename']
             id = id[:id.rfind('.')]
-        except:
+        except JSONDecodeError:
             json = {'filename': data[6:] + '.jpg'}
             id = data[6:]
 

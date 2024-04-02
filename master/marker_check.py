@@ -53,7 +53,7 @@ class MarkerChecker:
         """
         data: list[tuple[int, int, float, float, float]] = []
         for id, corners in marker_coords.items():
-            for corner, coord in enumerate(corners):
+            for corner, coord in corners.items():
                 if coord is None:
                     continue
                 data.append((id, corner, coord.x, coord.y, coord.z))
@@ -132,7 +132,7 @@ class MarkerChecker:
         t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
         t = t[t['count'] > 2]
-        t = t[t['mode'] == False].reset_index()
+        t = t[t['mode'] == False].reset_index()  # noqa: E712
 
         Logger().info(t)
 
@@ -230,7 +230,7 @@ class MarkerChecker:
             return {}
         cameras = {}
 
-        for (hostname, lensposition), group in df[df["wx"] != None].groupby(['hostname', 'LensPosition']):
+        for (hostname, lensposition), group in df[df["wx"] != None].groupby(['hostname', 'LensPosition']):  # noqa: E711
             Logger().debug(f"Processing {hostname}")
             cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
             objp = group[['wx', 'wy', 'wz']].to_numpy(dtype=np.float32)
