@@ -6,10 +6,7 @@
 @version: 2024.03.11
 """
 
-import re
-from typing import Any, List, Mapping, Required, TypedDict, NotRequired, Union,  TypeAlias, NamedTuple
-
-from sympy import li
+from typing import Required, TypedDict, NotRequired, Union,  TypeAlias, NamedTuple
 
 
 class CamSettingsWithoutFilename(TypedDict):

@@ -7,11 +7,9 @@
 """
 
 import atexit
-from math import fabs
 from queue import Queue
 import socket
 import pandas as pd
-from sympy import false
 from common.logger import Logger
 
 from flask import Flask, render_template
@@ -36,7 +34,7 @@ from master.button_control import ButtonControl
 from master.led_control import LedControl
 from master.focus_stack import focus_stack
 
-from typing import Literal, NoReturn
+from typing import Literal
 from numpy.typing import NDArray
 from numpy import uint8
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, Metadata, Point3D, ArucoMarkerCorners
@@ -90,7 +88,8 @@ class Control:
         if send_search:
             self.send_to_all('search')
 
-    def capture_photo(self, action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
+    def capture_photo(self, action: Literal['photo', 'stack'] = "photo",
+                      id: str = "") -> str:
         if len(self.__list_of_cameras) == 0:
             self.send_to_desktop("No cameras found!")
             return "No cameras found!"
@@ -117,7 +116,8 @@ class Control:
 
     def send_to_all(self, msg_str: str) -> None:
         msg = msg_str.encode("utf-8")
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                           socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto(msg, ("255.255.255.255", int(
                 self.__conf['both']['BroadCastPort'])))
@@ -133,7 +133,7 @@ class Control:
         Logger().info("Photo received: %s", filename)
         id = id_lens.split("_")[0]
         Logger().info("Photo received: ID %s", id)
-        if not id in self.__pending_photo_count:
+        if id not in self.__pending_photo_count:
             Logger().info("Error: Photo not requested!")
             return
         self.__pending_photo_count[id] -= 1
@@ -150,7 +150,8 @@ class Control:
             del self.__pending_photo_count[id]
             Logger().info("All photos taken!")
 
-    def __download_photo(self, ip: str, id: str, name: str, hostname: str) -> None:
+    def __download_photo(self, ip: str, id: str,
+                         name: str, hostname: str) -> None:
         """ collect photos """
         global download_count
         Logger().info("Downloading photo...")
@@ -191,7 +192,7 @@ class Control:
         for i in imgs:
             name = basename(i)
             name = name.split("_")[0]
-            if not name in groups:
+            if name not in groups:
                 groups[name] = []
             groups[name].append(imread(i))  # type: ignore
         for camera, bilder in groups.items():
@@ -203,9 +204,9 @@ class Control:
         id: str = data[:i1]
 
         hostname: str = data[i1+1:i1+i2+1]
-        if not id in self.__detected_markers:
+        if id not in self.__detected_markers:
             self.__detected_markers[id] = {}
-        if not id in self.__metadata:
+        if id not in self.__metadata:
             self.__metadata[id] = {}
         j: ArucoMetaBroadcast = json_loads(data[i1+i2+2:])
         aruco = j['aruco']
@@ -246,7 +247,7 @@ class Control:
         for _, r in m.iterrows():
             id = int(r['id'])
 
-            if not id in self.__marker:
+            if id not in self.__marker:
                 self.__marker[id] = ArucoMarkerCorners()
             c = int(r['corner'])
             self.__marker[id][c] = Point3D(r['x'], r['y'], r['z'])
@@ -298,7 +299,7 @@ class Control:
             return "updated: " + str(neu)
         return "keeped: " + str(alt)
 
-    def system_control(self, action: Literal['shutdown', 'reboot']) -> NoReturn:
+    def system_control(self, action: Literal['shutdown', 'reboot']) -> None:
         """ Controls the system based on the action """
         self.send_to_all(action)
         self.__led_control.switch_off()
