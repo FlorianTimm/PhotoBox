@@ -31,7 +31,7 @@ class CameraControl:
     - run()
     - __check_settings(settings: CamSettings | str): CamSettings
     + photo(settings: CamSettings | str): bytes
-    + set_settings(settings: CamSettings | str): dict[str, Any]
+    + set_settings(settings: CamSettings | str): CamSettings
     - __save(settings: CamSettingsWithFilename | str, 
             aruco_callback: None | Callable[[list[ArucoMarkerPos], 
             dict[str, Any]], None] = None): 
@@ -59,9 +59,6 @@ class CameraControl:
     def __init__(self):
         """
         Constructor for the CameraControl class.
-
-        Returns:
-            None
         """
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -92,6 +89,18 @@ class CameraControl:
         Logger().info("Moin")
 
     def __check_settings(self, settings: CamSettings | str) -> CamSettings:
+        """
+        Checks the camera settings.
+
+        Parameters:
+        - settings: A dictionary or a JSON string representing the camera settings.
+
+        Returns:
+        - The camera settings.
+
+        If `settings` is a dictionary, it is directly used as the camera settings.
+        If `settings` is a JSON string, it is parsed into a dictionary using `json.loads`.
+        """
         settingR: CamSettings
         if isinstance(settings, str):
             settingR = json_loads(settings)
@@ -120,7 +129,7 @@ class CameraControl:
                 settingR = {}
         return self.__cam.make_picture(settingR)
 
-    def set_settings(self, settings: CamSettings | str):
+    def set_settings(self, settings: CamSettings | str) -> CamSettings:
         """
         Sets the camera settings.
 
