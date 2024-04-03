@@ -6,9 +6,10 @@
 @version: 2024.03.11
 """
 
+from os import PathLike
 from common.logger import Logger
 from socket import gethostname
-from flask import Flask, render_template, request, make_response
+from flask import Flask, Response, render_template, request, make_response, send_from_directory
 from threading import Thread
 from camera.camera_control import CameraControl
 from json import dumps
@@ -24,6 +25,11 @@ cc = CameraControl()
 app = Flask(__name__, static_url_path='/bilder',
             static_folder=conf['kameras']['Folder'], template_folder='../template')
 CORS(app)
+
+
+@app.route("/static/<path:filename>")
+def static_file(filename: PathLike[str] | str) -> Response:
+    return send_from_directory("../template/static/", filename)
 
 
 @app.route("/")
