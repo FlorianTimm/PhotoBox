@@ -245,7 +245,7 @@ class MarkerChecker:
                 if inlier is None:
                     self.__marker_pos.at[(
                         hostname, id, corner), 'inlier'] = False
-                if i in inlier:
+                elif i in inlier:
                     self.__marker_pos.at[(
                         hostname, id, corner), 'inlier'] = True
                 else:
