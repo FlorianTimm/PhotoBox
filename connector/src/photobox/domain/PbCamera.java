@@ -13,10 +13,19 @@ public class PbCamera {
     private double k[] = { 0.0646574, -0.0800227, 0.0181199, 0 };
     private double p[] = { 0.000629941, 0.00168843 };
     private ArrayList<PbImage> images;
+    private PbCameraPosition position;
 
     public PbCamera(String cameraName) {
         this.cameraName = cameraName;
         this.images = new ArrayList<PbImage>();
+    }
+
+    public void setPosition(PbCameraPosition position) {
+        this.position = position;
+    }
+
+    public PbCameraPosition getPosition() {
+        return position;
     }
 
     public void setCameraId(int cameraId) {
@@ -35,15 +44,15 @@ public class PbCamera {
         return cameraName;
     }
 
-    public double getFocalLength() {
+    public double getFocalLength(double lensPosition) {
         return focalLength;
     }
 
-    public double getPrincipalPointX() {
+    public double getPrincipalPointX(double lensPosition) {
         return principalPointX;
     }
 
-    public double getPrincipalPointY() {
+    public double getPrincipalPointY(double lensPosition) {
         return principalPointY;
     }
 
@@ -55,11 +64,11 @@ public class PbCamera {
         this.images.add(image);
     }
 
-    public double[] getK() {
+    public double[] getK(double lensPosition) {
         return k;
     }
 
-    public double[] getP() {
+    public double[] getP(double lensPosition) {
         return p;
     }
 

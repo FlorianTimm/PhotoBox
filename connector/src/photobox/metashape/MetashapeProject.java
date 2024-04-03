@@ -17,6 +17,7 @@ import com.agisoft.metashape.Marker.Projection;
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
 import photobox.domain.PbCamera;
+import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
@@ -94,22 +95,32 @@ public class MetashapeProject implements Progress {
             image.setId(camera.getKey());
             camera.setLabel(image.getFile().getName());
 
+            camera.setReference(null);
+
+            com.agisoft.metashape.Camera.Reference cameraReference = new com.agisoft.metashape.Camera.Reference();
+            PbCameraPosition position = image.getCamera().getPosition();
+            Vector coord = new Vector(position.getX(), position.getY(), position.getZ());
+            cameraReference.setLocation(Optional.of(coord));
+            Vector rot = new Vector(position.getRoll(), position.getPitch(), position.getYaw());
+            cameraReference.setRotation(Optional.of(rot));
+            camera.setReference(cameraReference);
+
             if (!image.getCamera().isCameraIdSet()) {
-                PbCamera c = image.getCamera();
-                c.setCameraId(camera.getKey());
+                PbCamera cam = image.getCamera();
+                cam.setCameraId(camera.getKey());
                 Sensor sensor = camera.getSensor().get();
-                sensor.setLabel(c.getCameraName());
+                sensor.setLabel(cam.getCameraName());
                 sensor.setPixelSize(0.0014, 0.0014);
                 Calibration calib = new Calibration();
-                calib.setF(image.getCamera().getFocalLength());
-                calib.setCx(image.getCamera().getPrincipalPointX());
-                calib.setCy(image.getCamera().getPrincipalPointY());
-                calib.setK1(image.getCamera().getK()[0]);
-                calib.setK2(image.getCamera().getK()[1]);
-                calib.setK3(image.getCamera().getK()[2]);
-                calib.setK4(image.getCamera().getK()[3]);
-                calib.setP1(image.getCamera().getP()[0]);
-                calib.setP2(image.getCamera().getP()[1]);
+                calib.setF(image.getFocalLength());
+                calib.setCx(image.getPrincipalPointX());
+                calib.setCy(image.getPrincipalPointY());
+                calib.setK1(image.getK()[0]);
+                calib.setK2(image.getK()[1]);
+                calib.setK3(image.getK()[2]);
+                calib.setK4(image.getK()[3]);
+                calib.setP1(image.getP()[0]);
+                calib.setP2(image.getP()[1]);
 
                 sensor.setUserCalib(Optional.of(calib));
                 sensor.setFixed(true);
