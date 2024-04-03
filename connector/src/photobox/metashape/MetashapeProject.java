@@ -95,14 +95,17 @@ public class MetashapeProject implements Progress {
             image.setId(camera.getKey());
             camera.setLabel(image.getFile().getName());
 
-            camera.setReference(null);
-
             com.agisoft.metashape.Camera.Reference cameraReference = new com.agisoft.metashape.Camera.Reference();
             PbCameraPosition position = image.getCamera().getPosition();
             Vector coord = new Vector(position.getX(), position.getY(), position.getZ());
             cameraReference.setLocation(Optional.of(coord));
-            Vector rot = new Vector(position.getRoll(), position.getPitch(), position.getYaw());
-            cameraReference.setRotation(Optional.of(rot));
+            /*
+             * Vector rot = new Vector(position.getRoll() / 3.14 * 180, position.getPitch()
+             * / 3.14 * 180, position.getYaw() / 3.14 * 180);
+             * cameraReference.setRotation(Optional.of(rot));
+             */
+            Vector locationAccVector = new Vector(0.1, 0.1, 0.1);
+            cameraReference.setLocationAccuracy(Optional.of(locationAccVector));
             camera.setReference(cameraReference);
 
             if (!image.getCamera().isCameraIdSet()) {
