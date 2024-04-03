@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from common.logger import Logger
-from common.typen import ArucoMarkerPos, ArucoMarkerCorners, Metadata
+from common.typen import ArucoMarkerPos, ArucoMarkerCorners, CameraExterior, Metadata, Point3D
 from common.conf import Conf
 from scipy import stats
 
@@ -28,8 +28,9 @@ class MarkerChecker:
     __marker_coords: pd.DataFrame
     __marker_pos: pd.DataFrame
     __metadata:  pd.DataFrame
+    __cameras: dict[str, CameraExterior]
 
-    def __init__(self, marker_coords: dict[int, ArucoMarkerCorners], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, Metadata]):
+    def __init__(self, marker_coords: dict[int, ArucoMarkerCorners], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, Metadata], cameras: dict[str, CameraExterior] = {}):
         """
         Initialize the MarkerChecker class.
 
@@ -42,6 +43,7 @@ class MarkerChecker:
             marker_coords)
         self.__marker_pos = self.__create_marker_pos_dataframe(marker_pos)
         self.__metadata = self.__create_metadata_dataframe(metadata)
+        self.__cameras = cameras
         self.__is_filtered = False
 
     def __create_marker_coords_dataframe(self, marker_coords: dict[int, ArucoMarkerCorners]) -> pd.DataFrame:
@@ -53,7 +55,9 @@ class MarkerChecker:
         """
         data: list[tuple[int, int, float, float, float]] = []
         for id, corners in marker_coords.items():
-            for corner, coord in corners.items():
+            if corners is None:
+                continue
+            for corner, coord in enumerate(corners):
                 if coord is None:
                     continue
                 data.append((id, corner, coord.x, coord.y, coord.z))
@@ -239,6 +243,15 @@ class MarkerChecker:
                 objp, imgp, cameraMatrix, distCoeffs, reprojectionError=10.0)
             cameras[hostname] = {'cameraMatrix': cameraMatrix,
                                  'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
+            rVec = rvecs[:, 0]
+            rMat = cv2.Rodrigues(rVec)[0]
+            R = np.linalg.inv(rMat)
+            t = tvecs[:, 0].T
+            t = -R@t
+            rVecEuler = self.rotationMatrixToEuler(R)
+            self.__cameras[hostname] = {
+                "x": t[0], "y": t[1], "z": t[2], "roll": rVecEuler[0], "pitch": rVecEuler[1], "yaw": rVecEuler[2]}
+
             for i, ind in enumerate(group.index):
                 id = df.at[ind, 'id']
                 corner = df.at[ind, 'corner']
@@ -272,9 +285,9 @@ class MarkerChecker:
             self.check()
         d = {}
         for id, corners in self.__marker_coords.reset_index().groupby('id'):
-            d[id] = {}
+            d[id] = ArucoMarkerCorners()
             for _, coord in corners.iterrows():
-                d[id][int(coord['corner'])] = (
+                d[id][int(coord['corner'])] = Point3D(
                     coord['wx'], coord['wy'], coord['wz'])
         return d
 
@@ -289,9 +302,67 @@ class MarkerChecker:
             self.check()
         d = {}
 
-        for hostname, positions in self.__marker_pos[self.__marker_pos['inlier']].reset_index().groupby('hostname'):
+        group = self.__marker_pos[self.__marker_pos['inlier']
+                                  != False].reset_index().groupby('hostname')  # noqa: E712
+
+        for hostname, positions in group:
             d[hostname] = []
             for _, pos in positions.iterrows():
                 d[hostname].append(
                     {'id': pos['id'], 'corner': pos['corner'], 'x': pos['x'], 'y': pos['y']})
         return d
+
+    def get_cameras(self) -> dict[str, CameraExterior]:
+        """
+        Get the cameras.
+
+        Returns:
+            A dictionary containing the cameras.
+        """
+        return self.__cameras
+
+    def rotationMatrixToEuler(self, R: np.ndarray) -> np.ndarray:
+        """
+        Converts a rotation matrix to Euler angles.
+        from: https://learnopencv.com/rotation-matrix-to-euler-angles/
+
+        Args:
+            R: The rotation matrix.
+
+        Returns:
+            The Euler angles.
+        """
+        if not self.isRotationMatrix(R):
+            raise ValueError("Not a valid rotation matrix")
+
+        sy = np.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+
+        singular = sy < 1e-6
+
+        if not singular:
+            x = np.arctan2(R[2, 1], R[2, 2])
+            y = np.arctan2(-R[2, 0], sy)
+            z = np.arctan2(R[1, 0], R[0, 0])
+        else:
+            x = np.arctan2(-R[1, 2], R[1, 1])
+            y = np.arctan2(-R[2, 0], sy)
+            z = 0
+
+        return np.array([x, y, z])
+
+    def isRotationMatrix(self, R: np.ndarray) -> bool:
+        """
+        Check if a matrix is a valid rotation matrix.
+        from: https://learnopencv.com/rotation-matrix-to-euler-angles/
+
+        Args:
+            R: The rotation matrix.
+
+        Returns:
+            A boolean indicating if the matrix is a valid rotation matrix.
+        """
+        rt = np.transpose(R)
+        shouldBeIdentity = np.dot(rt, R)
+        ident = np.identity(3, dtype=R.dtype)
+        n = np.linalg.norm(ident - shouldBeIdentity)
+        return n < 1e-6  # type: ignore

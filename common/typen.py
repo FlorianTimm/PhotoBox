@@ -151,3 +151,12 @@ class Metadata(TypedDict):
 class ArucoMetaBroadcast(TypedDict):
     aruco: list[ArucoMarkerPos]
     meta: Metadata
+
+
+class CameraExterior (TypedDict):
+    x: float
+    y: float
+    z: float
+    roll: float
+    pitch: float
+    yaw: float

@@ -25,7 +25,7 @@ class TestMarkerChecker:
         m = pd.read_csv(file)
         for _, r in m.iterrows():
             id = int(r['id'])
-            if not id in marker:
+            if id not in marker:
                 marker[id] = {}
             c = int(r['corner'])
             marker[id][c] = (r['x'], r['y'], r['z'])
@@ -42,15 +42,31 @@ class TestMarkerChecker:
             key: {'LensPosition': 1.} for key in marker_pos.keys()}
         marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
         marker_checker.check()
-        c = marker_checker.get_corrected_coordinates()
         p = marker_checker.get_filtered_positions()
         assert len(p['camera04'])+1 == len(marker_pos['camera04'])
+
+    def test_camera_positions(self):
+        marker_coords = self.load_marker_coords()
+        marker_pos: dict[str, list[ArucoMarkerPos]] = load(
+            open('tests/aruco.json', 'r'))
+
+        metadata: dict[str, Metadata] = {
+            key: {'LensPosition': 1.} for key in marker_pos.keys()}
+        marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
+        marker_checker.check()
+        p = marker_checker.get_cameras()
+        Logger().info(p)
+        assert len(p) == len(marker_pos)
 
     def load_marker_coords(self) -> dict[int, ArucoMarkerCorners]:
         marker_coord_str: dict[str, dict[str, list[float]]] = load(
             open('tests/marker.json', 'r'))
-        marker_coords: dict[int, ArucoMarkerCorners] = {int(marker): ArucoMarkerCorners({int(corner): Point3D(coords[0], coords[1], coords[2]) for corner, coords in marker_corners.items()}) for marker,
-                                                        marker_corners in marker_coord_str.items()}
+        marker_coords: dict[int, ArucoMarkerCorners] = {
+            int(marker): ArucoMarkerCorners({
+                int(corner): Point3D(coords[0], coords[1], coords[2])
+                for corner, coords in marker_corners.items()})
+            for marker,
+            marker_corners in marker_coord_str.items()}
 
         return marker_coords
 

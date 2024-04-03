@@ -76,6 +76,10 @@ public class PhotoBoxClient {
                                     connector.log("Meta downloading: " + w[1]);
                                     downloadText(w[1], w[2]);
                                     break;
+                                case "cameras":
+                                    connector.log("Camera positions downloading: " + w[1]);
+                                    downloadText(w[1], w[2]);
+                                    break;
                                 default:
                                     connector.log("Unknown message: " + line);
                                     break;
