@@ -11,8 +11,11 @@ import com.agisoft.metashape.Photo;
 import com.agisoft.metashape.Progress;
 import com.agisoft.metashape.Sensor;
 import com.agisoft.metashape.Vector;
+import com.agisoft.metashape.tasks.AlignCameras;
+import com.agisoft.metashape.tasks.MatchPhotos;
 import com.agisoft.metashape.Marker.Reference;
 import com.agisoft.metashape.Marker.Projection;
+import com.agisoft.metashape.ReferencePreselectionMode;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
@@ -48,6 +51,7 @@ public class MetashapeProject implements Progress {
             this.addPhotos();
             this.addMarkerCoordinates();
             this.addMarkerPositions();
+            this.orientPhotos();
             this.closeAndSaveProject();
         } catch (Exception e) {
             this.connector.log(e.getMessage());
@@ -124,9 +128,11 @@ public class MetashapeProject implements Progress {
                 calib.setK4(image.getK()[3]);
                 calib.setP1(image.getP()[0]);
                 calib.setP2(image.getP()[1]);
+                calib.setHeight(image.getCamera().getHeight());
+                calib.setWidth(image.getCamera().getWidth());
 
                 sensor.setUserCalib(Optional.of(calib));
-                sensor.setFixed(true);
+                // sensor.setFixed(true);
             } else {
                 camera.setSensor(this.chunk.getSensor(image.getCamera().getCameraId()));
             }
@@ -156,10 +162,11 @@ public class MetashapeProject implements Progress {
             Vector v = new Vector(x, y, z);
             Reference r = new Reference();
             r.setLocation(Optional.of(v));
+            m.setLabel(marker.toString());
+            m.setType(Marker.Type.TypeRegular);
             m.setReference(r);
             m.setSelected(true);
             m.setEnabled(true);
-            m.setLabel(marker.toString());
         }
 
     }
@@ -184,6 +191,33 @@ public class MetashapeProject implements Progress {
             }
         }
 
+    }
+
+    private void orientPhotos() {
+        this.connector.log("Orienting photos");
+        try (MatchPhotos match_photos = new MatchPhotos()) {
+            match_photos.setDownscale(5);
+            match_photos.setReferencePreselectionMode(ReferencePreselectionMode.ReferencePreselectionSource);
+            match_photos.setKeypointLimit(40000);
+            match_photos.setTiepointLimit(4000);
+            match_photos.setGuidedMatching(true);
+            match_photos.apply(this.chunk, this);
+            match_photos.delete();
+
+        } catch (Exception e) {
+            this.connector.log(e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to orient photos");
+        }
+
+        try (AlignCameras align_cameras = new AlignCameras()) {
+            align_cameras.apply(this.chunk, this);
+            align_cameras.delete();
+        } catch (Exception e) {
+            this.connector.log(e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to align cameras");
+        }
     }
 
     private void closeAndSaveProject() {

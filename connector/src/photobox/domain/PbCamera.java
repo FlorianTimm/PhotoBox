@@ -7,11 +7,16 @@ public class PbCamera {
     private String cameraName;
     private int width = 4608;
     private int height = 3456;
-    private double focalLength = 3421.29912;
-    private double principalPointX = 14.3951;
-    private double principalPointY = 32.3689;
-    private double k[] = { 0.0646574, -0.0800227, 0.0181199, 0 };
-    private double p[] = { 0.000629941, 0.00168843 };
+    private double focalLength = 3387.30;
+    private double focalLengthFactor = 21.65;
+    private double principalPointX = 9.43;
+    private double principalPointXFactor = 0.28;
+    private double principalPointY = 26.77;
+    private double principalPointYFactor = -1.14;
+    private double k[] = { -0.008054, 0.233690, -0.384440, 0. };
+    private double kFactor[] = { 0.018608, -0.104750, 0.131100, 0. };
+    private double p[] = { 0., 0. };
+    private double pFactor[] = { 0., 0. };
     private ArrayList<PbImage> images;
     private PbCameraPosition position;
 
@@ -45,15 +50,15 @@ public class PbCamera {
     }
 
     public double getFocalLength(double lensPosition) {
-        return focalLength;
+        return focalLength + focalLengthFactor * lensPosition;
     }
 
     public double getPrincipalPointX(double lensPosition) {
-        return principalPointX;
+        return principalPointX + principalPointXFactor * lensPosition;
     }
 
     public double getPrincipalPointY(double lensPosition) {
-        return principalPointY;
+        return principalPointY + principalPointYFactor * lensPosition;
     }
 
     public PbImage[] getImages() {
@@ -65,10 +70,18 @@ public class PbCamera {
     }
 
     public double[] getK(double lensPosition) {
+        double[] k = new double[4];
+        for (int i = 0; i < 3; i++) {
+            k[i] = this.k[i] + this.kFactor[i] * lensPosition;
+        }
         return k;
     }
 
     public double[] getP(double lensPosition) {
+        double[] p = new double[2];
+        for (int i = 0; i < 2; i++) {
+            p[i] = this.p[i] + this.pFactor[i] * lensPosition;
+        }
         return p;
     }
 
