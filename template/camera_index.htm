@@ -1,0 +1,20 @@
+{% extends 'base.htm' %}
+{% block title1 %}Camera {{ hostname }}{% endblock %}
+{% block title2 %}Camera {{ hostname }}{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+
+{% block content %}
+
+{% if not paused %}
+<a href="./photo_view">Foto</a><br />
+<a href="./pause">Standby</a>
+{% else %}
+<a href="./resume">Resume</a>
+{% endif %}
+
+
+{% endblock %}

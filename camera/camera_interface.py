@@ -293,3 +293,6 @@ class CameraInterface(object):
     def resume(self):
         if not self.__cam.started:
             self.__cam.start()
+
+    def is_paused(self):
+        return not self.__cam.started

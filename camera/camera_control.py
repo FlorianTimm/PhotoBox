@@ -230,6 +230,9 @@ class CameraControl:
         self.__cam.resume()
         self.say_moin()
 
+    def is_paused(self):
+        return self.__cam.is_paused()
+
     def say_moin(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)

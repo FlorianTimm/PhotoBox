@@ -7,7 +7,8 @@
 """
 
 from common.logger import Logger
-from flask import Flask, make_response, request
+from socket import gethostname
+from flask import Flask, render_template, request, make_response
 from threading import Thread
 from camera.camera_control import CameraControl
 from json import dumps
@@ -16,104 +17,44 @@ from common.conf import Conf
 
 conf = Conf().get()
 
+hostname = gethostname()
+cc = CameraControl()
 
 # web control
 app = Flask(__name__, static_url_path='/bilder',
-            static_folder=conf['kameras']['Folder'])
+            static_folder=conf['kameras']['Folder'], template_folder='../template')
 CORS(app)
 
 
 @app.route("/")
 def web_index():
     """ index page of web control """
-    output = """<html>
-    <head>
-        <title>Kamera</title>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-    </head>
-    <body>
-    <a href="./photo_view">Foto</a>
-    <a href="./pause">Standby</a>
-
-    </body>
-    </html>"""
-
-    return output
+    return render_template('camera_index.htm', hostname=hostname, paused=cc.is_paused())
 
 
 @app.route("/pause")
 def web_pause():
     """ index page of web control """
     cc.pause()
-    output = """<html>
-    <head>
-        <title>Kamera</title>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-    </head>
-    <body>
-    <a href="./resume">Resume</a>
-    </body>
-    </html>"""
-
-    return output
+    return render_template('wait.htm', target_url="/", time=1, title="Pause...")
 
 
 @app.route("/resume")
 def web_resume():
-    """ index page of web control """
     cc.resume()
-    output = """<html>
-    <head>
-        <title>Kamera</title>
-        <meta http-equiv="refresh" content="0; URL=/">
-    </head>
-    <body>
-    <a href="./">Index</a>
-    </body>
-    </html>"""
-
-    return output
+    return render_template('wait.htm', target_url="/", time=1, title="Resume...")
 
 
 @app.route("/photo_view")
 def photo_view():
-    """ index page of web control """
-    output = """<html>
-    <head>
-        <title>Kamera</title>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-    </head>
-    <body>
-    <script>
-        window.onload = function() {
-            let image = document.getElementById("img");
-
-            function updateImage() {
-                image.src = "preview/-2?" + new Date().getTime();
-            }
-            setInterval(updateImage, 10000);
-
-            let focus = document.getElementById("focus");
-            focus.onclick= function() {
-                fetch("focus/-1")
-            }
-        }
-    </script>
-    <a href="./photo"><img id="img" src="preview/-2" width="640" height="480" /></a>
-    <br /><button id="focus">Autofokus</button>
-    </body>
-    </html>"""
-
-    return output
+    return render_template('camera_preview.htm', hostname=hostname)
 
 
 @app.route("/shutdown")
 def web_shutdown():
     """ web control: shutdown """
     cc.shutdown()
-    return """
-    <meta http-equiv="refresh" content="3; URL=/">
-    Shutdown..."""
+    return render_template('wait.htm', target_url="/", time=3, title="Shutting down...")
 
 
 """@app.route('/stream.mjpg')
@@ -190,7 +131,6 @@ def start_web():
 
 if __name__ == '__main__':
 
-    cc = CameraControl()
     w = Thread(target=start_web)
     w.start()
     cc.run()
