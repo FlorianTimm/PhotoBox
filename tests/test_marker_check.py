@@ -121,3 +121,29 @@ class TestMarkerChecker:
         assert mco15_1 is not None
         if c15_1 is not None and mco15_1 is not None:
             assert abs(c15_1[2] - mco15_1[2]) < 0.01
+
+    def test_create_json_files(self):
+        marker_coords = self.load_marker_coords()
+        marker_pos: dict[str, list[ArucoMarkerPos]] = load(
+            open('/home/timm/PhotoBox/focus_2/aruco.json', 'r'))
+
+        metadata: dict[str, Metadata] = {
+            key: {'LensPosition': 0.9} for key in marker_pos.keys()}
+        marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
+        marker_checker.check()
+        p = marker_checker.get_cameras()
+        Logger().info(p)
+        from json import dump as json_dump
+        detected_marker = marker_checker.get_filtered_positions()
+        marker = marker_checker.get_corrected_coordinates()
+        cameras = marker_checker.get_cameras()
+        folder = "/tmp/"
+        json_dump(detected_marker, open(
+            folder + 'aruco.json', "w"), indent=2)
+
+        json_dump(marker, open(
+            folder + 'marker.json', "w"), indent=2)
+
+        json_dump(cameras, open(
+            folder + 'cameras.json', "w"), indent=2)
+        assert len(p) == len(marker_pos)
