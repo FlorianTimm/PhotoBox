@@ -146,7 +146,7 @@ def update() -> str:
 def aruco() -> str:
     """ Aruco """
     control.find_aruco()
-    return render_template('wait.htm', time=5, target_url="/arucoErg", title="Search for Aruco...")
+    return render_template('wait.htm', time=10, target_url="/arucoErg", title="Search for Aruco...")
 
 
 @app.route("/arucoErg")

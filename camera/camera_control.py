@@ -63,7 +63,7 @@ class CameraControl:
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__sock.bind(
-            ("0.0.0.0", int(Conf().get()['both']['BroadCastPort'])))
+            ("255.255.255.255", int(Conf().get()['both']['BroadCastPort'])))
 
         if not path.exists(Conf().get()['kameras']['Folder']):
             makedirs(Conf().get()['kameras']['Folder'])
