@@ -262,7 +262,7 @@ class MarkerChecker:
                 corner = df.at[ind, 'corner']
                 if inlier is None:
                     self.__marker_pos.at[(
-                        hostname, id, corner), 'inlier'] = False
+                        hostname, id, corner)]['inlier'] = False
                 elif i in inlier:
                     self.__marker_pos.at[(
                         hostname, id, corner), 'inlier'] = True
