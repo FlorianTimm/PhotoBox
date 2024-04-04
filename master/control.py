@@ -238,7 +238,17 @@ class Control:
             json_dump(self.__detected_markers[id], open(
                 folder + 'aruco.json', "w"), indent=2)
 
-            json_dump(self.__marker, open(
+            marker = {}
+            for pid, corners in self.__marker.items():
+                marker[pid] = {}
+                for corner, pos in enumerate(corners):
+                    if pos is None:
+                        continue
+                    marker[pid][corner] = {
+                        "x": pos.x, "y": pos.y, "z": pos.z}
+            Logger().info("Marker: %s", marker)
+
+            json_dump(marker, open(
                 folder + 'marker.json', "w"), indent=2)
 
             json_dump(cameras, open(

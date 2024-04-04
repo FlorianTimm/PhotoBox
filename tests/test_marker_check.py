@@ -141,7 +141,17 @@ class TestMarkerChecker:
         json_dump(detected_marker, open(
             folder + 'aruco.json', "w"), indent=2)
 
-        json_dump(marker, open(
+        marker_neu = {}
+        for pid, corners in marker.items():
+            marker_neu[pid] = {}
+            for corner, pos in enumerate(corners):
+                if pos is None:
+                    continue
+                marker_neu[pid][corner] = {
+                    "x": pos.x, "y": pos.y, "z": pos.z}
+        Logger().info("Marker: %s", marker_neu)
+
+        json_dump(marker_neu, open(
             folder + 'marker.json', "w"), indent=2)
 
         json_dump(cameras, open(

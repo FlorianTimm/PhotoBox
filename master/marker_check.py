@@ -141,16 +141,16 @@ class MarkerChecker:
         t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
         # Replace with True if mode is a list (Number of outliers = Number of inliers)
-        Logger().info(type(t['mode']))
+        # Logger().info(type(t['mode']))
         t['mode'] = t['mode'].apply(
             lambda x: True if isinstance(x, list) else x)
 
-        Logger().info(t)
+        # Logger().info(t)
 
         t = t[t['count'] > 2]
         t = t[~t['mode']].reset_index()
 
-        Logger().info(t)
+        # Logger().info(t)
 
         # recalculate coordinates
         something_changed = self.recalculate_coordinates(cameras, t)
@@ -296,8 +296,8 @@ class MarkerChecker:
             for _, coord in corners.iterrows():
                 d[id][int(coord['corner'])] = Point3D(
                     coord['wx'], coord['wy'], coord['wz'])
-                Logger().info(
-                    f"ID: {id} Corner: {coord['corner']} Coord: {coord['wx']} {coord['wy']} {coord['wz']}")
+                # Logger().info(
+                #    f"ID: {id} Corner: {coord['corner']} Coord: {coord['wx']} {coord['wy']} {coord['wz']}")
 
         return d
 

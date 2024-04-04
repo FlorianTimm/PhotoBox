@@ -71,7 +71,7 @@ class Point3D(NamedTuple):
 Point: TypeAlias = Union[Point2D, Point3D]
 
 
-class ArucoMarkerCorners(dict):
+class ArucoMarkerCorners():
     top_left: Point3D | None
     top_right: Point3D | None
     bottom_right: Point3D | None
