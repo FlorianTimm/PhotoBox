@@ -51,6 +51,7 @@ public class MetashapeProject implements Progress {
             this.addPhotos();
             this.addMarkerCoordinates();
             this.addMarkerPositions();
+            this.saveProject();
             this.orientPhotos();
             this.closeAndSaveProject();
         } catch (Exception e) {
@@ -62,7 +63,7 @@ public class MetashapeProject implements Progress {
     private boolean createProject() throws RuntimeException {
         try {
             this.project = new Document();
-            this.project.save(this.projectFilePath, this);
+            saveProject();
             // this.chunk = this.project.addChunk();
             // doc.close();
             connector.log("Project created");
@@ -72,6 +73,10 @@ public class MetashapeProject implements Progress {
             e.printStackTrace();
             throw new RuntimeException("Failed to create project");
         }
+    }
+
+    private void saveProject() {
+        this.project.save(this.projectFilePath, this);
     }
 
     private void addPhotos() {
@@ -99,18 +104,20 @@ public class MetashapeProject implements Progress {
             image.setId(camera.getKey());
             camera.setLabel(image.getFile().getName());
 
-            com.agisoft.metashape.Camera.Reference cameraReference = new com.agisoft.metashape.Camera.Reference();
             PbCameraPosition position = image.getCamera().getPosition();
-            Vector coord = new Vector(position.getX(), position.getY(), position.getZ());
-            cameraReference.setLocation(Optional.of(coord));
-            /*
-             * Vector rot = new Vector(position.getRoll() / 3.14 * 180, position.getPitch()
-             * / 3.14 * 180, position.getYaw() / 3.14 * 180);
-             * cameraReference.setRotation(Optional.of(rot));
-             */
-            Vector locationAccVector = new Vector(0.1, 0.1, 0.1);
-            cameraReference.setLocationAccuracy(Optional.of(locationAccVector));
-            camera.setReference(cameraReference);
+            if (position != null) {
+                com.agisoft.metashape.Camera.Reference cameraReference = new com.agisoft.metashape.Camera.Reference();
+                Vector coord = new Vector(position.getX(), position.getY(), position.getZ());
+                cameraReference.setLocation(Optional.of(coord));
+                /*
+                 * Vector rot = new Vector(position.getRoll() / 3.14 * 180, position.getPitch()
+                 * / 3.14 * 180, position.getYaw() / 3.14 * 180);
+                 * cameraReference.setRotation(Optional.of(rot));
+                 */
+                Vector locationAccVector = new Vector(0.1, 0.1, 0.1);
+                cameraReference.setLocationAccuracy(Optional.of(locationAccVector));
+                camera.setReference(cameraReference);
+            }
 
             if (!image.getCamera().isCameraIdSet()) {
                 PbCamera cam = image.getCamera();
@@ -222,7 +229,7 @@ public class MetashapeProject implements Progress {
 
     private void closeAndSaveProject() {
         try {
-            this.project.save(this.projectFilePath, this);
+            saveProject();
             this.project.close();
             connector.log("Project saved and closed");
         } catch (Exception e) {

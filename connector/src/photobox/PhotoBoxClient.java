@@ -229,9 +229,9 @@ public class PhotoBoxClient {
             connector.log("SfmClient is not set");
             return;
         }
-        String[] neededFiles = { "aruco.json", "marker.json", "meta.json", "camera.json" };
+        String[] neededFiles = { "aruco.json", "marker.json", "meta.json", "cameras.json" };
         for (String file : neededFiles) {
-            if (!(new File(destDir + File.separator + file + ".json").exists())) {
+            if (!(new File(destDir + File.separator + file).exists())) {
                 connector.log(file + " not found");
                 return;
             }
