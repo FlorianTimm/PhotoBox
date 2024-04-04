@@ -15,10 +15,14 @@ public class PbMarker {
         this.markerPositions = new ArrayList<PbMarkerPosition>();
     }
 
-    public PbMarker(int markerId, int markerEdgeId, double x, double y, double z) {
+    public PbMarker(int markerId, int markerEdgeId) {
         this();
         this.markerId = markerId;
         this.markerEdgeId = markerEdgeId;
+    }
+
+    public PbMarker(int markerId, int markerEdgeId, double x, double y, double z) {
+        this(markerId, markerEdgeId);
         this.x = x;
         this.y = y;
         this.z = z;

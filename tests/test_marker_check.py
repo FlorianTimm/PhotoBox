@@ -156,3 +156,23 @@ class TestMarkerChecker:
         json_dump(cameras, open(
             folder + 'cameras.json', "w"), indent=2)
         assert len(p) == len(marker_pos)
+
+    def test_no_nan_in_json(self):
+        marker_coords = self.load_marker_coords()
+        marker_pos: dict[str, list[ArucoMarkerPos]] = load(
+            open("tests/aruco _nan.json", 'r'))
+
+        metadata: dict[str, Metadata] = load(
+            open("tests/meta_nan.json", 'r'))
+        marker_checker = MarkerChecker(marker_coords, marker_pos, metadata)
+        marker_checker.check()
+        p = marker_checker.get_cameras()
+        detected_marker = marker_checker.get_filtered_positions()
+        marker = marker_checker.get_corrected_coordinates()
+        cameras = marker_checker.get_cameras()
+
+        assert not any([v is None for v in marker.values()])
+        assert not any([v is None for v in detected_marker.values()])
+        assert not any([v is None for v in cameras.values()])
+
+        Logger().info(marker)

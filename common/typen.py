@@ -127,6 +127,9 @@ class ArucoMarkerCorners():
     def __str__(self) -> str:
         return f"top_left: {self.top_left}, top_right: {self.top_right}, bottom_right: {self.bottom_right}, bottom_left: {self.bottom_left}"
 
+    def __repr__(self) -> str:
+        return f"ArucoMarkerCorners({self.top_left}, {self.top_right}, {self.bottom_right}, {self.bottom_left})"
+
 
 class Metadata(TypedDict):
     SensorTimestamp: NotRequired[int]

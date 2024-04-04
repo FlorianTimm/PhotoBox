@@ -107,6 +107,7 @@ public class PhotoBoxFolderReader {
     }
 
     private void readCameraPositions() {
+        this.connector.log("Adding camera positions");
         try {
             JSONObject camerasFileJson = getMarkerFileJson("cameras.json");
             Iterator<String> camerasJson = camerasFileJson.keys();
@@ -132,6 +133,7 @@ public class PhotoBoxFolderReader {
     }
 
     private void readMarkerCoordinates() {
+        this.connector.log("Adding marker coordinates");
 
         try {
             JSONObject markerFileJson = getMarkerFileJson("marker.json");
@@ -174,11 +176,12 @@ public class PhotoBoxFolderReader {
                 return marker;
             }
         }
+        this.connector.log(markerId + "-" + markerEdgeId + " not found");
         return null;
     }
 
     private void readMarkerPositions() {
-
+        this.connector.log("Adding marker positions");
         try {
             JSONObject arucoFileJson = getMarkerFileJson("aruco.json");
             Iterator<String> markersJson = arucoFileJson.keys();
@@ -196,10 +199,12 @@ public class PhotoBoxFolderReader {
                     PbImage image = camera.getImages()[0];
                     PbMarker marker = this.getMarker(markerId, markerCorner);
                     if (marker == null) {
-                        marker = new PbMarker();
+                        this.connector.log(markerId + "-" + markerCorner + " not found");
+                        marker = new PbMarker(markerId, markerCorner);
+                        this.markers.add(marker);
                     }
 
-                    PbMarkerPosition markerPosition = new PbMarkerPosition(marker, image, x, y);
+                    PbMarkerPosition markerPosition = new PbMarkerPosition(image, x, y);
                     marker.addMarkerPosition(markerPosition);
                 }
 

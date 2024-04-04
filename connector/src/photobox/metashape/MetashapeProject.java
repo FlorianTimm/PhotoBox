@@ -1,6 +1,7 @@
 package photobox.metashape;
 
 import java.util.Optional;
+import java.io.File;
 
 import com.agisoft.metashape.Calibration;
 import com.agisoft.metashape.Camera;
@@ -82,9 +83,11 @@ public class MetashapeProject implements Progress {
     private void addPhotos() {
         PbImage[] images = this.pbfr.getImages();
         String[] imagePaths = new String[images.length];
+        String[] imageFileNames = new String[images.length];
 
         for (int i = 0; i < images.length; i++) {
             imagePaths[i] = images[i].getFile().getAbsolutePath();
+            imageFileNames[i] = images[i].getFile().getName();
         }
 
         this.chunk = this.project.addChunk();
@@ -96,9 +99,14 @@ public class MetashapeProject implements Progress {
             Camera camera = cameras[i];
             Photo photo = camera.getPhoto().get();
             String path = photo.getPath();
-            int index = getIndexOfArray(imagePaths, path);
+            File file = new File(path);
+            int index = getIndexOfArray(imagePaths, file.getAbsolutePath());
             if (index == -1) {
-                throw new RuntimeException("Failed to find index of image path");
+                index = getIndexOfArray(imageFileNames, file.getName());
+            }
+            if (index == -1) {
+                this.connector.log("Failed to find image index");
+                continue;
             }
             PbImage image = images[index];
             image.setId(camera.getKey());

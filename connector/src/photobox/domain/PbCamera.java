@@ -6,7 +6,7 @@ public class PbCamera {
     private int cameraId = -1;
     private String cameraName;
     private int width = 4608;
-    private int height = 3456;
+    private int height = 2592;
     private double focalLength = 3387.30;
     private double focalLengthFactor = 21.65;
     private double principalPointX = 9.43;
