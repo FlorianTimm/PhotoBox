@@ -141,6 +141,7 @@ class MarkerChecker:
         t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
         # Replace with True if mode is a list (Number of outliers = Number of inliers)
+        Logger().info(type(t['mode']))
         t['mode'] = t['mode'].apply(
             lambda x: True if isinstance(x, list) else x)
 
