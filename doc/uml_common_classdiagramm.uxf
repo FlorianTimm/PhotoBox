@@ -1,0 +1,29 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>100</x><y>160</y><w>210</w><h>90</h></coordinates><panel_attributes>&lt;&lt;singleton&gt;&gt;
+Conf
+--
+--
+get(): ConfigParser</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>330</x><y>160</y><w>210</w><h>160</h></coordinates><panel_attributes>&lt;&lt;singleton&gt;&gt;
+Logger
+--
+--
++log(level, msg, *args, **kwargs)
++info(msg, *args, **kwargs)
++debug(msg, *args, **kwargs)
++warning(msg, *args, **kwargs)
++error(msg, *args, **kwargs)
++critical(msg, *args, **kwargs)
++get(): logging.Logger
+//-__load()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>630</x><y>150</y><w>210</w><h>90</h></coordinates><panel_attributes>CamSettings
+--
+focus: float
+iso: float
+shutter_speed: float
+filename: str {optional}</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>720</x><y>230</y><w>30</w><h>100</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;80</additional_attributes></element><element><id>UMLClass</id><coordinates><x>630</x><y>310</y><w>210</w><h>60</h></coordinates><panel_attributes>CamSettingsWithFilename
+--
+filename: str</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>880</x><y>150</y><w>210</w><h>100</h></coordinates><panel_attributes>ArucoMarkerPos
+--
+--
++id: int
++corner: int
++x: float
++y: float</panel_attributes><additional_attributes></additional_attributes></element></diagram>

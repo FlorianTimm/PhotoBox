@@ -24,8 +24,9 @@ class DesktopControlThread(StoppableThread):
     """
     A thread class for controlling the desktop application.
 
-    This class extends the `StoppableThread` class and provides methods for sending heartbeat signals,
-    running the thread, and handling incoming connections from clients.
+    This class extends the `StoppableThread` class and provides methods for
+    sending heartbeat signals, running the thread, and handling incoming
+    connections from clients.
 
     Attributes:
         __queue (Queue[str]): The queue for storing messages to be sent to clients.
@@ -65,7 +66,7 @@ class DesktopControlThread(StoppableThread):
             free_port_found = False
             port = int(self.__conf['server']['DesktopPort'])
 
-            while free_port_found == False:
+            while free_port_found is False:
                 try:
                     di_socket.bind(("", port))
                     free_port_found = True
@@ -84,7 +85,7 @@ class DesktopControlThread(StoppableThread):
             di_socket.settimeout(1)
 
             try:
-                while self.__control.is_system_stopping() == False:
+                while self.__control.is_system_stopping() is False:
                     try:
                         conn, addr = di_socket.accept()
                     except socket.timeout:
@@ -97,7 +98,7 @@ class DesktopControlThread(StoppableThread):
                     hb = Timer(10, self.__heartbeat)
                     hb.start()
 
-                    while self.__control.is_system_stopping() == False:
+                    while self.__control.is_system_stopping() is False:
                         try:
                             if self.__queue.qsize() > 0:
                                 conn.sendall(
@@ -122,7 +123,7 @@ class DesktopControlThread(StoppableThread):
 
                         except socket.timeout:
                             continue
-                        except:
+                        except Exception:
                             Logger().info("Client disconnected")
                             if hb:
                                 hb.cancel()

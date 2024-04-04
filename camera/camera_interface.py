@@ -12,6 +12,7 @@ from io import BytesIO
 from json import dump
 from threading import Thread
 from typing import Any, overload
+from cv2 import imread
 from camera.camera_aruco import Aruco
 
 from picamera2 import Picamera2
@@ -20,12 +21,41 @@ from libcamera import controls  # type: ignore
 from time import sleep
 import piexif
 from socket import gethostname
-from common.typen import ArucoMarkerPos, CamSettings, CamSettingsOptionalFilename, CamSettingsWithFilename
+from common.typen import ArucoMarkerPos, CamSettings, CamSettingsOptionalFilename, CamSettingsWithFilename, Metadata
 from typing import Callable
 from common.logger import Logger
 
 
 class CameraInterface(object):
+    '''
+    This class is used to interact with the camera.
+
+    Attributes:
+    - __cam: Picamera2
+    - __rgb_config: dict[str, Any]
+    - __yuv_config: dict[str, Any]
+    - __folder: str
+    - __aruco: Aruco
+    - __DEFAULT_CTRL: dict[str, Any]
+
+    Methods:
+    + __init__(folder: str)
+    + make_picture(settings: CamSettings = {}, preview=False): bytes
+    + save_picture(settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): tuple[str, dict[str, Any]]
+    + aruco_search_in_background_from_file(filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): None
+    + aruco_search_in_background(img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]): None
+    + meta(): None | dict[str, Any]
+    + find_aruco(inform_after_picture: None | Callable[[], None] = None): list[ArucoMarkerPos]
+    + pause()
+    + resume()
+    + set_settings(settings: CamSettings): CamSettings
+    + focus(focus: float): str
+    - __get_status(): dict[str, Any]
+    - __capture_photo(settings: CamSettings): tuple[CompletedRequest, dict[str, Any], CamSettings]
+    - __request_capture_with_meta(): tuple[CompletedRequest, dict[str, Any]
+
+    '''
+
     def __init__(self, folder: str):
         tuning: dict[str, Any] = Picamera2.load_tuning_file(
             "imx708.json", dir='./camera/tuning/')
@@ -75,7 +105,7 @@ class CameraInterface(object):
             focus = 0
         focus = int(focus*100)
 
-        
+
         exif_dict = piexif.load(data)
         exif_dict["Exif"][piexif.ExifIFD.FocalLength] = (474, 100)
         exif_dict["Exif"][piexif.ExifIFD.SubjectDistance] = (focus, 100)
@@ -109,25 +139,31 @@ class CameraInterface(object):
         metadata: dict[str, Any] = req.get_metadata()
         return req, metadata
 
-    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None]) -> list[dict[str, int | float]]:
+    def save_picture(self, settings: CamSettingsWithFilename, aruco_callback: None | Callable[[list[ArucoMarkerPos], Metadata], None]) -> tuple[str, dict[str, Any]]:
+        """
+        Capture a photo and save it to the given filename.
+
+        Args:
+            settings: The settings for the camera.
+            aruco_callback: A callback function that is called with the Aruco markers found in the image.
+
+        Returns:
+            The filename and the metadata of the saved image.
+        """
         Logger().info("Kamera aktiviert!")
         req, metadata, set = self.__capture_photo(settings)
 
         file = self.__folder + settings['filename']
         Logger().info("Fokus (real):  %s", metadata["LensPosition"])
         req.save("main", file)
-        aruco_marker = []
 
-        def aruco_search(img, aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]):
-
-            aruco_marker = self.__aruco.detect_from_rgb(img)
-            dump(aruco_marker, open(file + ".aruco", "w"), indent=2)
-            aruco_callback(aruco_marker, metadata)
         if aruco_callback:
             img = req.make_array("main")
-            Thread(target=aruco_search, args=(
-                img, aruco_callback), name="Aruco").start()
+            self.aruco_search_in_background(
+                img, file, metadata, aruco_callback)
+
         req.release()
+
         if metadata["LensPosition"] != 0:
             focus = 1./metadata["LensPosition"]
         else:
@@ -143,7 +179,37 @@ class CameraInterface(object):
         piexif.insert(exif_bytes, file)
 
         Logger().info("Bild %s gemacht!", file)
-        return aruco_marker
+        return file, metadata
+
+    def aruco_search_in_background_from_file(self, filename: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], Metadata], None]) -> None:
+        """
+        Start a background thread that searches for Aruco markers in the given image file.
+
+        Args:
+            file: The filename of the image to search for Aruco markers.
+            metadata: The metadata of the image.
+            aruco_callback: A callback function that is called with the Aruco markers found in the image.
+        """
+        img = imread(self.__folder + filename)
+        return self.aruco_search_in_background(img, filename, metadata, aruco_callback)
+
+    def aruco_search_in_background(self, img: bytes, file: str, metadata: dict[str, Any], aruco_callback: Callable[[list[ArucoMarkerPos], Metadata], None]) -> None:
+        """
+        Start a background thread that searches for Aruco markers in the given image.
+
+        Args:
+            img: The image to search for Aruco markers.
+            file: The filename of the image.
+            metadata: The metadata of the image.
+            aruco_callback: A callback function that is called with the Aruco markers found in the image.
+        """
+
+        def aruco_search(self, img, aruco_callback: Callable[[list[ArucoMarkerPos], dict[str, Any]], None]):
+            aruco_marker = self.__aruco.detect_from_rgb(img)
+            dump(aruco_marker, open(file + ".aruco", "w"), indent=2)
+            aruco_callback(aruco_marker, metadata)
+        Thread(target=aruco_search, args=(self,
+                                          img, aruco_callback), name="Aruco").start()
 
     def meta(self) -> None | dict[str, Any]:
         self.resume()
@@ -216,7 +282,7 @@ class CameraInterface(object):
                 self.yuv_config, 'main', wait=True)[:h, :w]
 
         Logger().info("Aruco Bild gemacht!")
-        if inform_after_picture != None:
+        if inform_after_picture is not None:
             inform_after_picture()
         return self.__aruco.detect(image)
 
@@ -227,3 +293,6 @@ class CameraInterface(object):
     def resume(self):
         if not self.__cam.started:
             self.__cam.start()
+
+    def is_paused(self):
+        return not self.__cam.started

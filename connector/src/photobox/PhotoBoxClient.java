@@ -76,6 +76,10 @@ public class PhotoBoxClient {
                                     connector.log("Meta downloading: " + w[1]);
                                     downloadText(w[1], w[2]);
                                     break;
+                                case "cameras":
+                                    connector.log("Camera positions downloading: " + w[1]);
+                                    downloadText(w[1], w[2]);
+                                    break;
                                 default:
                                     connector.log("Unknown message: " + line);
                                     break;
@@ -225,17 +229,12 @@ public class PhotoBoxClient {
             connector.log("SfmClient is not set");
             return;
         }
-        if (!(new File(destDir + File.separator + "aruco.json").exists())) {
-            connector.log("Aruco not found");
-            return;
-        }
-        if (!(new File(destDir + File.separator + "marker.json").exists())) {
-            connector.log("Marker not found");
-            return;
-        }
-        if (!(new File(destDir + File.separator + "meta.json").exists())) {
-            connector.log("Meta not found");
-            return;
+        String[] neededFiles = { "aruco.json", "marker.json", "meta.json", "cameras.json" };
+        for (String file : neededFiles) {
+            if (!(new File(destDir + File.separator + file).exists())) {
+                connector.log(file + " not found");
+                return;
+            }
         }
 
         File files = new File(destDir);

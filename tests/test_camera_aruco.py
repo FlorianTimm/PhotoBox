@@ -28,10 +28,10 @@ class TestCameraAruco:
         marker = aruco.detect_from_rgb(self.img)
         Logger().info(len(marker))
         assert len(marker) == 24
-        assert type(marker[0]['id']) == int
-        assert type(marker[0]['corner']) == int
-        assert type(marker[0]['x']) == float
-        assert type(marker[0]['y']) == float
+        assert isinstance(marker[0]['id'], int)
+        assert isinstance(marker[0]['corner'], int)
+        assert isinstance(marker[0]['x'], float)
+        assert isinstance(marker[0]['y'], float)
         assert marker[0]['x'] >= 0
         assert marker[0]['y'] >= 0
         assert marker[0]['x'] <= 4608
@@ -40,10 +40,10 @@ class TestCameraAruco:
     def test_detect(self, aruco: Aruco):
         marker = aruco.detect(self.img_sw)
         assert len(marker) == 24
-        assert type(marker[0]['id']) == int
-        assert type(marker[0]['corner']) == int
-        assert type(marker[0]['x']) == float
-        assert type(marker[0]['y']) == float
+        assert isinstance(marker[0]['id'], int)
+        assert isinstance(marker[0]['corner'], int)
+        assert isinstance(marker[0]['x'], float)
+        assert isinstance(marker[0]['y'], float)
         assert marker[0]['x'] >= 0
         assert marker[0]['y'] >= 0
         assert marker[0]['x'] <= 4608

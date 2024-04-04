@@ -42,7 +42,7 @@ class CameraControlThread(StoppableThread):
         socket_rec.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         port = int(self.__conf['both']['BroadCastPort'])
         free_port_found = False
-        while free_port_found == False:
+        while free_port_found is False:
             try:
                 socket_rec.bind(("0.0.0.0", port))
                 free_port_found = True
@@ -50,12 +50,14 @@ class CameraControlThread(StoppableThread):
                     Logger().info(
                         "CameraControlThread is listening on port %s", port)
                 else:
-                    Logger().info("CameraControlThread is listening on port %s",
-                                  port, "because port", self.__conf['both']['BroadCastPort'], "was already in use")
+                    Logger().info("CameraControlThread is listening on ",
+                                  "port %s", port, "because port",
+                                  self.__conf['both']['BroadCastPort'],
+                                  "was already in use")
             except OSError:
                 Logger().error("Port %s already in use", port)
                 port += 1
-        while self.__control.is_system_stopping() == False:
+        while self.__control.is_system_stopping() is False:
             # sock.sendto(bytes("hello", "utf-8"), ip_co)
             data, addr = socket_rec.recvfrom(10000)
             Logger().info("received message: %s", data)

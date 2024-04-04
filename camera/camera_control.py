@@ -13,44 +13,45 @@ from typing import Any, Callable
 from common.logger import Logger
 from camera.camera_interface import CameraInterface
 import socket
-from json import dumps, loads as json_loads
-from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename
+from json import JSONDecodeError, dumps, loads as json_loads
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CamSettings, CamSettingsWithFilename, Metadata
 from common.conf import Conf
 
 
 class CameraControl:
-    """
-    The CameraControl class represents the main script for controlling the camera.
-
-    It provides methods for starting and controlling the camera, taking photos,
-    setting camera settings, and handling broadcast messages.
+    '''
+    This class is used to control the camera and perform various operations such as taking photos, setting camera settings, and broadcasting Aruco information.
 
     Attributes:
-        __sock (socket.socket): The socket object for UDP communication.
-        cam (CameraInterface): The camera interface object.
+    - __sock: socket.socket
+    - __cam: CameraInterface
 
     Methods:
-        __init__(self): Initializes the CameraControl object.
-        shutdown(self): Shuts down the Raspberry Pi.
-        run(self): Runs the camera.
-        __check_settings(self, settings: CamSet | str) -> CamSet: Checks and converts camera settings.
-        photo(self, settings: CamSettings | str): Takes a photo with the camera.
-        set_settings(self, settings: CamSettings | str): Sets camera settings.
-        __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None): Saves a photo with the camera.
-        preview(self, settings: CamSettings | str = {}): Takes a preview photo with the camera.
-        focus(self, focus: float) -> str: Sets the focus of the camera.
-        aruco(self) -> list[ArucoMarkerPos]: Finds ArUco markers in the camera image.
-        __aruco_broadcast(self, addr: tuple[str, int], id: str): Broadcasts ArUco marker information.
-        __send_aruco_data(self, addr: tuple[str, int], id: str, marker: list[ArucoMarkerPos], meta: dict[str, Any] = {}): Sends ArUco marker data to a client.
-        meta(self) -> None | dict[str, int]: Gets camera metadata.
-        pause(self): Pauses the camera.
-        resume(self): Resumes the camera.
-        say_moin(self): Sends a broadcast message.
-        __receive_broadcast(self): Receives and processes broadcast messages.
-        __take_focusstack(self, filename: str, addr: tuple[str, int]): Takes a focus stack of photos.
-        __take_photo(self, data: str, addr: tuple[str, int]): Takes a photo with the camera.
-        __answer(self, addr: str, msg: str): Sends an answer message to a client.
-    """
+    + __init__()
+    - run()
+    - __check_settings(settings: CamSettings | str): CamSettings
+    + photo(settings: CamSettings | str): bytes
+    + set_settings(settings: CamSettings | str): CamSettings
+    - __save(settings: CamSettingsWithFilename | str,
+            aruco_callback: None | Callable[[list[ArucoMarkerPos],
+            dict[str, Any]], None] = None):
+            tuple[str, dict[str, Any]]
+    + preview(settings: CamSettings | str = {}): bytes
+    + focus(focus: float): str
+    + aruco():list[ArucoMarkerPos]
+    - __aruco_broadcast(addr: tuple[str, int], id: str)
+    - __send_aruco_data(addr: tuple[str, int], id: str,
+            marker: list[ArucoMarkerPos], meta: dict[str, Any] = {})
+    + meta():None | dict[str, int]
+    + pause()
+    + resume()
+    + shutdown()
+    + say_moin()
+    - __receive_broadcast()
+    - __take_focusstack(id: str, addr: tuple[str, int])
+    - __take_photo(data: str, addr: tuple[str, int])
+    - __answer(addr: str, msg: str)
+    '''
 
     __sock: socket.socket
     __cam: CameraInterface
@@ -58,14 +59,11 @@ class CameraControl:
     def __init__(self):
         """
         Constructor for the CameraControl class.
-
-        Returns:
-            None
         """
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__sock.bind(
-            ("0.0.0.0", int(Conf().get()['both']['BroadCastPort'])))
+            ("255.255.255.255", int(Conf().get()['both']['BroadCastPort'])))
 
         if not path.exists(Conf().get()['kameras']['Folder']):
             makedirs(Conf().get()['kameras']['Folder'])
@@ -74,7 +72,7 @@ class CameraControl:
         t.start()
 
     def shutdown(self):
-        """ 
+        """
         Shutdown Raspberry Pi.
 
         This method shuts down the Raspberry Pi by executing the shutdown command.
@@ -91,6 +89,18 @@ class CameraControl:
         Logger().info("Moin")
 
     def __check_settings(self, settings: CamSettings | str) -> CamSettings:
+        """
+        Checks the camera settings.
+
+        Parameters:
+        - settings: A dictionary or a JSON string representing the camera settings.
+
+        Returns:
+        - The camera settings.
+
+        If `settings` is a dictionary, it is directly used as the camera settings.
+        If `settings` is a JSON string, it is parsed into a dictionary using `json.loads`.
+        """
         settingR: CamSettings
         if isinstance(settings, str):
             settingR = json_loads(settings)
@@ -115,11 +125,11 @@ class CameraControl:
         else:
             try:
                 settingR = json_loads(settings)
-            except:
+            except JSONDecodeError:
                 settingR = {}
         return self.__cam.make_picture(settingR)
 
-    def set_settings(self, settings: CamSettings | str):
+    def set_settings(self, settings: CamSettings | str) -> CamSettings:
         """
         Sets the camera settings.
 
@@ -150,11 +160,11 @@ class CameraControl:
         else:
             try:
                 settingR = json_loads(settings)
-            except:
+            except JSONDecodeError:
                 settingR = {}
         return self.__cam.set_settings(settingR)
 
-    def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None] = None):
+    def __save(self, settings: CamSettingsWithFilename | str, aruco_callback: None | Callable[[list[ArucoMarkerPos], Metadata], None] = None) -> tuple[str, dict[str, Any]]:
         """
         Saves a picture using the specified settings.
 
@@ -163,7 +173,7 @@ class CameraControl:
             aruco_callback (None | Callable[[list[ArucoMarkerPos], dict[str, Any]], None], optional): A callback function to be called after the picture is saved. Defaults to None.
 
         Returns:
-            The result of the `save_picture` method of the `cam` object.
+            tuple[str, Metadata]: The filename and metadata of the saved picture.
 
         """
         settingsR: CamSettingsWithFilename
@@ -204,7 +214,7 @@ class CameraControl:
         #     '.json', 'w').write(dumps(m, indent=2))
         self.__send_aruco_data(addr, id, marker)
 
-    def __send_aruco_data(self, addr: tuple[str, int], id: str, marker: list[ArucoMarkerPos], meta: dict[str, Any] = {}):
+    def __send_aruco_data(self, addr: tuple[str, int], id: str, marker: list[ArucoMarkerPos], meta: Metadata = {}):
         data: ArucoMetaBroadcast = {"aruco": marker, "meta": meta}
         json_str = dumps(data, indent=None, separators=(",", ":"))
         self.__answer(addr[0], 'arucoReady:' + id + ':' +
@@ -219,6 +229,9 @@ class CameraControl:
     def resume(self):
         self.__cam.resume()
         self.say_moin()
+
+    def is_paused(self):
+        return self.__cam.is_paused()
 
     def say_moin(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
@@ -256,7 +269,7 @@ class CameraControl:
                 z = -1
                 try:
                     z = float(data[6:])
-                except:
+                except ValueError:
                     pass
                 Logger().info("Focus: %s", z)
                 self.focus(z)  # Autofokus
@@ -272,7 +285,7 @@ class CameraControl:
                 jsonSettings: CamSettings
                 try:
                     jsonSettings = json_loads(data[9:])
-                except:
+                except JSONDecodeError:
                     jsonSettings = {}
                 self.set_settings(jsonSettings)
             elif data == 'preview':
@@ -297,7 +310,7 @@ class CameraControl:
             else:
                 Logger().warning("Unknown command: %s", data)
 
-    def __take_focusstack(self, filename: str, addr: tuple[str, int]):
+    def __take_focusstack(self, id: str, addr: tuple[str, int]):
         """
         Takes a focus stack of photos with different focus levels.
 
@@ -308,14 +321,25 @@ class CameraControl:
         Returns:
             None
         """
-        id = filename
+
+        metadata: dict[str, dict[str, Any]] = {}
+
         for f in [1, 3, 4, 5]:
+            filename = id + '_' + str(f) + '.jpg'
             cs: CamSettingsWithFilename = {
                 'focus': f,
-                'filename': filename + '_' + str(f) + '.jpg'}
-            self.__save(cs)
+                'filename': filename}
+            _, md = self.__save(cs)
+            metadata[filename] = md
             self.__answer(addr[0], 'photoDone:' +
                           filename + ':' + cs['filename'])
+
+        Logger().info("Focusstack: %s", metadata)
+        for f, m in metadata.items():
+            def aruco_callback(data: list[ArucoMarkerPos], metadata: Metadata):
+                self.__send_aruco_data(addr, id, data, metadata)
+            self.__cam.aruco_search_in_background_from_file(
+                f, m, aruco_callback)
 
     def __take_photo(self, data: str, addr: tuple[str, int]):
         """
@@ -333,11 +357,11 @@ class CameraControl:
             json = json_loads(data[6:])
             id = json['filename']
             id = id[:id.rfind('.')]
-        except:
+        except JSONDecodeError:
             json = {'filename': data[6:] + '.jpg'}
             id = data[6:]
 
-        def aruco_callback(data: list[ArucoMarkerPos], metadata: dict[str, Any]):
+        def aruco_callback(data: list[ArucoMarkerPos], metadata: Metadata):
             self.__send_aruco_data(addr, id, data, metadata)
         self.__save(json, aruco_callback)
         self.__answer(addr[0], 'photoDone:' + id + ':' + json['filename'])

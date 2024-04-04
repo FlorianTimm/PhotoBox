@@ -1,0 +1,28 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Preview {{hostname}}{% endblock %}
+
+{% block title2 %}Preview {{hostname}}{% endblock %}
+
+{% block header %}
+<script>
+    window.onload = function () {
+        let image = document.getElementById("img");
+
+        function updateImage() {
+            image.src = "preview/-2?" + new Date().getTime();
+        }
+        setInterval(updateImage, 10000);
+
+        let focus = document.getElementById("focus");
+        focus.onclick = function () {
+            fetch("focus/-1")
+        }
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<a href="./photo"><img id="img" src="preview/-2" width="640" height="480" /></a>
+<br /><button id="focus">Autofokus</button>
+{% endblock %}

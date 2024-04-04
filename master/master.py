@@ -10,7 +10,6 @@ from common.logger import Logger
 from common.conf import Conf
 from flask import Flask, Response, redirect, render_template, request, send_from_directory
 from flask_cors import CORS
-import uuid
 from os import PathLike, path
 from json import dumps as json_dumps
 from glob import glob
@@ -80,8 +79,9 @@ def photo_html(id: str = "") -> str:
 
 
 @app.route("/stack")
-def stack_html() -> str:
-    return capture_html("stack")
+@app.route("/stack/<id>")
+def stack_html(id: str = "") -> str:
+    return capture_html("stack", id)
 
 
 def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
@@ -89,9 +89,9 @@ def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> s
         id = control.capture_photo(action)
         return render_template('wait.htm', time=5,
                                target_url=f"/{action}/{id}", title="Photo...")
-    else:
-        hnames = dict(sorted(control.get_cameras().items()))
-        return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
+
+    hnames = dict(sorted(control.get_cameras().items()))
+    return render_template('overviewCapture.htm', cameras=hnames.keys(), id=id, action=action)
 
 
 @app.route("/preview")
@@ -145,14 +145,15 @@ def update() -> str:
 @app.route("/aruco")
 def aruco() -> str:
     """ Aruco """
-    control.send_to_all('aruco:' + str(uuid.uuid4()))
-    return render_template('wait.htm', time=5, target_url="/arucoErg", title="Search for Aruco...")
+    control.find_aruco()
+    return render_template('wait.htm', time=10, target_url="/arucoErg", title="Search for Aruco...")
 
 
 @app.route("/arucoErg")
 def aruco_erg() -> str:
     """ Aruco """
-    return render_template('aruco.htm', json_data=json_dumps(control.get_detected_markers(), indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
+    return render_template('aruco.htm', json_data=json_dumps(control.get_detected_markers(),
+                                                             indent=2).replace(" ", "&nbsp;").replace("\n", "<br />\n"))
 
 
 @app.route("/test")
@@ -160,14 +161,16 @@ def test() -> str:
     """ Test """
     control.send_to_all('test')
     control.send_to_desktop("test")
-    return render_template('wait.htm', time=5, target_url="/overview", title="Test...")
+    return render_template('wait.htm', time=5, target_url="/overview",
+                           title="Test...")
 
 
 @app.route("/light")
 @app.route("/light/<int:val>")
 def photo_light_html(val: int = 0) -> str:
     try:
-        return render_template('wait.htm', time=1, target_url="/", title="Light...")
+        return render_template('wait.htm', time=1, target_url="/",
+                               title="Light...")
     finally:
         control.get_leds().photo_light(val)
 
@@ -176,7 +179,8 @@ def photo_light_html(val: int = 0) -> str:
 @app.route("/status/<val>")
 def status_led_html(val: int = 0) -> str:
     try:
-        return render_template('wait.htm', time=1, target_url="/", title="Status...")
+        return render_template('wait.htm', time=1, target_url="/",
+                               title="Status...")
     finally:
         control.get_leds().status_led(val)
 
@@ -184,6 +188,7 @@ def status_led_html(val: int = 0) -> str:
 @app.route("/marker", methods=['GET'])
 def marker_get() -> str:
     """ Marker """
+    # TODO: Single-Marker-Insert
     return render_template('marker.htm', markers=control.get_marker())
 
 

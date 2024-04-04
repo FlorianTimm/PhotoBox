@@ -7,9 +7,25 @@ import sys
 
 
 class Logger(metaclass=SingletonMeta):
-    __logger: logging.Logger | None = None
+    '''
+    Logger class
 
-    # Singleton-Fassade für Logger
+    This class is a singleton class that is used to log messages to the console and to a file.
+    The log level is set in the configuration file and can be set to DEBUG, INFO, WARNING, ERROR, CRITICAL, NOTSET.
+    The log file is also set in the configuration file.
+
+    Methods:
+    +log(level, msg, *args, **kwargs)
+    +info(msg, *args, **kwargs)
+    +debug(msg, *args, **kwargs)
+    +warning(msg, *args, **kwargs)
+    +error(msg, *args, **kwargs)
+    +critical(msg, *args, **kwargs)
+    +get(): logging.Logger
+    -__load()
+
+    '''
+    __logger: logging.Logger | None = None
 
     def log(self, level, msg, *args, **kwargs) -> None:
         """

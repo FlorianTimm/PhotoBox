@@ -1,15 +1,18 @@
 package photobox;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import photobox.domain.PbCamera;
+import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
@@ -22,18 +25,19 @@ public class PhotoBoxFolderReader {
     private ArrayList<PbCamera> cameras = new ArrayList<PbCamera>();
     private ArrayList<PbMarker> markers = new ArrayList<PbMarker>();
     private ArrayList<PbImage> images = new ArrayList<PbImage>();
+    private HashMap<String, PbCameraPosition> cameraPositions = new HashMap<String, PbCameraPosition>();
+    private HashMap<String, Double> lensPositions = new HashMap<String, Double>();
 
     public PhotoBoxFolderReader(Connector connector, String projectFolder) {
         this.connector = connector;
         this.projectFolder = projectFolder;
 
-        this.cameras = new ArrayList<PbCamera>();
-        this.markers = new ArrayList<PbMarker>();
-        this.images = new ArrayList<PbImage>();
-
+        this.readCameraPositions();
+        this.readLensPositions();
         this.readPhotos();
         this.readMarkerCoordinates();
         this.readMarkerPositions();
+        System.out.println("PhotoBoxFolderReader: " + this.projectFolder + " loaded");
     }
 
     private PbCamera getCameraByName(String hostname) {
@@ -66,8 +70,13 @@ public class PhotoBoxFolderReader {
                     if (camera == null) {
                         camera = new PbCamera(hostname);
                         this.cameras.add(camera);
+                        PbCameraPosition position = this.cameraPositions.get(hostname);
+                        if (position != null) {
+                            camera.setPosition(position);
+                        }
                     }
-                    PbImage image = new PbImage(camera, file);
+                    double lensPositionImg = this.lensPositions.get(hostname);
+                    PbImage image = new PbImage(camera, file, lensPositionImg);
                     camera.addImage(image);
                     this.images.add(image);
                 }
@@ -79,15 +88,55 @@ public class PhotoBoxFolderReader {
         }
     }
 
+    private void readLensPositions() {
+        try {
+            JSONObject metaFileJson = getMarkerFileJson("meta.json");
+            Iterator<String> metaJson = metaFileJson.keys();
+            while (metaJson.hasNext()) {
+                String filename = metaJson.next();
+
+                JSONObject metadata = metaFileJson.getJSONObject(filename);
+
+                float lensPosition = metadata.getFloat("LensPosition");
+                this.lensPositions.put(filename, (double) lensPosition);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to add lens positions");
+        }
+    }
+
+    private void readCameraPositions() {
+        this.connector.log("Adding camera positions");
+        try {
+            JSONObject camerasFileJson = getMarkerFileJson("cameras.json");
+            Iterator<String> camerasJson = camerasFileJson.keys();
+            while (camerasJson.hasNext()) {
+                String cameraHostname = camerasJson.next();
+
+                JSONObject cameraJson = camerasFileJson.getJSONObject(cameraHostname);
+
+                float x = cameraJson.getFloat("x");
+                float y = cameraJson.getFloat("y");
+                float z = cameraJson.getFloat("z");
+                float yaw = cameraJson.getFloat("yaw");
+                float pitch = cameraJson.getFloat("pitch");
+                float roll = cameraJson.getFloat("roll");
+
+                PbCameraPosition cameraPosition = new PbCameraPosition(x, y, z, roll, pitch, yaw);
+                this.cameraPositions.put(cameraHostname, cameraPosition);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to add marker coordinates");
+        }
+    }
+
     private void readMarkerCoordinates() {
+        this.connector.log("Adding marker coordinates");
 
         try {
-            // Read the JSON file
-            String jsonFilePath = this.projectFolder + "/marker.json";
-            String jsonContent = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
-
-            // Parse the JSON content
-            JSONObject markerFileJson = new JSONObject(jsonContent);
+            JSONObject markerFileJson = getMarkerFileJson("marker.json");
             Iterator<String> markersJson = markerFileJson.keys();
             while (markersJson.hasNext()) {
                 String markerId = markersJson.next();
@@ -111,25 +160,30 @@ public class PhotoBoxFolderReader {
         }
     }
 
+    private JSONObject getMarkerFileJson(String filename) throws IOException {
+        // Read the JSON file
+        String jsonFilePath = this.projectFolder + "/" + filename;
+        String jsonContent = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
+
+        // Parse the JSON content
+        JSONObject markerFileJson = new JSONObject(jsonContent);
+        return markerFileJson;
+    }
+
     private PbMarker getMarker(int markerId, int markerEdgeId) {
         for (PbMarker marker : this.markers) {
             if (marker.getMarkerId() == markerId && marker.getMarkerEdgeId() == markerEdgeId) {
                 return marker;
             }
         }
+        this.connector.log(markerId + "-" + markerEdgeId + " not found");
         return null;
     }
 
     private void readMarkerPositions() {
-
+        this.connector.log("Adding marker positions");
         try {
-
-            // Read the JSON file
-            String jsonFilePath = this.projectFolder + "/aruco.json";
-            String jsonContent = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
-
-            // Parse the JSON content
-            JSONObject arucoFileJson = new JSONObject(jsonContent);
+            JSONObject arucoFileJson = getMarkerFileJson("aruco.json");
             Iterator<String> markersJson = arucoFileJson.keys();
             while (markersJson.hasNext()) {
                 String hostname = markersJson.next();
@@ -145,10 +199,12 @@ public class PhotoBoxFolderReader {
                     PbImage image = camera.getImages()[0];
                     PbMarker marker = this.getMarker(markerId, markerCorner);
                     if (marker == null) {
-                        marker = new PbMarker();
+                        this.connector.log(markerId + "-" + markerCorner + " not found");
+                        marker = new PbMarker(markerId, markerCorner);
+                        this.markers.add(marker);
                     }
 
-                    PbMarkerPosition markerPosition = new PbMarkerPosition(marker, image, x, y);
+                    PbMarkerPosition markerPosition = new PbMarkerPosition(image, x, y);
                     marker.addMarkerPosition(markerPosition);
                 }
 

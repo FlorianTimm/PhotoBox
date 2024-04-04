@@ -10,7 +10,8 @@ import cv2
 import numpy as np
 import pandas as pd
 from common.logger import Logger
-from common.typen import ArucoMarkerPos
+from common.typen import ArucoMarkerPos, ArucoMarkerCorners, CameraExterior, Metadata, Point3D
+from common.conf import Conf
 from scipy import stats
 
 
@@ -18,33 +19,82 @@ class MarkerChecker:
     """A class to check marker positions and filter them if necessary.
 
     Attributes:
-        __marker_coords (dict[int, dict[int, tuple[float, float, float]]]): A dictionary containing marker coordinates.
+        __marker_coords (dict[int, ArucoMarkerCorners]): A dictionary containing marker coordinates.
         __marker_pos (dict[str, list[ArucoMarkerPos]]): A dictionary containing marker positions.
-        __metadata (dict[str, dict[str, int | float]]): A dictionary containing metadata.
+        __metadata (dict[str, Metadata]): A dictionary containing metadata.
         __is_filtered (bool): A boolean indicating if the marker positions have been filtered.
     """
 
-    __marker_coords: dict[int, dict[int, tuple[float, float, float]]] = {}
-    __marker_pos: dict[str, list[ArucoMarkerPos]] = {}
-    __metadata:  dict[str, dict[str, int | float]] = {}
-    __params = np.array([2.63572488e+01,  6.31322513e-01, -9.88069511e+00,  2.92706002e+01,
-                         -4.15690296e-03, -1.99188205e-02, -1.01408404e-04,  2.60612862e-06,
-                         2.79208519e-02,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
-                         0.00000000e+00,  0.00000000e+00])
+    __marker_coords: pd.DataFrame
+    __marker_pos: pd.DataFrame
+    __metadata:  pd.DataFrame
+    __cameras: dict[str, CameraExterior]
 
-    def __init__(self, marker_coords: dict[int, dict[int, tuple[float, float, float]]], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, dict[str, int | float]]):
+    def __init__(self, marker_coords: dict[int, ArucoMarkerCorners], marker_pos: dict[str, list[ArucoMarkerPos]], metadata: dict[str, Metadata], cameras: dict[str, CameraExterior] = {}):
         """
         Initialize the MarkerChecker class.
 
         Args:
-            marker_coords (dict[int, dict[int, tuple[float, float, float]]]): A dictionary containing marker coordinates.
+            marker_coords (dict[int, ArucoMarkerCorners]): A dictionary containing marker coordinates.
             marker_pos (dict[str, list[ArucoMarkerPos]]): A dictionary containing marker positions.
-            metadata (dict[str, dict[str, int | float]]): A dictionary containing metadata.
+            metadata (dict[str, Metadata]): A dictionary containing metadata.
         """
-        self.__marker_coords = marker_coords
-        self.__marker_pos = marker_pos
-        self.__metadata = metadata
+        self.__marker_coords = self.__create_marker_coords_dataframe(
+            marker_coords)
+        self.__marker_pos = self.__create_marker_pos_dataframe(marker_pos)
+        self.__metadata = self.__create_metadata_dataframe(metadata)
+        self.__cameras = cameras
         self.__is_filtered = False
+
+    def __create_marker_coords_dataframe(self, marker_coords: dict[int, ArucoMarkerCorners]) -> pd.DataFrame:
+        """
+        Create a dataframe containing the marker coordinates.
+
+        Returns:
+            A dataframe containing the marker coordinates.
+        """
+        data: list[tuple[int, int, float, float, float]] = []
+        for id, corners in marker_coords.items():
+            if corners is None:
+                continue
+            for corner, coord in enumerate(corners):
+                if coord is None:
+                    continue
+                data.append((id, corner, coord.x, coord.y, coord.z))
+        return pd.DataFrame(data, columns=['id', 'corner', 'wx', 'wy', 'wz']).set_index(['id', 'corner'])
+
+    def __create_marker_pos_dataframe(self, marker_pos: dict[str, list[ArucoMarkerPos]]) -> pd.DataFrame:
+        """
+        Create a dataframe containing the marker positions.
+
+        Returns:
+            A dataframe containing the marker positions.
+        """
+        data = []
+        for hostname, positions in marker_pos.items():
+            for pos in positions:
+                data.append(
+                    [hostname, pos['id'], pos['corner'], pos['x'], pos['y'], None])
+        d = pd.DataFrame(
+            data, columns=['hostname', 'id', 'corner', 'x', 'y', 'inlier']).set_index(['hostname', 'id', 'corner'])
+        return d
+
+    def __create_metadata_dataframe(self, metadata: dict[str, Metadata]) -> pd.DataFrame:
+        """
+        Create a dataframe containing the metadata.
+
+        Returns:
+            A dataframe containing the metadata.
+        """
+        # read metadata
+        data = []
+        for hostname, meta in metadata.items():
+            if 'LensPosition' not in meta:
+                continue
+            data.append([hostname, meta['LensPosition']])
+        pdm = pd.DataFrame(
+            data, columns=['hostname', 'LensPosition']).set_index('hostname')
+        return pdm
 
     def __camera_matrix(self, lens_position: float, c_offset: float = 0, cx_offset: float = 0, cy_offset: float = 0) -> tuple[np.ndarray, np.ndarray]:
         """
@@ -59,32 +109,72 @@ class MarkerChecker:
         Returns:
             A tuple containing the camera matrix and distortion coefficients.
         """
-        x = self.__params.tolist()
-        if len(x) == 9:
-            [x.append(0) for _ in range(5)]
-        c = 3385 + x[0] + c_offset + x[3] * lens_position
-        cx = 2304 + x[1] + cx_offset
-        cy = 1296 + x[2] + cy_offset
+        param = Conf().get()['calibration']
+        c = float(param['f']) + c_offset + \
+            lens_position * float(param['f_factor'])
+        cx = float(param['cx']) + cx_offset + \
+            lens_position * float(param['cx_factor'])
+        cy = float(param['cy']) + cy_offset + \
+            lens_position * float(param['cy_factor'])
         cameraMatrix = np.array([[c, 0, cx], [0, c, cy], [0, 0, 1]])
-        distCoeffs = np.array([x[9:14]]) + np.array([x[4:9]]) * lens_position
+        distCoeffs = np.array([float(param['k1']) + lens_position *
+                               float(param['k1_factor']),
+                               float(param['k2']) + lens_position *
+                               float(param['k2_factor']),
+                               float(param['p1']) + lens_position *
+                               float(param['p1_factor']),
+                               float(param['p2']) + lens_position *
+                               float(param['p2_factor']),
+                               float(param['k3']) + lens_position *
+                               float(param['k3_factor'])])
         return cameraMatrix, distCoeffs
 
     def check(self) -> None:
         """
         Check the marker positions and filter them if necessary.
         """
-        pdm = pd.DataFrame.from_dict(self.__metadata)
-        Logger().debug(pdm)
 
-        cameras, df = self.__check_marker_position()
+        # check and mark marker positions
+        cameras = self.__check_marker_position()
 
         # check outliers on wrong coordinates
-        t = df.groupby(['id', 'corner'])['inlier'].agg(
+        t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
+        # Replace with True if mode is a list (Number of outliers = Number of inliers)
+        # Logger().info(type(t['mode']))
+        t['mode'] = t['mode'].apply(
+            lambda x: True if isinstance(x, list) else x)
+
+        # Logger().info(t)
+
         t = t[t['count'] > 2]
-        t = t[t['mode'] == False].reset_index()
+        t = t[~t['mode']].reset_index()
+
+        # Logger().info(t)
 
         # recalculate coordinates
+        something_changed = self.recalculate_coordinates(cameras, t)
+
+        if something_changed:
+            Logger().info("Some coordinates have changed")
+            cameras = self.__check_marker_position()
+
+        self.__is_filtered = True
+
+    def recalculate_coordinates(self, cameras: dict[str, dict[str, np.ndarray]], t: pd.DataFrame) -> bool:
+        """
+        Recalculate the coordinates.
+
+        Args:
+            cameras: A dictionary containing the cameras.
+            df: A dataframe containing the marker positions.
+            t: A dataframe containing the marker positions.
+
+        Returns:
+            A boolean indicating if the coordinates have been recalculated.
+        """
+        df = self.__create_dataframe()
+
         something_changed = False
         for _, row in t.iterrows():
             group: pd.DataFrame = df[(df['id'] == row['id']) & (
@@ -113,36 +203,36 @@ class MarkerChecker:
             if len(coord_neu) == 0:
                 continue
             Logger().debug(coord_neu)
-            coords_neu = pd.DataFrame(coord_neu, columns=['x', 'y', 'z'])
+            coords_neu = pd.DataFrame(coord_neu, columns=['wx', 'wy', 'wz'])
             # df.loc[(df['id'] == row['id']) & (df['corner'] == row['corner']),
             #       ['x', 'y']] = coord_neu[:2]
             Logger().info(f"Korrigiere {row['id']} {row['corner']}")
-            zscore = np.abs(stats.zscore(coords_neu[["x", "y", "z"]]))
+            zscore = np.abs(stats.zscore(coords_neu[["wx", "wy", "wz"]]))
             # print(zscore)
             Logger().debug(zscore)
             # Identify outliers as students with a z-score greater than 3
             threshold = 2
             coords_neu = coords_neu[zscore <= threshold].dropna()
             Logger().debug(coords_neu.mean())
-            Logger().debug(group[['xw', 'yw', 'zw']])
+            Logger().debug(group[['wx', 'wy', 'wz']])
 
-            self.__marker_coords[row['id']][row['corner']] = (
-                coords_neu['x'].mean(), coords_neu['y'].mean(), coords_neu['z'].mean())
+            neu = coords_neu.mean().to_numpy()
+            self.__marker_coords.at[(row['id'], row['corner']), 'wx'] = neu[0]
+            self.__marker_coords.at[(row['id'], row['corner']), 'wy'] = neu[1]
+            self.__marker_coords.at[(row['id'], row['corner']), 'wz'] = neu[2]
 
-            Logger().info(
-                f"Korrigiert: {self.__marker_coords[row['id']][row['corner']]}")
+            # row['id']) & (
+            #   self.__marker_coords['corner'] == row['corner']), ['wx', 'wy', 'wz']] = coords_neu.mean().to_numpy()
+            # self.__marker_coords[row['id']][row['corner']] = (
+            #    coords_neu['wx'].mean(), coords_neu['wy'].mean(), coords_neu['wz'].mean())
+
             Logger().debug(
-                f"Original: {group[['xw', 'yw', 'zw']].mean().to_numpy()}")
+                f"Original: {group[['wx', 'wy', 'wz']].mean().to_numpy()}")
             Logger().debug(self.__marker_coords)
             something_changed = True
+        return something_changed
 
-        if something_changed:
-            Logger().info("Some coordinates have changed")
-            cameras, df = self.__check_marker_position()
-
-        self.__is_filtered = True
-
-    def __check_marker_position(self) -> tuple[dict[str, dict[str, np.ndarray]], pd.DataFrame]:
+    def __check_marker_position(self) -> dict[str, dict[str, np.ndarray]]:
         """
         Check the marker positions and filter them if necessary.
 
@@ -153,58 +243,45 @@ class MarkerChecker:
         df = self.__create_dataframe()
         if len(df) == 0:
             Logger().warning("No data to process")
-            return {}, df
-
+            return {}
         cameras = {}
 
-        for (hostname, lensposition), group in df[df["xw"] != None].groupby(['hostname', 'LensPosition']):
+        for (hostname, lensposition), group in df[df["wx"] != None].groupby(['hostname', 'LensPosition']):  # noqa: E711
             Logger().debug(f"Processing {hostname}")
             cameraMatrix, distCoeffs = self.__camera_matrix(lensposition)
-            objp = group[['xw', 'yw', 'zw']].to_numpy(dtype=np.float32)
+            objp = group[['wx', 'wy', 'wz']].to_numpy(dtype=np.float32)
             imgp = group[['x', 'y']].to_numpy(dtype=np.float32)
-            ret, rvecs, tvecs, inliner = cv2.solvePnPRansac(
+            ret, rvecs, tvecs, inlier = cv2.solvePnPRansac(
                 objp, imgp, cameraMatrix, distCoeffs, reprojectionError=10.0)
             cameras[hostname] = {'cameraMatrix': cameraMatrix,
                                  'distCoeffs': distCoeffs, 'rvecs': rvecs, 'tvecs': tvecs}
-            for i, ind in enumerate(group.index):
-                if inliner is None:
-                    df.at[ind, 'inlier'] = False
-                if i in inliner:
-                    df.at[ind, 'inlier'] = True
-                else:
-                    df.at[ind, 'inlier'] = False
+            rVec = rvecs[:, 0]
+            rMat = cv2.Rodrigues(rVec)[0]
+            R = np.linalg.inv(rMat)
+            t = tvecs[:, 0].T
+            t = -R@t
+            rVecEuler = self.rotationMatrixToEuler(R)
+            self.__cameras[hostname] = {
+                "x": t[0], "y": t[1], "z": t[2], "roll": rVecEuler[0], "pitch": rVecEuler[1], "yaw": rVecEuler[2]}
 
-        self.__marker_pos = {str(hostname): [{'id': row['id'], 'corner': row['corner'], 'x': row['x'], 'y': row['y']}
-                                             for _, row in group.iterrows()] for hostname, group in df[df['inlier'] == True].groupby(['hostname'])}
-        # df.to_excel('tests/debug_positions.xlsx')
-        return cameras, df
+            for i, ind in enumerate(group.index):
+                id = df.at[ind, 'id']
+                corner = df.at[ind, 'corner']
+                is_inlier = False
+                if inlier is not None and i in inlier:
+                    is_inlier = True
+                self.__marker_pos.loc[(
+                    hostname, id, corner), 'inlier'] = is_inlier
+        return cameras
 
     def __create_dataframe(self) -> pd.DataFrame:
-        data = []
+        return pd.merge(self.__marker_pos.reset_index(), self.__marker_coords.reset_index(),
+                        left_on=['id', 'corner'],
+                        right_on=['id', 'corner'], how='outer'). \
+            merge(self.__metadata.reset_index(), left_on='hostname',
+                  right_on='hostname')
 
-        for hostname, positions in self.__marker_pos.items():
-            Logger().debug(f"Processing {hostname}")
-
-            lenspos = self.__metadata[hostname]['LensPosition']
-            for pos in positions:
-                c = [None, None, None]
-                if not pos['id'] in self.__marker_coords:
-                    Logger().warning(
-                        f"Marker {pos['id']} not found in marker_coords")
-                elif not pos['corner'] in self.__marker_coords[pos['id']]:
-                    Logger().warning(
-                        f"Corner {pos['corner']} not found in marker_coords[{pos['id']}]")
-                else:
-                    c = self.__marker_coords[pos['id']][pos['corner']]
-                data.append([hostname, pos['id'], pos['corner'], lenspos, pos['x'],
-                            pos['y'], c[0], c[1], c[2]])
-
-        df: pd.DataFrame = pd.DataFrame(data, columns=['hostname',
-                                                       'id', 'corner', 'LensPosition', 'x', 'y', 'xw', 'yw', 'zw']).astype({'hostname': str, 'id': 'int32', 'corner': 'int32', 'LensPosition': 'float32', 'x': 'float32', 'y': 'float32', 'xw': 'float32', 'yw': 'float32', 'zw': 'float32'})
-        df['inlier'] = None
-        return df
-
-    def get_corrected_coordinates(self) -> dict[int, dict[int, tuple[float, float, float]]]:
+    def get_corrected_coordinates(self) -> dict[int, ArucoMarkerCorners]:
         """
         Get the corrected marker coordinates.
 
@@ -213,7 +290,16 @@ class MarkerChecker:
         """
         if not self.__is_filtered:
             self.check()
-        return self.__marker_coords
+        d = {}
+        for id, corners in self.__marker_coords.reset_index().groupby('id'):
+            d[id] = ArucoMarkerCorners()
+            for _, coord in corners.iterrows():
+                d[id][int(coord['corner'])] = Point3D(
+                    coord['wx'], coord['wy'], coord['wz'])
+                # Logger().info(
+                #    f"ID: {id} Corner: {coord['corner']} Coord: {coord['wx']} {coord['wy']} {coord['wz']}")
+
+        return d
 
     def get_filtered_positions(self) -> dict[str, list[ArucoMarkerPos]]:
         """
@@ -224,4 +310,69 @@ class MarkerChecker:
         """
         if not self.__is_filtered:
             self.check()
-        return self.__marker_pos
+        d = {}
+
+        group = self.__marker_pos[self.__marker_pos['inlier']
+                                  != False].reset_index().groupby('hostname')  # noqa: E712
+
+        for hostname, positions in group:
+            d[hostname] = []
+            for _, pos in positions.iterrows():
+                d[hostname].append(
+                    {'id': pos['id'], 'corner': pos['corner'], 'x': pos['x'], 'y': pos['y']})
+        return d
+
+    def get_cameras(self) -> dict[str, CameraExterior]:
+        """
+        Get the cameras.
+
+        Returns:
+            A dictionary containing the cameras.
+        """
+        return self.__cameras
+
+    def rotationMatrixToEuler(self, R: np.ndarray) -> np.ndarray:
+        """
+        Converts a rotation matrix to Euler angles.
+        from: https://learnopencv.com/rotation-matrix-to-euler-angles/
+
+        Args:
+            R: The rotation matrix.
+
+        Returns:
+            The Euler angles.
+        """
+        if not self.isRotationMatrix(R):
+            raise ValueError("Not a valid rotation matrix")
+
+        sy = np.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+
+        singular = sy < 1e-6
+
+        if not singular:
+            x = np.arctan2(R[2, 1], R[2, 2])
+            y = np.arctan2(-R[2, 0], sy)
+            z = np.arctan2(R[1, 0], R[0, 0])
+        else:
+            x = np.arctan2(-R[1, 2], R[1, 1])
+            y = np.arctan2(-R[2, 0], sy)
+            z = 0
+
+        return np.array([x, y, z])
+
+    def isRotationMatrix(self, R: np.ndarray) -> bool:
+        """
+        Check if a matrix is a valid rotation matrix.
+        from: https://learnopencv.com/rotation-matrix-to-euler-angles/
+
+        Args:
+            R: The rotation matrix.
+
+        Returns:
+            A boolean indicating if the matrix is a valid rotation matrix.
+        """
+        rt = np.transpose(R)
+        shouldBeIdentity = np.dot(rt, R)
+        ident = np.identity(3, dtype=R.dtype)
+        n = np.linalg.norm(ident - shouldBeIdentity)
+        return n < 1e-6  # type: ignore

@@ -37,7 +37,7 @@ from master.focus_stack import focus_stack
 from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
-from common.typen import ArucoMarkerPos, ArucoMetaBroadcast
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, Metadata, Point3D, ArucoMarkerCorners
 from common.conf import Conf
 
 
@@ -52,8 +52,8 @@ class Control:
     __pending_photo_types: dict[str, Literal["photo", "stack"]] = {}
     __cams_in_standby = True
     __desktop_message_queue: Queue[str] = Queue()
-    __marker: dict[int, dict[int, tuple[float, float, float]]] = {}
-    __metadata: dict[str, dict[str, dict[str, int | float]]] = {}
+    __marker: dict[int, ArucoMarkerCorners] = {}
+    __metadata: dict[str, dict[str, Metadata]] = {}
 
     def __init__(self,  app: Flask) -> None:
         self.__webapp = app
@@ -65,6 +65,7 @@ class Control:
         self.__led_control = LedControl(self)
         self.__button_control = ButtonControl(self)
         self.__load_markers()
+        Logger().info("Control started!")
 
     def start(self):
         self.thread_webinterface = StoppableThread(
@@ -87,7 +88,8 @@ class Control:
         if send_search:
             self.send_to_all('search')
 
-    def capture_photo(self, action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
+    def capture_photo(self, action: Literal['photo', 'stack'] = "photo",
+                      id: str = "") -> str:
         if len(self.__list_of_cameras) == 0:
             self.send_to_desktop("No cameras found!")
             return "No cameras found!"
@@ -105,8 +107,7 @@ class Control:
             (4 if action == "stack" else 1)
         self.__pending_photo_count[id] = photo_count
         self.__pending_download_count[id] = photo_count
-        if action == "photo":
-            self.__pending_aruco_count[id] = photo_count
+        self.__pending_aruco_count[id] = photo_count
         self.__pending_photo_types[id] = action
         self.send_to_all(f'{action}:{id}')
 
@@ -115,7 +116,8 @@ class Control:
 
     def send_to_all(self, msg_str: str) -> None:
         msg = msg_str.encode("utf-8")
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as sock:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                           socket.IPPROTO_UDP) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             sock.sendto(msg, ("255.255.255.255", int(
                 self.__conf['both']['BroadCastPort'])))
@@ -126,9 +128,14 @@ class Control:
         self.__list_of_cameras[hostname] = ip
         self.__led_control.status_led(5)
 
-    def receive_photo(self, ip: str, id: str, filename: str) -> None:
+    def receive_photo(self, ip: str, id_lens: str, filename: str) -> None:
         global photo_count
         Logger().info("Photo received: %s", filename)
+        id = id_lens.split("_")[0]
+        Logger().info("Photo received: ID %s", id)
+        if id not in self.__pending_photo_count:
+            Logger().info("Error: Photo not requested!")
+            return
         self.__pending_photo_count[id] -= 1
         hostname = self.__get_hostname(ip)
         if len(hostname) > 0:
@@ -143,7 +150,8 @@ class Control:
             del self.__pending_photo_count[id]
             Logger().info("All photos taken!")
 
-    def __download_photo(self, ip: str, id: str, name: str, hostname: str) -> None:
+    def __download_photo(self, ip: str, id: str,
+                         name: str, hostname: str) -> None:
         """ collect photos """
         global download_count
         Logger().info("Downloading photo...")
@@ -184,11 +192,17 @@ class Control:
         for i in imgs:
             name = basename(i)
             name = name.split("_")[0]
-            if not name in groups:
+            if name not in groups:
                 groups[name] = []
             groups[name].append(imread(i))  # type: ignore
         for camera, bilder in groups.items():
             imwrite(folder + camera + ".jpg", focus_stack(bilder))
+
+    def find_aruco(self):
+        Logger().info("Searching for Aruco...")
+        id = str(uuid.uuid4())
+        self.send_to_all('aruco:' + id)
+        self.__pending_aruco_count[id] = len(self.__list_of_cameras)
 
     def receive_aruco(self, data: str) -> None:
         i1: int = data.find(":")
@@ -196,13 +210,13 @@ class Control:
         id: str = data[:i1]
 
         hostname: str = data[i1+1:i1+i2+1]
-        if not id in self.__detected_markers:
+        if id not in self.__detected_markers:
             self.__detected_markers[id] = {}
-        if not id in self.__metadata:
+        if id not in self.__metadata:
             self.__metadata[id] = {}
         j: ArucoMetaBroadcast = json_loads(data[i1+i2+2:])
         aruco = j['aruco']
-        meta = j['meta']
+        meta: Metadata = j['meta']  # type: ignore
         self.__detected_markers[id][hostname] = aruco
         self.__metadata[id][hostname] = meta
         self.__pending_aruco_count[id] -= 1
@@ -219,12 +233,25 @@ class Control:
                 self.__marker, self.__detected_markers[id], self.__metadata[id])
             self.__detected_markers[id] = filter.get_filtered_positions()
             self.__marker = filter.get_corrected_coordinates()
+            cameras = filter.get_cameras()
 
             json_dump(self.__detected_markers[id], open(
                 folder + 'aruco.json', "w"), indent=2)
 
-            json_dump(self.__marker, open(
+            marker = {}
+            for pid, corners in self.__marker.items():
+                marker[pid] = {}
+                for corner, pos in enumerate(corners):
+                    if pos is None:
+                        continue
+                    marker[pid][corner] = [pos.x,  pos.y,  pos.z]
+            Logger().info("Marker: %s", marker)
+
+            json_dump(marker, open(
                 folder + 'marker.json', "w"), indent=2)
+
+            json_dump(cameras, open(
+                folder + 'cameras.json', "w"), indent=2)
 
             self.send_to_desktop(
                 f"aruco:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
@@ -232,34 +259,38 @@ class Control:
                 f"meta:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
             self.send_to_desktop(
                 f"marker:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/marker.json")
+            self.send_to_desktop(
+                f"cameras:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/cameras.json")
 
-    def set_marker_from_csv(self, file) -> None:
+    def set_marker_from_csv(self, file, save=True) -> None:
         m = pd.read_csv(file)
 
         for _, r in m.iterrows():
             id = int(r['id'])
 
-            if not id in self.__marker:
-                self.__marker[id] = {}
+            if id not in self.__marker:
+                self.__marker[id] = ArucoMarkerCorners()
             c = int(r['corner'])
-            self.__marker[id][c] = (r['x'], r['y'], r['z'])
-        Logger().info(self.__marker)
-        self.__save_markers()
+            self.__marker[id][c] = Point3D(r['x'], r['y'], r['z'])
+        if save:
+            self.__save_markers()
 
     def __save_markers(self, ) -> None:
         with open(self.__conf['server']['Folder'] + "marker.csv", "w") as f:
             f.write("id,corner,x,y,z\n")
             for id, corners in self.__marker.items():
-                for corner, pos in corners.items():
-                    f.write(f"{id},{corner},{pos[0]},{pos[1]},{pos[2]}\n")
+                for corner, pos in enumerate(corners):
+                    if pos is None:
+                        continue
+                    f.write(f"{id},{corner},{pos.x},{pos.y},{pos.z}\n")
 
     def __load_markers(self, ) -> None:
         try:
             self.set_marker_from_csv(
-                self.__conf['server']['Folder'] + "marker.csv")
+                self.__conf['server']['Folder'] + "marker.csv", False)
             Logger().info("Marker loaded!")
-        except:
-            pass
+        except Exception as e:
+            Logger().error("Error loading marker! %s", e)
 
     def switch_pause_resume(self, ):
         if self.__cams_in_standby:
