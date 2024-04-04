@@ -87,8 +87,13 @@ class MarkerChecker:
             A dataframe containing the metadata.
         """
         # read metadata
-        pdm = pd.DataFrame.from_dict(metadata, orient='index', dtype='float32').reset_index().rename(
-            columns={'index': 'hostname'}).astype({'hostname': str}).set_index('hostname')
+        data = []
+        for hostname, meta in metadata.items():
+            if 'LensPosition' not in meta:
+                continue
+            data.append([hostname, meta['LensPosition']])
+        pdm = pd.DataFrame(
+            data, columns=['hostname', 'LensPosition']).set_index('hostname')
         return pdm
 
     def __camera_matrix(self, lens_position: float, c_offset: float = 0, cx_offset: float = 0, cy_offset: float = 0) -> tuple[np.ndarray, np.ndarray]:
