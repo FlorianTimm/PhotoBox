@@ -244,8 +244,7 @@ class Control:
                 for corner, pos in enumerate(corners):
                     if pos is None:
                         continue
-                    marker[pid][corner] = {
-                        "x": pos.x, "y": pos.y, "z": pos.z}
+                    marker[pid][corner] = [pos.x,  pos.y,  pos.z]
             Logger().info("Marker: %s", marker)
 
             json_dump(marker, open(
