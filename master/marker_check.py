@@ -143,6 +143,9 @@ class MarkerChecker:
         # Replace with True if mode is a list (Number of outliers = Number of inliers)
         t['mode'] = t['mode'].apply(
             lambda x: True if isinstance(x, list) else x)
+
+        Logger().info(t)
+
         t = t[t['count'] > 2]
         t = t[~t['mode']].reset_index()
 
