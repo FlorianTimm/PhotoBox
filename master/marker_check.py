@@ -260,16 +260,11 @@ class MarkerChecker:
             for i, ind in enumerate(group.index):
                 id = df.at[ind, 'id']
                 corner = df.at[ind, 'corner']
-                if inlier is None:
-                    self.__marker_pos.at[(
-                        hostname, id, corner)]['inlier'] = False
-                elif i in inlier:
-                    self.__marker_pos.at[(
-                        hostname, id, corner), 'inlier'] = True
-                else:
-                    self.__marker_pos.at[(
-                        hostname, id, corner), 'inlier'] = False
-
+                is_inlier = False
+                if inlier is not None and i in inlier:
+                    is_inlier = True
+                self.__marker_pos.loc[(
+                    hostname, id, corner), 'inlier'] = is_inlier
         return cameras
 
     def __create_dataframe(self) -> pd.DataFrame:
