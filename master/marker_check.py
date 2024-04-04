@@ -296,6 +296,9 @@ class MarkerChecker:
             for _, coord in corners.iterrows():
                 d[id][int(coord['corner'])] = Point3D(
                     coord['wx'], coord['wy'], coord['wz'])
+                Logger().info(
+                    f"ID: {id} Corner: {coord['corner']} Coord: {coord['wx']} {coord['wy']} {coord['wz']}")
+
         return d
 
     def get_filtered_positions(self) -> dict[str, list[ArucoMarkerPos]]:
