@@ -140,8 +140,11 @@ class MarkerChecker:
         # check outliers on wrong coordinates
         t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
+        # Replace with True if mode is a list (Number of outliers = Number of inliers)
+        t['mode'] = t['mode'].apply(
+            lambda x: True if isinstance(x, list) else x)
         t = t[t['count'] > 2]
-        t = t[~t['mode']].reset_index()  # noqa: E712
+        t = t[~t['mode']].reset_index()
 
         Logger().info(t)
 
