@@ -141,7 +141,7 @@ class MarkerChecker:
         t = self.__marker_pos.groupby(['id', 'corner'])['inlier'].agg(
             [pd.Series.count, pd.Series.mode])
         t = t[t['count'] > 2]
-        t = t[t['mode'] == False].reset_index()  # noqa: E712
+        t = t[~t['mode']].reset_index()  # noqa: E712
 
         Logger().info(t)
 
