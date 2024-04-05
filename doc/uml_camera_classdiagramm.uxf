@@ -32,7 +32,7 @@
 //- __dict: Dictionary
 --
 + detect_from_rgb(image: bytes): list[ArucoMarkerPos]
-+ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>490</x><y>90</y><w>380</w><h>350</h></coordinates><panel_attributes>CameraInterface
++ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>450</x><y>130</y><w>380</w><h>350</h></coordinates><panel_attributes>CameraInterface
 --
 //- __cam: Picamera2
 //- __rgb_config: dict[str, Any]
@@ -63,6 +63,6 @@
 + focus(focus: float): str
 //- __get_status(): dict[str, Any]
 //- __capture_photo(settings: CamSettings): tuple[CompletedRequest, Metadata, CamSettings]
-//- __request_capture_with_meta(): tuple[CompletedRequest, Metadata</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>350</x><y>160</y><w>160</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>260</y><w>110</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>90;10;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>70</x><y>0</y><w>210</w><h>70</h></coordinates><panel_attributes>Camera
+//- __request_capture_with_meta(): tuple[CompletedRequest, Metadata</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>350</x><y>160</y><w>120</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>100;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>820</x><y>260</y><w>150</w><h>70</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>130;10;10;50</additional_attributes></element><element><id>UMLClass</id><coordinates><x>70</x><y>0</y><w>210</w><h>70</h></coordinates><panel_attributes>Camera
 --
         </panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>150</x><y>60</y><w>30</w><h>90</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;70;10;10</additional_attributes></element></diagram>
