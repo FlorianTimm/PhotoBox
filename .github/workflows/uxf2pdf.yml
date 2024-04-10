@@ -1,0 +1,27 @@
+name: Build PDFs of UML-Diagramms
+on: [push]
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v4
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4.2.1
+      - name: Download umlet
+        run: wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O umlet.zip
+      - name: Unzip
+        run: unzip umlet.zip
+      - name: Ordner
+        run: mkdir doc_pdf
+      - name: Run
+        run: java -jar Umlet/umlet.jar -action=convert -format=pdf -filename=doc/*.uxf -output=doc_pdf
+      - name: Zip
+        run: zip -r doc_pdf.zip doc_pdf/*
+      - name: Upload PDF file
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZIP
+          path: doc_pdf.zip
+      
+        
