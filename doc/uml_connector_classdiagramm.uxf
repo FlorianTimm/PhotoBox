@@ -1,15 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<diagram program="umlet" version="15.1">
-  <zoom_level>10</zoom_level>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>500</x>
-      <y>10</y>
-      <w>250</w>
-      <h>330</h>
-    </coordinates>
-    <panel_attributes>::Connector
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>270</x><y>0</y><w>250</w><h>330</h></coordinates><panel_attributes>::Connector
 --
 --
 +Connector(String[] args): ctor
@@ -29,18 +18,7 @@
 +getDirectory(): File
 +setDirectory(File directory): void
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>860</x>
-      <y>550</y>
-      <w>320</w>
-      <h>190</h>
-    </coordinates>
-    <panel_attributes>::MetashapeClient
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>630</x><y>540</y><w>320</w><h>190</h></coordinates><panel_attributes>::MetashapeClient
 --
 --
 +MetashapeClient(Connector connector): ctor
@@ -52,18 +30,7 @@
 +status(String status): void
 +aborted(): boolean
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1200</x>
-      <y>550</y>
-      <w>280</w>
-      <h>120</h>
-    </coordinates>
-    <panel_attributes>::ODMClient
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>970</x><y>540</y><w>280</w><h>120</h></coordinates><panel_attributes>::ODMClient
 --
 --
 +ODMClient(Connector connector): ctor
@@ -71,18 +38,7 @@
 +disconnect(): boolean
 +createProject(String filename): boolean
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>230</x>
-      <y>400</y>
-      <w>440</w>
-      <h>120</h>
-    </coordinates>
-    <panel_attributes>::PhotoBoxClient
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>0</x><y>390</y><w>440</w><h>120</h></coordinates><panel_attributes>::PhotoBoxClient
 --
 --
 +PhotoBoxClient(String host, int port, Connector connector): ctor
@@ -90,18 +46,7 @@
 +takePhoto(): void
 +disconnect(): boolean
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>880</x>
-      <y>220</y>
-      <w>280</w>
-      <h>120</h>
-    </coordinates>
-    <panel_attributes>&lt;&lt;interface&gt;&gt;
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>650</x><y>210</y><w>280</w><h>120</h></coordinates><panel_attributes>&lt;&lt;interface&gt;&gt;
 ::SfmClient
 --
 --
@@ -109,115 +54,24 @@
 +disconnect(): boolean
 +createProject(String filename): boolean
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>860</x>
-      <y>10</y>
-      <w>300</w>
-      <h>110</h>
-    </coordinates>
-    <panel_attributes>::ConnectorGUI
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>630</x><y>0</y><w>300</w><h>110</h></coordinates><panel_attributes>::ConnectorGUI
 --
 --
 +ConnectorGUI(Connector connector): ctor
 +setConnected(): void
 +setDisconnected(): void
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>560</x>
-      <y>550</y>
-      <w>280</w>
-      <h>110</h>
-    </coordinates>
-    <panel_attributes>::DownloadClient
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>330</x><y>540</y><w>280</w><h>110</h></coordinates><panel_attributes>::DownloadClient
 --
 --
 +connect(): boolean
 +disconnect(): boolean
 +createProject(String filename): boolean
 --
-</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1020</x>
-      <y>330</y>
-      <w>30</w>
-      <h>240</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;220.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>700</x>
-      <y>330</y>
-      <w>240</w>
-      <h>240</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>220.0;10.0;220.0;100.0;10.0;100.0;10.0;220.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1110</x>
-      <y>330</y>
-      <w>260</w>
-      <h>240</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;100.0;240.0;100.0;240.0;220.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>740</x>
-      <y>60</y>
-      <w>140</w>
-      <h>40</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>790</x><y>320</y><w>30</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>320</y><w>240</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>220;10;220;100;10;100;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>880</x><y>320</y><w>260</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;100;240;100;240;220</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>50</y><w>140</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-m2=1</panel_attributes>
-    <additional_attributes>120.0;10.0;10.0;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>740</x>
-      <y>230</y>
-      <w>160</w>
-      <h>40</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-
+m2=1</panel_attributes><additional_attributes>120;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>220</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-m2=1</panel_attributes>
-    <additional_attributes>140.0;10.0;10.0;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>460</x>
-      <y>330</y>
-      <w>160</w>
-      <h>90</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-
+m2=1</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>230</x><y>320</y><w>160</w><h>90</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-m2=1</panel_attributes>
-    <additional_attributes>10.0;70.0;10.0;30.0;130.0;30.0;130.0;10.0</additional_attributes>
-  </element>
-</diagram>
+m2=1</panel_attributes><additional_attributes>10;70;10;30;130;30;130;10</additional_attributes></element></diagram>
