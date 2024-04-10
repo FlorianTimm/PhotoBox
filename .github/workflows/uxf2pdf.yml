@@ -31,7 +31,7 @@ jobs:
           target-github-username: "FlorianTimm"
           target-github-repository: "PhotoBox_Thesis"
           target-github-branch: "main"
-          target-directory: "thesis/img/uml"
+          target-directory: "img/uml"
           commit-message: ${{ github.event.head_commit.message }}
       
         
