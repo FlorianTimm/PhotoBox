@@ -35,8 +35,7 @@ jobs:
           path: thesis
           sparsecheckout: img/uml
       - name: Copy
-        run: mv doc_pdf/*.pdf thesis/img/uml/
-            - name: Upload PDF file
+        run: mv -f doc_pdf/*.pdf thesis/img/uml/
       - name: Save
         uses: actions/upload-artifact@v4
         with:
