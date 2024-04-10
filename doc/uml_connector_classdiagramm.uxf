@@ -54,7 +54,7 @@
 +disconnect(): boolean
 +createProject(String filename): boolean
 --
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>630</x><y>0</y><w>300</w><h>110</h></coordinates><panel_attributes>::ConnectorGUI
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>650</x><y>0</y><w>300</w><h>110</h></coordinates><panel_attributes>::ConnectorGUI
 --
 --
 +ConnectorGUI(Connector connector): ctor
@@ -68,9 +68,9 @@
 +disconnect(): boolean
 +createProject(String filename): boolean
 --
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>790</x><y>320</y><w>30</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>320</y><w>240</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>220;10;220;100;10;100;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>880</x><y>320</y><w>260</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;100;240;100;240;220</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>50</y><w>140</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>790</x><y>320</y><w>30</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>320</y><w>240</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>220;10;220;100;10;100;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>880</x><y>320</y><w>260</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;100;240;100;240;220</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>50</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-m2=1</panel_attributes><additional_attributes>120;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>220</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
+m2=1</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>220</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
 m2=1</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>230</x><y>320</y><w>160</w><h>90</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
