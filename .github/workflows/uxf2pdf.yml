@@ -35,13 +35,19 @@ jobs:
           repository: FlorianTimm/PhotoBox_Thesis
           path: thesis
           sparse-checkout: |
-            img/uml
+           img/uml
       - name: Copy
         run: mv -f doc_pdf/*.pdf thesis/img/uml/
-      - name: Save
-        uses: actions/upload-artifact@v4
+      - name: Push to Thesis
+        uses: markjivko/push-to-github@main
+        env:
+          GITHUB_SSH_KEY: ${{ secrets.THESIS_PRIVATE_SSH_KEY }}
         with:
-          name: thesis
-          path: thesis
+          source-directory: "thesis/img/uml"
+          target-github-username: "FlorianTimm"
+          target-github-repository: "PhotoBox_Thesis"
+          target-github-branch: "main"
+          target-directory: "thesis/img/uml"
+          commit-message: ${{ github.event.head_commit.message }}
       
         
