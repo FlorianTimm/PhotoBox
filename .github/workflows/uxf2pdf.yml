@@ -22,12 +22,6 @@ jobs:
         run: mkdir doc_pdf
       - name: Run
         run: java -jar Umlet/umlet.jar -action=convert -format=pdf -filename=doc/*.uxf -output=doc_pdf
-      - name: Upload PDF file
-        uses: actions/upload-artifact@v4
-        with:
-          name: doc_pdf
-          path: doc_pdf/*.pdf
-
       - name: Checkout Thesis
         uses: actions/checkout@v4
         with:
