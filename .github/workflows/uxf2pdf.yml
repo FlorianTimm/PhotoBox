@@ -1,8 +1,8 @@
 name: Build PDFs of UML-Diagramms
 on:
-  [push]
-   # paths:
-    #  - doc/*.uxf
+  push:
+    paths:
+      - doc/*.uxf
 jobs:
   umlet_uxf2pdf:
     runs-on: ubuntu-latest
