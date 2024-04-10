@@ -46,7 +46,7 @@
 +takePhoto(): void
 +disconnect(): boolean
 --
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>650</x><y>210</y><w>280</w><h>120</h></coordinates><panel_attributes>&lt;&lt;interface&gt;&gt;
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>650</x><y>200</y><w>280</w><h>120</h></coordinates><panel_attributes>&lt;&lt;interface&gt;&gt;
 ::SfmClient
 --
 --
@@ -68,9 +68,9 @@
 +disconnect(): boolean
 +createProject(String filename): boolean
 --
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>790</x><y>320</y><w>30</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>320</y><w>240</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>220;10;220;100;10;100;10;220</additional_attributes></element><element><id>Relation</id><coordinates><x>880</x><y>320</y><w>260</w><h>240</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;100;240;100;240;220</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>50</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>790</x><y>310</y><w>30</w><h>250</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;230</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>310</y><w>240</w><h>250</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>220;10;220;110;10;110;10;230</additional_attributes></element><element><id>Relation</id><coordinates><x>880</x><y>310</y><w>260</w><h>250</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;110;240;110;240;230</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>50</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-m2=1</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>220</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
+m2=1</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>510</x><y>250</y><w>160</w><h>40</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
 m2=1</panel_attributes><additional_attributes>140;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>230</x><y>320</y><w>160</w><h>90</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
