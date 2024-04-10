@@ -33,7 +33,7 @@ jobs:
         with:
           repository: FlorianTimm/PhotoBox_Thesis
           path: thesis
-          sparsecheckout: img/uml
+          sparse-checkout: img/uml
       - name: Copy
         run: mv -f doc_pdf/*.pdf thesis/img/uml/
       - name: Save
