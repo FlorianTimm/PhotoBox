@@ -1,6 +1,6 @@
 # PhotoBox
 
-Es handelt sich bei diesem Projekt um eine Masterthesis im Studiengang Geodäsie und Geoinformatik an der HafenCity Universität Hamburg. Dieses Repository enthält den Quellcode hierzu. Die Dokumentation in Form der Thesis befindet sich im Repository [https://github.com/FlorianTimm/PhotoBox_Thesis]().
+Es handelt sich bei diesem Projekt um eine Masterthesis im Studiengang Geodäsie und Geoinformatik an der HafenCity Universität Hamburg. Dieses Repository enthält den Quellcode hierzu. Die Dokumentation in Form der Thesis befindet sich im Repository [https://github.com/FlorianTimm/PhotoBox_Thesis].
 
 ## Ordnerstruktur
 
