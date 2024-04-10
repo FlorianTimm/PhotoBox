@@ -1,7 +1,10 @@
 name: Build PDFs of UML-Diagramms
-on: [push]
+on:
+  push:
+    paths:
+      - doc/*.uxf
 jobs:
-  build_latex:
+  umlet_uxf2pdf:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
@@ -24,7 +27,19 @@ jobs:
       - name: Upload PDF file
         uses: actions/upload-artifact@v4
         with:
-          name: ZIP
-          path: doc_pdf.zip
+          name: doc_pdf
+          path: doc_pdf/*.pdf
+      - name: Push to Thesis
+        uses: markjivko/push-to-github@main
+        env:
+          GITHUB_SSH_KEY: ${{ secrets.THESIS_PRIVATE_SSH_KEY }}
+        with:
+          source-directory: "doc_pdf"
+          target-github-username: "FlorianTimm"
+          target-github-repository: "PhotoBox_Thesis"
+          target-github-branch: "main"
+          commit-email: "111111111+user@users.noreply.github.com"
+          commit-name: "John Doe"
+          commit-message: ${{ github.event.head_commit.message }}
       
         
