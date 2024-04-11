@@ -9,6 +9,7 @@
 from re import findall
 from time import sleep
 from typing import TYPE_CHECKING
+
 from common.logger import Logger
 from common.conf import Conf
 
@@ -16,16 +17,21 @@ from common.conf import Conf
 if TYPE_CHECKING:
     from master.control import Control
 
-led_available = False
+NeoPixel = None
+D18 = None
+Pin = None
+NeoPixelRGB = None
 try:
     from neopixel import NeoPixel, RGB as NeoPixelRGB  # type: ignore
     from board import D18  # type: ignore
     from adafruit_blinka.microcontroller.generic_linux.libgpiod_pin import Pin  # type: ignore
     led_available = True
-except ImportError:
+except ImportError or NotImplementedError:
     Logger().warning("GPIO not available")
-except NotImplementedError:
-    Logger().warning("GPIO not available")
+    NeoPixel = None
+    D18 = None
+    Pin = None
+    NeoPixelRGB = None
 
 
 class LedControl:
@@ -73,14 +79,13 @@ class LedControl:
         global __gpio_available
         self.__conf = Conf().get()
         self.__control = control
-        self.__led_available = led_available
 
         self.__pixels = None
 
-        if self.__led_available and D18 and NeoPixel and Pin:
+        if D18 and NeoPixel and Pin:
             self.__leds: list[int] = [int(v)
                                       for v in self.__conf['server']['leds'].split(",")]
-            pixel_pin: Pin = D18
+            pixel_pin = D18
             self.__num_pixels: int = len(self.__leds)
 
             self.__pixels = NeoPixel(
@@ -134,7 +139,7 @@ class LedControl:
         Returns:
             None
         """
-        if not self.__led_available or not self.__pixels or self.__pixels is None:
+        if self.__pixels is None:
             return
         self.__pixels.fill(color)
 
@@ -148,7 +153,7 @@ class LedControl:
         Returns:
             None
         """
-        if not self.__pixels:
+        if self.__pixels is None:
             return
 
         for led, pi in enumerate(self.__leds):
@@ -189,7 +194,7 @@ class LedControl:
         Returns:
             None
         """
-        if not self.__pixels:
+        if self.__pixels is None:
             return
         self.switch_off()
         while not self.__control.get_cams_started():
