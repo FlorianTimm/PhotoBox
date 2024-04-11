@@ -3,6 +3,7 @@ package photobox.odm;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +16,18 @@ import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.common.RationalNumber;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputField;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
@@ -323,6 +336,27 @@ public class ODMClient implements SfmClient {
         } else {
             this.connector.log("Task " + taskId + " failed");
         }
+    }
+
+    private File editExif(String filename, PbImage img) {
+        // vgl. https://github.com/mapillary/OpenSfM/blob/main/opensfm/exif.py#L59
+        try {
+            File file = new File(filename);
+            ImageMetadata meta = Imaging.getMetadata(file);
+            final JpegImageMetadata jpegMetadata = (JpegImageMetadata) meta;
+            TiffImageMetadata exif = jpegMetadata.getExif();
+            File tmp_file = File.createTempFile(filename, ".jpg");
+            TiffOutputSet outputSet = exif.getOutputSet();
+            TiffOutputDirectory dir = outputSet.getOrCreateRootDirectory();
+            dir.removeField(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT);
+            short focal35 = (short) Math.round(img.getFocalLength() / img.getCamera().getWidth() * 36.0);
+            dir.add(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT, focal35);
+            new ExifRewriter().updateExifMetadataLossless(file, new FileOutputStream(tmp_file), outputSet);
+            return tmp_file;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
