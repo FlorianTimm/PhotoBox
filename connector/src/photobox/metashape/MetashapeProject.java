@@ -52,8 +52,12 @@ public class MetashapeProject implements Progress {
             this.addPhotos();
             this.addMarkerCoordinates();
             this.addMarkerPositions();
-            this.saveProject();
-            this.orientPhotos();
+
+            if (this.connector.getCalculateModel()) {
+                this.saveProject();
+                this.orientPhotos();
+            }
+
             this.closeAndSaveProject();
         } catch (Exception e) {
             this.connector.log(e.getMessage());

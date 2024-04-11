@@ -8,6 +8,7 @@ import java.io.File;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -35,6 +36,8 @@ public class ConnectorGUI extends JFrame {
     private JButton photoButton;
     private JButton directoryButton;
     private JRadioButton rDownload;
+    private JMenuItem loadFolder;
+    private JCheckBox checkboxCalc;
 
     public ConnectorGUI(Connector connector) {
         super("PhotoBoxConnector");
@@ -53,8 +56,8 @@ public class ConnectorGUI extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
 
-        JMenuItem loadFolder = new JMenuItem("Load Pictures from Folder...");
-        loadFolder.addActionListener((e) -> {
+        this.loadFolder = new JMenuItem("Load Pictures from Folder...");
+        this.loadFolder.addActionListener((e) -> {
             JFileChooser fileChooser = new JFileChooser(connector.getDirectory());
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int option = fileChooser.showOpenDialog(this);
@@ -63,8 +66,8 @@ public class ConnectorGUI extends JFrame {
                 this.connector.processPhotos(file.getAbsolutePath());
             }
         });
-        menu.add(loadFolder);
-        loadFolder.setEnabled(false);
+        menu.add(this.loadFolder);
+        this.loadFolder.setEnabled(false);
 
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener((e) -> {
@@ -108,8 +111,7 @@ public class ConnectorGUI extends JFrame {
         this.rDownload.setSelected(connector.getSoftware().equals("Download"));
         left.add(this.rDownload);
         this.rDownload.addActionListener((e) -> {
-            loadFolder.setEnabled(false);
-            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+            this.switchSfm();
         });
 
         this.rMetashape = new JRadioButton("Agisoft Metashape");
@@ -117,8 +119,7 @@ public class ConnectorGUI extends JFrame {
         this.rMetashape.setSelected(connector.getSoftware().equals("Metashape"));
         left.add(this.rMetashape);
         this.rMetashape.addActionListener((e) -> {
-            loadFolder.setEnabled(true);
-            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+            this.switchSfm();
         });
 
         this.rODM = new JRadioButton("OpenDroneMap");
@@ -126,8 +127,7 @@ public class ConnectorGUI extends JFrame {
         this.rODM.setSelected(connector.getSoftware().equals("ODM"));
         left.add(this.rODM);
         this.rODM.addActionListener((e) -> {
-            loadFolder.setEnabled(true);
-            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+            this.switchSfm();
         });
 
         this.selectSfmSoftware = new ButtonGroup();
@@ -138,11 +138,17 @@ public class ConnectorGUI extends JFrame {
         this.connect = new JButton("Connect");
         this.connect.addActionListener((e) -> {
             connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+            connector.setCalculateModel(this.checkboxCalc.isSelected());
             connector.setHost(textHostname.getText());
             connector.setPort(Integer.parseInt(this.textPort.getText()));
             connector.toggleConnect();
         });
         left.add(this.connect);
+
+        this.checkboxCalc = new JCheckBox("Calculate Model");
+        this.checkboxCalc.setSelected(true);
+        this.checkboxCalc.setVisible(false);
+        left.add(this.checkboxCalc);
 
         JPanel top = new JPanel();
         top.setLayout(new BoxLayout(top, javax.swing.BoxLayout.X_AXIS));
@@ -191,6 +197,22 @@ public class ConnectorGUI extends JFrame {
         this.setVisible(true);
     }
 
+    public void switchSfm() {
+        this.checkboxCalc.setVisible(false);
+        this.connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+        if (this.rDownload.isSelected()) {
+            this.loadFolder.setEnabled(false);
+            return;
+        }
+        this.loadFolder.setEnabled(true);
+        if (this.rMetashape.isSelected()) {
+            this.checkboxCalc.setVisible(true);
+        }
+        if (this.rODM.isSelected()) {
+
+        }
+    }
+
     public void setConnected() {
         toggleInput(false);
         this.connect.setText("Disconnect");
@@ -205,8 +227,10 @@ public class ConnectorGUI extends JFrame {
         this.directoryButton.setEnabled(enabled);
         this.textHostname.setEnabled(enabled);
         this.textPort.setEnabled(enabled);
+        this.rDownload.setEnabled(enabled);
         this.rODM.setEnabled(enabled);
         this.rMetashape.setEnabled(enabled);
+        this.checkboxCalc.setEnabled(enabled);
         this.photoButton.setEnabled(!enabled);
     }
 

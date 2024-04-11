@@ -17,6 +17,7 @@ public class Connector {
     private SfmClient sfmClient;
     private String software = "Download";
     private File directory;
+    private boolean calcModel = true;
 
     public static void main(String[] args) {
         new Connector(args);
@@ -161,5 +162,13 @@ public class Connector {
 
     public void setDirectory(File directory) {
         this.directory = directory;
+    }
+
+    public void setCalculateModel(boolean selected) {
+        this.calcModel = selected;
+    }
+
+    public boolean getCalculateModel() {
+        return this.calcModel;
     }
 }
