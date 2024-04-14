@@ -84,8 +84,9 @@ public class ODMClient implements SfmClient {
 
             PbImage[] images = pbfr.getImages();
             for (PbImage image : images) {
-                File file = image.getFile();
-                uploadFile("/task/new/upload/" + uuid, file);
+                File orgFile = image.getFile();
+                File file = this.editExif(image);
+                uploadFile("/task/new/upload/" + uuid, file, orgFile.getName());
             }
 
             File gcpFile = this.createGCPFile(pbfr);
@@ -338,19 +339,22 @@ public class ODMClient implements SfmClient {
         }
     }
 
-    private File editExif(String filename, PbImage img) {
+    private File editExif(PbImage img) {
         // vgl. https://github.com/mapillary/OpenSfM/blob/main/opensfm/exif.py#L59
         try {
-            File file = new File(filename);
+            File file = img.getFile();
             ImageMetadata meta = Imaging.getMetadata(file);
             final JpegImageMetadata jpegMetadata = (JpegImageMetadata) meta;
             TiffImageMetadata exif = jpegMetadata.getExif();
-            File tmp_file = File.createTempFile(filename, ".jpg");
+            File tmp_file = File.createTempFile(file.getName(), ".jpg");
             TiffOutputSet outputSet = exif.getOutputSet();
-            TiffOutputDirectory dir = outputSet.getOrCreateRootDirectory();
+            TiffOutputDirectory dir = outputSet.getOrCreateExifDirectory();
+            System.out.println(dir.findField(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT));
             dir.removeField(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT);
             short focal35 = (short) Math.round(img.getFocalLength() / img.getCamera().getWidth() * 36.0);
             dir.add(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT, focal35);
+            dir.removeField(ExifTagConstants.EXIF_TAG_USER_COMMENT);
+            dir.add(ExifTagConstants.EXIF_TAG_USER_COMMENT, img.getCamera().getCameraName());
             new ExifRewriter().updateExifMetadataLossless(file, new FileOutputStream(tmp_file), outputSet);
             return tmp_file;
         } catch (Exception e) {

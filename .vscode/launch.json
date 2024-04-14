@@ -20,7 +20,9 @@
             "classPaths": [
                 "${workspaceFolder}/connector/bin",
                 "${workspaceFolder}/connector/lib/metashape-java-api.jar",
-                "${workspaceFolder}/connector/lib/json-20240205.jar"
+                "${workspaceFolder}/connector/lib/json-20240205.jar",
+                "${workspaceFolder}/connector/lib/commons-io-2.16.1.jar",
+                "${workspaceFolder}/connector/lib/commons-imaging-1.0.0-alpha4.jar"
             ],
             "mainClass": "photobox.Connector",
             //"args": "localhost:50267",
