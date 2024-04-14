@@ -19,20 +19,19 @@ import org.json.JSONObject;
 
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
-import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
-import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
-import org.apache.commons.imaging.formats.tiff.write.TiffOutputField;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
 import photobox.SfmClient;
 import photobox.domain.PbCamera;
+import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
@@ -91,6 +90,10 @@ public class ODMClient implements SfmClient {
 
             File gcpFile = this.createGCPFile(pbfr);
             uploadFile("/task/new/upload/" + uuid, gcpFile, "gcp_file.txt");
+
+            File geoTxtFile = this.createGeoTxtFile(pbfr);
+            uploadFile("/task/new/upload/" + uuid, geoTxtFile, "geo.txt");
+
             apiRequest("/task/new/commit/" + uuid, new HashMap<String, String>());
 
         } catch (IOException e) {
@@ -103,44 +106,50 @@ public class ODMClient implements SfmClient {
     }
 
     private String createTask(PhotoBoxFolderReader pbfr) throws IOException, ProtocolException {
-        PbCamera cam = pbfr.getCameras()[0];
-
         Map<String, String> parameter = new HashMap<String, String>();
         parameter.put("name", pbfr.getFolderName());
 
         JSONArray options = new JSONArray();
-
-        JSONObject camParameter = new JSONObject();
-        camParameter.put("projection_type", "brown");
-        camParameter.put("width", cam.getWidth());
-        camParameter.put("height", cam.getHeight());
-
-        // TODO: Replace with actual camera parameters
-        camParameter.put("focal_x", 0.742411768569596);
-        camParameter.put("focal_y", 0.742411768569596);
-        camParameter.put("c_x", 0.001966772527179585);
-        camParameter.put("c_y", 0.0049603303245847295);
-        camParameter.put("k1", 0.04624957024186535);
-        camParameter.put("k2", -0.02315359409038173);
-        camParameter.put("p1", 0.0003167781080551945);
-        camParameter.put("p2", 5.496613842429826e-05);
-        camParameter.put("k3", -0.03875582329858454);
-
-        /*
-         * camParameter.put("focal_x", cam.getFocalLength() / cam.getWidth());
-         * camParameter.put("focal_y", cam.getFocalLength() / cam.getWidth());
-         * camParameter.put("c_x", cam.getPrincipalPointX() / cam.getWidth());
-         * camParameter.put("c_y", cam.getPrincipalPointY() / cam.getWidth());
-         * camParameter.put("k1", cam.getK()[0]);
-         * camParameter.put("k2", cam.getK()[1]);
-         * camParameter.put("p1", cam.getP()[0]);
-         * camParameter.put("p2", cam.getP()[1]);
-         * camParameter.put("k3", cam.getK()[2]);
-         */
-
         JSONObject cams = new JSONObject();
-        cams.put("raspberry pi /base/soc/i2c0mux/i2c@1/imx708@1a 4608 2592 brown 0.85", camParameter);
+        for (PbImage img : pbfr.getImages()) {
+            PbCamera cam = img.getCamera();
+            JSONObject camParameter = new JSONObject();
+            camParameter.put("projection_type", "brown");
+            camParameter.put("width", cam.getWidth());
+            camParameter.put("height", cam.getHeight());
 
+            // TODO: Replace with actual camera parameters
+            /*
+             * camParameter.put("focal_x", 0.742411768569596);
+             * camParameter.put("focal_y", 0.742411768569596);
+             * camParameter.put("c_x", 0.001966772527179585);
+             * camParameter.put("c_y", 0.0049603303245847295);
+             * camParameter.put("k1", 0.04624957024186535);
+             * camParameter.put("k2", -0.02315359409038173);
+             * camParameter.put("p1", 0.0003167781080551945);
+             * camParameter.put("p2", 5.496613842429826e-05);
+             * camParameter.put("k3", -0.03875582329858454);
+             */
+
+            camParameter.put("focal_x", img.getFocalLength() / cam.getWidth());
+            camParameter.put("focal_y", img.getFocalLength() / cam.getWidth());
+            camParameter.put("c_x", img.getPrincipalPointX() / cam.getWidth());
+            camParameter.put("c_y", img.getPrincipalPointY() / cam.getWidth());
+            camParameter.put("k1", img.getK()[0]);
+            camParameter.put("k2", img.getK()[1]);
+            camParameter.put("p1", img.getP()[0]);
+            camParameter.put("p2", img.getP()[1]);
+            camParameter.put("k3", img.getK()[2]);
+
+            double f_fac = Math
+                    .round(Math.round(img.getFocalLength() * 36.0 / img.getCamera().getWidth()) / 36.0 * 100.)
+                    / 100.;
+            // cams.put("raspberry pi /base/soc/i2c0mux/i2c@1/imx708@1a 4608 2592 brown
+            // 0.85", camParameter);
+            cams.put("raspberry pi " + cam.getCameraName() + " " +
+                    cam.getWidth() + " " + cam.getHeight() + " brown " + f_fac, camParameter);
+
+        }
         JSONObject optionCameras = new JSONObject();
         optionCameras.put("name", "cameras");
         optionCameras.put("value", cams.toString());
@@ -152,7 +161,6 @@ public class ODMClient implements SfmClient {
          */
 
         options.put(optionCameras);
-
         /*
          * JSONObject optionBoundary = new JSONObject();
          * optionBoundary.put("name", "auto-boundary");
@@ -170,6 +178,41 @@ public class ODMClient implements SfmClient {
         return uuid;
     }
 
+    private File createGeoTxtFile(PhotoBoxFolderReader pbfr) throws IOException {
+        StringBuilder str = new StringBuilder();
+        str.append("+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        str.append("\n");
+
+        for (PbImage img : pbfr.getImages()) {
+            PbCameraPosition pos = img.getCamera().getPosition();
+            if (pos == null) {
+                continue;
+            }
+            double[] xyz = transformCoordinates(pos.getX(), pos.getY(), pos.getZ());
+            str.append(img.getFile().getName());
+            str.append(" ");
+            str.append(xyz[0]);
+            str.append(" ");
+            str.append(xyz[1]);
+            str.append(" ");
+            str.append(xyz[2]);
+            str.append(" ");
+            str.append(img.getCamera().getPosition().getYaw() * 180.);
+            str.append(" ");
+            str.append(img.getCamera().getPosition().getPitch() * 180.);
+            str.append(" ");
+            str.append(img.getCamera().getPosition().getRoll() * 180.);
+            str.append(" ");
+            str.append(1);
+            str.append(" ");
+            str.append(1);
+            str.append("\n");
+
+        }
+        return createFileFromString(str.toString(), "geo", "txt");
+
+    }
+
     private File createGCPFile(PhotoBoxFolderReader pbfr) throws IOException {
         StringBuilder str = new StringBuilder();
         str.append("+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
@@ -177,11 +220,12 @@ public class ODMClient implements SfmClient {
 
         for (PbMarker marker : pbfr.getMarkers()) {
             for (PbMarkerPosition markerPosition : marker.getMarkerPositions()) {
-                str.append(marker.getX() * 100 + 500000);
+                double[] xyz = transformCoordinates(marker.getX(), marker.getY(), marker.getZ());
+                str.append(xyz[0]);
                 str.append(" ");
-                str.append(marker.getY() * 100 + 5900000);
+                str.append(xyz[1]);
                 str.append(" ");
-                str.append(marker.getZ() * 100);
+                str.append(xyz[2]);
                 str.append(" ");
                 str.append(markerPosition.getX());
                 str.append(" ");
@@ -250,9 +294,11 @@ public class ODMClient implements SfmClient {
 
     }
 
-    private void uploadFile(String urlPart, File file) throws IOException {
-        uploadFile(urlPart, file, file.getName());
-    }
+    /*
+     * private void uploadFile(String urlPart, File file) throws IOException {
+     * uploadFile(urlPart, file, file.getName());
+     * }
+     */
 
     private JSONObject uploadFile(String urlPart, File file, String fileName) throws IOException {
         return apiRequest(urlPart, null, file, fileName);
@@ -348,19 +394,30 @@ public class ODMClient implements SfmClient {
             TiffImageMetadata exif = jpegMetadata.getExif();
             File tmp_file = File.createTempFile(file.getName(), ".jpg");
             TiffOutputSet outputSet = exif.getOutputSet();
-            TiffOutputDirectory dir = outputSet.getOrCreateExifDirectory();
-            System.out.println(dir.findField(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT));
-            dir.removeField(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT);
+
+            TiffOutputDirectory exifDir = outputSet.getOrCreateExifDirectory();
+            exifDir.removeField(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT);
             short focal35 = (short) Math.round(img.getFocalLength() / img.getCamera().getWidth() * 36.0);
-            dir.add(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT, focal35);
-            dir.removeField(ExifTagConstants.EXIF_TAG_USER_COMMENT);
-            dir.add(ExifTagConstants.EXIF_TAG_USER_COMMENT, img.getCamera().getCameraName());
+            exifDir.add(ExifTagConstants.EXIF_TAG_FOCAL_LENGTH_IN_35MM_FORMAT, focal35);
+
+            TiffOutputDirectory rootDir = outputSet.getOrCreateRootDirectory();
+            rootDir.removeField(TiffTagConstants.TIFF_TAG_MODEL);
+            rootDir.add(TiffTagConstants.TIFF_TAG_MODEL, img.getCamera().getCameraName());
+
             new ExifRewriter().updateExifMetadataLossless(file, new FileOutputStream(tmp_file), outputSet);
             return tmp_file;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private double[] transformCoordinates(double x, double y, double z) {
+        double[] result = new double[3];
+        result[0] = x * 100 + 500000;
+        result[1] = y * 100 + 5900000;
+        result[2] = z * 100;
+        return result;
     }
 
 }

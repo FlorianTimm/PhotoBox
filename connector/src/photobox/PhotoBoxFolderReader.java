@@ -123,6 +123,10 @@ public class PhotoBoxFolderReader {
                 float pitch = cameraJson.getFloat("pitch");
                 float roll = cameraJson.getFloat("roll");
 
+                if (Float.isNaN(x) || Float.isNaN(y) || Float.isNaN(z) || Float.isNaN(yaw) || Float.isNaN(pitch)
+                        || Float.isNaN(roll)) {
+                    continue;
+                }
                 PbCameraPosition cameraPosition = new PbCameraPosition(x, y, z, roll, pitch, yaw);
                 this.cameraPositions.put(cameraHostname, cameraPosition);
             }
