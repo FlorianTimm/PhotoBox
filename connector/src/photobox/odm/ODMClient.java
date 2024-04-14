@@ -414,9 +414,10 @@ public class ODMClient implements SfmClient {
 
     private double[] transformCoordinates(double x, double y, double z) {
         double[] result = new double[3];
-        result[0] = x * 100 + 500000;
-        result[1] = y * 100 + 5900000;
-        result[2] = z * 100;
+        double faktor = 100.;
+        result[0] = x * faktor + 500000;
+        result[1] = y * faktor + 5900000;
+        result[2] = z * faktor;
         return result;
     }
 
