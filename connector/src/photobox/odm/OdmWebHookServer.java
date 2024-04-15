@@ -19,13 +19,13 @@ public class OdmWebHookServer implements HttpHandler {
     private OdmClient odmClient;
     private Thread thread;
 
-    public OdmWebHookServer(Connector connector, OdmClient odmClient) {
+    protected OdmWebHookServer(Connector connector, OdmClient odmClient) {
         super();
         this.connector = connector;
         this.odmClient = odmClient;
     }
 
-    public void run() {
+    protected void run() {
 
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(3001), 0);
@@ -42,7 +42,7 @@ public class OdmWebHookServer implements HttpHandler {
 
     }
 
-    public void stop() {
+    protected void stop() {
         this.thread.interrupt();
     }
 

@@ -34,17 +34,13 @@ public class MetashapeProject implements Progress {
     private String projectFolder;
     private PhotoBoxFolderReader pbfr;
 
-    public MetashapeProject(Connector connector, String projectFolder) {
-        this(connector, projectFolder, projectFolder + "/project.psx");
-    }
-
-    public MetashapeProject(Connector connector, String projectFolder, String projectFilePath) {
-        this.projectFilePath = projectFilePath;
+    protected MetashapeProject(Connector connector, String projectFolder) {
+        this.projectFilePath = projectFolder + "/project.psx";
         this.connector = connector;
         this.projectFolder = projectFolder;
     }
 
-    public void run() {
+    protected void run() {
         this.connector.log("Processing photos");
         try {
             this.createProject();

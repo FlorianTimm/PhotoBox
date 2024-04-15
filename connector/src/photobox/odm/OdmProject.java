@@ -34,13 +34,13 @@ public class OdmProject {
     private String destDir;
     private OdmApi api;
 
-    public OdmProject(Connector connector, String baseURL, String destDir) {
+    protected OdmProject(Connector connector, String baseUrl, String destDir) {
         this.connector = connector;
         this.destDir = destDir;
-        this.api = new OdmApi(baseURL);
+        this.api = new OdmApi(baseUrl);
     }
 
-    public void run() {
+    protected void run() {
 
         try {
             PhotoBoxFolderReader pbfr = new PhotoBoxFolderReader(connector, destDir);

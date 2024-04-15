@@ -42,7 +42,7 @@ public class OdmClient implements SfmClient {
         }
     }
 
-    public void processWebhook(JSONObject json) {
+    protected void processWebhook(JSONObject json) {
         connector.log("Received webhook");
         int statusCode = json.getJSONObject("status").getInt("code");
         String taskId = json.getString("uuid");

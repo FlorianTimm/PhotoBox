@@ -25,7 +25,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultCaret;
 
-public class ConnectorGUI extends JFrame {
+public class ConnectorGui extends JFrame {
     private Connector connector;
     private JTextField textHostname;
     private JTextField textPort;
@@ -41,7 +41,7 @@ public class ConnectorGUI extends JFrame {
     private JCheckBox checkboxCalc;
     private JScrollPane scrollPaneLog = null;
 
-    public ConnectorGUI(Connector connector) {
+    protected ConnectorGui(Connector connector) {
         super("PhotoBoxConnector");
         this.connector = connector;
 
@@ -57,7 +57,7 @@ public class ConnectorGUI extends JFrame {
 
     }
 
-    public void startGUI() {
+    protected void startGui() {
 
         this.setSize(600, 400);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -211,7 +211,7 @@ public class ConnectorGUI extends JFrame {
         this.setVisible(true);
     }
 
-    public void switchSfm() {
+    private void switchSfm() {
         this.checkboxCalc.setVisible(false);
         this.connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
         if (this.rDownload.isSelected()) {
@@ -227,12 +227,14 @@ public class ConnectorGUI extends JFrame {
         }
     }
 
-    public void setConnected() {
-        toggleInput(false);
-        this.connect.setText("Disconnect");
-    }
+    /*
+     * private void setConnected() {
+     * toggleInput(false);
+     * this.connect.setText("Disconnect");
+     * }
+     */
 
-    public void setDisconnected() {
+    protected void setDisconnected() {
         toggleInput(true);
         this.connect.setText("Connect");
     }

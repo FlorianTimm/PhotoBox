@@ -15,16 +15,16 @@ import org.json.JSONObject;
 
 public class OdmApi {
 
-    private String baseURL;
+    private String baseUrl;
 
-    public OdmApi(String baseURL) {
-        this.baseURL = baseURL;
+    protected OdmApi(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     protected JSONObject request(String urlPart)
             throws IOException, ProtocolException {
 
-        URL url = new URL(baseURL + urlPart);
+        URL url = new URL(baseUrl + urlPart);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -73,7 +73,7 @@ public class OdmApi {
 
     private JSONObject request(String urlPart, Map<String, String> parameter, File file,
             String fileName) throws IOException {
-        URL url = new URL(baseURL + urlPart);
+        URL url = new URL(baseUrl + urlPart);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);

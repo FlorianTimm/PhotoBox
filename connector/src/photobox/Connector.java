@@ -13,7 +13,7 @@ public class Connector {
 
     private int port = 50267;
     private String host = "10.42.0.13";
-    private ConnectorGUI gui;
+    private ConnectorGui gui;
     private boolean isConnected = false;
     private PhotoBoxClient photoBox;
     private SfmClient sfmClient;
@@ -25,7 +25,7 @@ public class Connector {
         new Connector(args);
     }
 
-    public Connector(String[] args) {
+    private Connector(String[] args) {
         // Regex to match a hostname or an IP address
         final String regex = "(^([A-Za-z](\\w+\\.)*\\w+)|^(\\d{1,3}.){3}\\d{1,3})(\\:\\d{1,5})?";
 
@@ -43,10 +43,10 @@ public class Connector {
 
         this.directory = new File(System.getProperty("user.home") + "/PhotoBox");
 
-        this.gui = new ConnectorGUI(this);
+        this.gui = new ConnectorGui(this);
         new Thread("GUI Thread") {
             public void run() {
-                gui.startGUI();
+                gui.startGui();
             }
         }.start();
 
@@ -54,7 +54,7 @@ public class Connector {
 
     }
 
-    public boolean toggleConnect() {
+    protected boolean toggleConnect() {
         if (this.isConnected) {
             return !this.disconnect();
         } else {
@@ -62,7 +62,7 @@ public class Connector {
         }
     }
 
-    public boolean connect() {
+    private boolean connect() {
         this.photoBox = new PhotoBoxClient(this.host, this.port, this);
 
         if (!this.photoBox.connect()) {
@@ -79,7 +79,7 @@ public class Connector {
         return true;
     }
 
-    public void processPhotos(String destDir) {
+    protected void processPhotos(String destDir) {
         if (this.sfmClient == null) {
             this.setSoftware(this.software);
             return;
@@ -95,7 +95,7 @@ public class Connector {
         }
     }
 
-    public void takePhoto() {
+    protected void takePhoto() {
         if (!this.isConnected) {
             this.log("Not connected");
             return;
@@ -104,7 +104,7 @@ public class Connector {
         this.photoBox.takePhoto();
     }
 
-    public boolean disconnect() {
+    private boolean disconnect() {
         if (!this.photoBox.disconnect()) {
             this.log("Failed to disconnect from PhotoBox");
             return false;
@@ -120,15 +120,15 @@ public class Connector {
     }
 
     // Getters and setters
-    public void setHost(String host) {
+    protected void setHost(String host) {
         this.host = host;
     }
 
-    public void setPort(int port) {
+    protected void setPort(int port) {
         this.port = port;
     }
 
-    public void setSoftware(String software) throws IllegalArgumentException {
+    protected void setSoftware(String software) throws IllegalArgumentException {
         this.software = software;
         if (this.software.equals("Metashape")) {
             this.sfmClient = new MetashapeClient(this);
@@ -142,20 +142,16 @@ public class Connector {
         }
     }
 
-    public String getHost() {
+    protected String getHost() {
         return this.host;
     }
 
-    public int getPort() {
+    protected int getPort() {
         return this.port;
     }
 
-    public String getSoftware() {
+    protected String getSoftware() {
         return this.software;
-    }
-
-    public boolean isConnected() {
-        return this.isConnected;
     }
 
     public void log(String message) {
@@ -165,15 +161,15 @@ public class Connector {
         });
     }
 
-    public File getDirectory() {
+    protected File getDirectory() {
         return this.directory;
     }
 
-    public void setDirectory(File directory) {
+    protected void setDirectory(File directory) {
         this.directory = directory;
     }
 
-    public void setCalculateModel(boolean selected) {
+    protected void setCalculateModel(boolean selected) {
         this.calcModel = selected;
     }
 
