@@ -55,8 +55,7 @@ public class OdmWebHookServer implements HttpHandler {
             sb.append((char) i);
         }
         JSONObject json = new JSONObject(sb.toString());
-        this.connector.log("Webhook received: " + json.toString());
-        // this.odmClient.processWebhook(json);
+        this.odmClient.processWebhook(json);
 
         String response = "Moin!";
         t.sendResponseHeaders(200, response.length());
