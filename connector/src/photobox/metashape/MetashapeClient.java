@@ -83,7 +83,11 @@ public class MetashapeClient implements SfmClient {
     public void processPhotos(String destDir) {
         connector.log("Processing photos");
         MetashapeProject project = new MetashapeProject(connector, destDir);
-        project.run();
+        new Thread("MetashapeProcessPhotosThread") {
+            public void run() {
+                project.run();
+            }
+        }.start();
     }
 
 }

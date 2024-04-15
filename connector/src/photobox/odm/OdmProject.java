@@ -1,21 +1,12 @@
 package photobox.odm;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.ProtocolException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
@@ -26,55 +17,30 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
-import photobox.SfmClient;
 import photobox.domain.PbCamera;
 import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
 
-public class ODMClient implements SfmClient {
+public class OdmProject {
 
-    private final Connector connector;
-    private String baseURL;
-    private WebHookServer whs;
+    private Connector connector;
+    private String destDir;
+    private OdmApi api;
 
-    public ODMClient(Connector connector) {
+    public OdmProject(Connector connector, String baseURL, String destDir) {
         this.connector = connector;
-        this.baseURL = "http://localhost:3000";
+        this.destDir = destDir;
+        this.api = new OdmApi(baseURL);
     }
 
-    public boolean connect() {
-        try {
-            JSONObject jsonResponse = apiRequest("/info");
-            connector.log("Connected to OpenDroneMap");
-            connector.log("OpenDroneMap version: " + jsonResponse.getString("version"));
-            this.createWebHookServer();
-            return true;
-        } catch (IOException e) {
-            connector.log("Failed to connect to OpenDroneMap");
-            return false;
-        }
-    }
-
-    private void createWebHookServer() {
-        if (this.whs == null) {
-            this.whs = new WebHookServer(connector, this);
-            this.whs.run();
-        }
-    }
-
-    public boolean disconnect() {
-        connector.log("Disconnected from OpenDroneMap");
-        return true;
-    }
-
-    @Override
-    public void processPhotos(String destDir) {
-        this.connector.log("Processing photos");
+    public void run() {
 
         try {
             PhotoBoxFolderReader pbfr = new PhotoBoxFolderReader(connector, destDir);
@@ -85,16 +51,16 @@ public class ODMClient implements SfmClient {
             for (PbImage image : images) {
                 File orgFile = image.getFile();
                 File file = this.editExif(image);
-                uploadFile("/task/new/upload/" + uuid, file, orgFile.getName());
+                api.uploadFile("/task/new/upload/" + uuid, file, orgFile.getName());
             }
 
             File gcpFile = this.createGCPFile(pbfr);
-            uploadFile("/task/new/upload/" + uuid, gcpFile, "gcp_file.txt");
+            api.uploadFile("/task/new/upload/" + uuid, gcpFile, "gcp_file.txt");
 
             File geoTxtFile = this.createGeoTxtFile(pbfr);
-            uploadFile("/task/new/upload/" + uuid, geoTxtFile, "geo.txt");
+            api.uploadFile("/task/new/upload/" + uuid, geoTxtFile, "geo.txt");
 
-            apiRequest("/task/new/commit/" + uuid, new HashMap<String, String>());
+            api.request("/task/new/commit/" + uuid, new HashMap<String, String>());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -172,7 +138,7 @@ public class ODMClient implements SfmClient {
 
         parameter.put("webhook", "http://host.docker.internal:3001/webhook");
 
-        JSONObject jsonResponse = apiRequest("/task/new/init", parameter);
+        JSONObject jsonResponse = api.request("/task/new/init", parameter);
         String uuid = jsonResponse.getString("uuid");
         connector.log("Task ID: " + uuid);
         return uuid;
@@ -258,133 +224,6 @@ public class ODMClient implements SfmClient {
         return file;
     }
 
-    private JSONObject apiRequest(String urlPart)
-            throws IOException, ProtocolException {
-
-        URL url = new URL(baseURL + urlPart);
-
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        int responseCode = connection.getResponseCode();
-
-        // Check if the request was successful
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            // Read the response from the API
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            reader.close();
-
-            JSONObject jsonResponse = new JSONObject(response.toString());
-
-            // Close the connection
-            connection.disconnect();
-
-            return jsonResponse;
-        } else {
-
-            connection.disconnect();
-
-            throw new IOException("Failed to connect to OpenDroneMap");
-        }
-
-    }
-
-    /*
-     * private void uploadFile(String urlPart, File file) throws IOException {
-     * uploadFile(urlPart, file, file.getName());
-     * }
-     */
-
-    private JSONObject uploadFile(String urlPart, File file, String fileName) throws IOException {
-        return apiRequest(urlPart, null, file, fileName);
-    }
-
-    private JSONObject apiRequest(String urlPart, Map<String, String> parameter) throws IOException {
-        return apiRequest(urlPart, parameter, null, null);
-    }
-
-    private JSONObject apiRequest(String urlPart, Map<String, String> parameter, File file,
-            String fileName) throws IOException {
-        URL url = new URL(baseURL + urlPart);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-
-        // Set the content type to multipart/form-data
-        String boundary = "---------------------------" + System.currentTimeMillis();
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-
-        OutputStream outputStream = connection.getOutputStream();
-
-        if (parameter != null) {
-            for (Map.Entry<String, String> entry : parameter.entrySet()) {
-                outputStream.write(("--" + boundary + "\r\n").getBytes());
-                outputStream.write(("Content-Disposition: form-data; name=\"" + entry.getKey() + "\"\r\n").getBytes());
-                outputStream.write(("\r\n").getBytes());
-                outputStream.write((entry.getValue() + "\r\n").getBytes());
-            }
-        }
-
-        if (file != null) {
-            outputStream.write(("--" + boundary + "\r\n").getBytes());
-            outputStream.write(
-                    ("Content-Disposition: form-data; name=\"images\"; filename=\"" + fileName + "\"\r\n")
-                            .getBytes());
-            outputStream.write(("Content-Type: application/octet-stream\r\n").getBytes());
-            outputStream.write(("\r\n").getBytes());
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            try (FileInputStream fileInputStream = new FileInputStream(file)) {
-                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-            }
-            outputStream.write(("\r\n").getBytes());
-        }
-
-        outputStream.write(("\r\n").getBytes());
-        outputStream.write(("--" + boundary + "--\r\n").getBytes());
-
-        // Get the response code
-        int responseCode = connection.getResponseCode();
-
-        // Check if the request was successful
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            // Read the response from the API
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            reader.close();
-            JSONObject jsonResponse = new JSONObject(response.toString());
-            // Close the connection
-            connection.disconnect();
-            return jsonResponse;
-        } else {
-            connection.disconnect();
-            throw new IOException("Failed to connect to OpenDroneMap");
-        }
-    }
-
-    public void processWebhook(JSONObject json) {
-        connector.log("Received webhook");
-        int statusCode = json.getJSONObject("status").getInt("code");
-        String taskId = json.getString("uuid");
-        if (statusCode == 100) {
-            this.connector.log("Task " + taskId + " is done");
-        } else {
-            this.connector.log("Task " + taskId + " failed");
-        }
-    }
-
     private File editExif(PbImage img) {
         // vgl. https://github.com/mapillary/OpenSfM/blob/main/opensfm/exif.py#L59
         try {
@@ -420,5 +259,4 @@ public class ODMClient implements SfmClient {
         result[2] = z * faktor;
         return result;
     }
-
 }

@@ -2,8 +2,10 @@ package photobox;
 
 import java.io.File;
 
+import javax.swing.SwingUtilities;
+
 import photobox.metashape.MetashapeClient;
-import photobox.odm.ODMClient;
+import photobox.odm.OdmClient;
 
 public class Connector {
     // TODO: Save the last used host and port in a file
@@ -42,6 +44,11 @@ public class Connector {
         this.directory = new File(System.getProperty("user.home") + "/PhotoBox");
 
         this.gui = new ConnectorGUI(this);
+        new Thread("GUI Thread") {
+            public void run() {
+                gui.startGUI();
+            }
+        }.start();
 
         log("PhotoBoxConnector started");
 
@@ -67,7 +74,7 @@ public class Connector {
             return false;
         }
         this.photoBox.setSfmClient(this.sfmClient);
-        this.gui.setConnected();
+        // this.gui.setConnected();
         this.isConnected = true;
         return true;
     }
@@ -79,7 +86,7 @@ public class Connector {
         }
         boolean wasConnected = this.isConnected;
         if (!wasConnected) {
-            this.gui.log("Not connected");
+            this.log("Not connected");
             this.sfmClient.connect();
         }
         this.sfmClient.processPhotos(destDir);
@@ -90,7 +97,7 @@ public class Connector {
 
     public void takePhoto() {
         if (!this.isConnected) {
-            this.gui.log("Not connected");
+            this.log("Not connected");
             return;
         }
 
@@ -99,11 +106,11 @@ public class Connector {
 
     public boolean disconnect() {
         if (!this.photoBox.disconnect()) {
-            this.gui.log("Failed to disconnect from PhotoBox");
+            this.log("Failed to disconnect from PhotoBox");
             return false;
         }
         if (!this.sfmClient.disconnect()) {
-            this.gui.log("Failed to disconnect from " + this.software);
+            this.log("Failed to disconnect from " + this.software);
             return false;
         }
 
@@ -126,11 +133,11 @@ public class Connector {
         if (this.software.equals("Metashape")) {
             this.sfmClient = new MetashapeClient(this);
         } else if (this.software.equals("ODM")) {
-            this.sfmClient = new ODMClient(this);
+            this.sfmClient = new OdmClient(this);
         } else if (this.software.equals("Download")) {
             this.sfmClient = new DownloadClient();
         } else {
-            this.gui.log("Invalid software");
+            this.log("Invalid software");
             throw new IllegalArgumentException("Invalid software");
         }
     }
@@ -153,7 +160,9 @@ public class Connector {
 
     public void log(String message) {
         System.out.println(message);
-        // this.gui.log(message);
+        SwingUtilities.invokeLater(() -> {
+            this.gui.log(message);
+        });
     }
 
     public File getDirectory() {

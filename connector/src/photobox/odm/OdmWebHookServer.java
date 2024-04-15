@@ -13,13 +13,13 @@ import com.sun.net.httpserver.HttpServer;
 
 import photobox.Connector;
 
-public class WebHookServer implements HttpHandler {
+public class OdmWebHookServer implements HttpHandler {
 
     private Connector connector;
-    private ODMClient odmClient;
+    private OdmClient odmClient;
     private Thread thread;
 
-    public WebHookServer(Connector connector, ODMClient odmClient) {
+    public OdmWebHookServer(Connector connector, OdmClient odmClient) {
         super();
         this.connector = connector;
         this.odmClient = odmClient;

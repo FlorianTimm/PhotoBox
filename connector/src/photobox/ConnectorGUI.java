@@ -21,6 +21,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultCaret;
 
@@ -38,20 +39,29 @@ public class ConnectorGUI extends JFrame {
     private JRadioButton rDownload;
     private JMenuItem loadFolder;
     private JCheckBox checkboxCalc;
+    private JScrollPane scrollPaneLog = null;
 
     public ConnectorGUI(Connector connector) {
         super("PhotoBoxConnector");
-
         this.connector = connector;
-        this.setSize(600, 400);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setIconImage(getIconImage());
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        // Log-Area sofort erstellen
+        this.logArea = new JTextArea();
+        this.scrollPaneLog = new JScrollPane(this.logArea);
+
+    }
+
+    public void startGUI() {
+
+        this.setSize(600, 400);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setIconImage(getIconImage());
 
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
@@ -137,11 +147,13 @@ public class ConnectorGUI extends JFrame {
 
         this.connect = new JButton("Connect");
         this.connect.addActionListener((e) -> {
-            connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
-            connector.setCalculateModel(this.checkboxCalc.isSelected());
-            connector.setHost(textHostname.getText());
-            connector.setPort(Integer.parseInt(this.textPort.getText()));
-            connector.toggleConnect();
+            SwingUtilities.invokeLater(() -> {
+                connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+                connector.setCalculateModel(this.checkboxCalc.isSelected());
+                connector.setHost(textHostname.getText());
+                connector.setPort(Integer.parseInt(this.textPort.getText()));
+                connector.toggleConnect();
+            });
         });
         left.add(this.connect);
 
@@ -173,18 +185,20 @@ public class ConnectorGUI extends JFrame {
         });
         top.add(this.directoryButton);
 
-        this.logArea = new JTextArea();
+        // this.logArea = new JTextArea();
         this.logArea.setEditable(false);
         this.logArea.setLineWrap(true);
         this.logArea.setWrapStyleWord(true);
-        JScrollPane scrollPane = new JScrollPane(this.logArea);
-        cp.add(scrollPane, java.awt.BorderLayout.CENTER);
+        // this.scrollPaneLog = new JScrollPane(this.logArea);
+        cp.add(scrollPaneLog, java.awt.BorderLayout.CENTER);
         DefaultCaret caret = (DefaultCaret) this.logArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
         this.photoButton = new JButton("Take Photo");
         this.photoButton.addActionListener((e) -> {
-            connector.takePhoto();
+            SwingUtilities.invokeLater(() -> {
+                connector.takePhoto();
+            });
         });
         cp.add(this.photoButton, java.awt.BorderLayout.SOUTH);
         this.photoButton.setEnabled(false);
@@ -236,5 +250,9 @@ public class ConnectorGUI extends JFrame {
 
     protected void log(String message) {
         this.logArea.append(message + "\n");
+        // if (this.scrollPaneLog != null) {
+        this.logArea.setCaretPosition(this.logArea.getText().length());
+        scrollPaneLog.getVerticalScrollBar().setValue(scrollPaneLog.getVerticalScrollBar().getMaximum());
+        // }
     }
 }

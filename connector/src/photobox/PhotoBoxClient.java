@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
@@ -40,7 +41,8 @@ public class PhotoBoxClient {
 
         try {
             // Connect to port
-            this.socket = new Socket(host, port);
+            this.socket = new Socket();
+            this.socket.connect(new InetSocketAddress(this.host, this.port), 1000);
 
             // Send message
             OutputStream outputStream = this.socket.getOutputStream();
