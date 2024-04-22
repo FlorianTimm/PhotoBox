@@ -1,9 +1,15 @@
 package photobox;
 
-public interface SfmClient {
-    public boolean connect();
+public abstract class SfmClient {
+    protected final Connector connector;
 
-    public boolean disconnect();
+    public SfmClient(Connector connector) {
+        this.connector = connector;
+    }
 
-    public void processPhotos(String destDir);
+    public abstract boolean connect();
+
+    public abstract boolean disconnect();
+
+    public abstract void processPhotos(String destDir);
 }

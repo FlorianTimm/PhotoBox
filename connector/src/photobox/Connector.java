@@ -20,6 +20,7 @@ public class Connector {
     private String software = "Download";
     private File directory;
     private boolean calcModel = true;
+    private String odmUrl = "http://localhost:3000";
 
     public static void main(String[] args) {
         new Connector(args);
@@ -133,9 +134,9 @@ public class Connector {
         if (this.software.equals("Metashape")) {
             this.sfmClient = new MetashapeClient(this);
         } else if (this.software.equals("ODM")) {
-            this.sfmClient = new OdmClient(this);
+            this.sfmClient = new OdmClient(this, this.getOdmUrl());
         } else if (this.software.equals("Download")) {
-            this.sfmClient = new DownloadClient();
+            this.sfmClient = new DownloadClient(this);
         } else {
             this.log("Invalid software");
             throw new IllegalArgumentException("Invalid software");
@@ -175,5 +176,17 @@ public class Connector {
 
     public boolean getCalculateModel() {
         return this.calcModel;
+    }
+
+    public String getOdmUrl() {
+        return this.odmUrl;
+    }
+
+    public void setOdmUrl(String odmUrl) {
+        this.odmUrl = odmUrl;
+    }
+
+    public ConnectorGui getGui() {
+        return this.gui;
     }
 }

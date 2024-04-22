@@ -20,13 +20,14 @@ import com.agisoft.metashape.ReferencePreselectionMode;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
+import photobox.ProcessGUI;
 import photobox.domain.PbCamera;
 import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
 
-public class MetashapeProject implements Progress {
+public class MetashapeProject extends ProcessGUI implements Progress {
     private Connector connector;
     private Document project;
     private String projectFilePath;
@@ -35,13 +36,14 @@ public class MetashapeProject implements Progress {
     private PhotoBoxFolderReader pbfr;
 
     protected MetashapeProject(Connector connector, String projectFolder) {
+        super(connector, "Metashape");
         this.projectFilePath = projectFolder + "/project.psx";
         this.connector = connector;
         this.projectFolder = projectFolder;
     }
 
     protected void run() {
-        this.connector.log("Processing photos");
+        log("Processing photos");
         try {
             this.createProject();
             this.pbfr = new PhotoBoxFolderReader(connector, projectFolder);
@@ -56,7 +58,7 @@ public class MetashapeProject implements Progress {
 
             this.closeAndSaveProject();
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -67,10 +69,10 @@ public class MetashapeProject implements Progress {
             saveProject();
             // this.chunk = this.project.addChunk();
             // doc.close();
-            connector.log("Project created");
+            log("Project created");
             return true;
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to create project");
         }
@@ -105,7 +107,7 @@ public class MetashapeProject implements Progress {
                 index = getIndexOfArray(imageFileNames, file.getName());
             }
             if (index == -1) {
-                this.connector.log("Failed to find image index");
+                log("Failed to find image index");
                 continue;
             }
             PbImage image = images[index];
@@ -164,7 +166,7 @@ public class MetashapeProject implements Progress {
     }
 
     private void addMarkerCoordinates() {
-        this.connector.log("Adding marker coordinates");
+        log("Adding marker coordinates");
         PbMarker[] markers = this.pbfr.getMarkers();
         for (PbMarker marker : markers) {
             Marker m = this.chunk.addMarker();
@@ -209,7 +211,7 @@ public class MetashapeProject implements Progress {
     }
 
     private void orientPhotos() {
-        this.connector.log("Orienting photos");
+        log("Orienting photos");
         try (MatchPhotos match_photos = new MatchPhotos()) {
             match_photos.setDownscale(5);
             match_photos.setReferencePreselectionMode(ReferencePreselectionMode.ReferencePreselectionSource);
@@ -220,7 +222,7 @@ public class MetashapeProject implements Progress {
             match_photos.delete();
 
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to orient photos");
         }
@@ -229,7 +231,7 @@ public class MetashapeProject implements Progress {
             align_cameras.apply(this.chunk, this);
             align_cameras.delete();
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to align cameras");
         }
@@ -241,7 +243,7 @@ public class MetashapeProject implements Progress {
             this.project.close();
             connector.log("Project saved and closed");
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to save and close project");
         }
@@ -251,17 +253,17 @@ public class MetashapeProject implements Progress {
 
     @Override
     public void progress(double progress) {
-        this.connector.log("Progress: " + progress);
+        logProgress((int) Math.round(progress));
     }
 
     @Override
     public void status(String status) {
-        this.connector.log("Status: " + status);
+        log("Status: " + status);
     }
 
     @Override
     public boolean aborted() {
-        this.connector.log("Aborted");
+        log("Aborted");
         return false;
     }
 }

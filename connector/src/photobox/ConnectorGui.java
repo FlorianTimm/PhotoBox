@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -40,6 +41,9 @@ public class ConnectorGui extends JFrame {
     private JMenuItem loadFolder;
     private JCheckBox checkboxCalc;
     private JScrollPane scrollPaneLog = null;
+    private JTextField odmUrl;
+    private JLabel odmUrlLabel;
+    private JPanel processPanel;
 
     protected ConnectorGui(Connector connector) {
         super("PhotoBoxConnector");
@@ -59,7 +63,7 @@ public class ConnectorGui extends JFrame {
 
     protected void startGui() {
 
-        this.setSize(600, 400);
+        this.setSize(1000, 600);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setIconImage(getIconImage());
 
@@ -68,6 +72,7 @@ public class ConnectorGui extends JFrame {
 
         this.loadFolder = new JMenuItem("Load Pictures from Folder...");
         this.loadFolder.addActionListener((e) -> {
+            transferAllSettings();
             JFileChooser fileChooser = new JFileChooser(connector.getDirectory());
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int option = fileChooser.showOpenDialog(this);
@@ -131,6 +136,10 @@ public class ConnectorGui extends JFrame {
         this.rMetashape.addActionListener((e) -> {
             this.switchSfm();
         });
+        this.checkboxCalc = new JCheckBox("Calculate Model");
+        this.checkboxCalc.setSelected(true);
+        this.checkboxCalc.setVisible(false);
+        left.add(this.checkboxCalc);
 
         this.rODM = new JRadioButton("OpenDroneMap");
         this.rODM.setActionCommand("ODM");
@@ -140,6 +149,15 @@ public class ConnectorGui extends JFrame {
             this.switchSfm();
         });
 
+        this.odmUrlLabel = new JLabel("ODM-URL");
+        this.odmUrlLabel.setVisible(false);
+        left.add(this.odmUrlLabel);
+        this.odmUrl = new JTextField();
+        this.odmUrl.setText(this.connector.getOdmUrl());
+        this.odmUrl.setMaximumSize(new Dimension(300, 30));
+        this.odmUrl.setVisible(false);
+        left.add(this.odmUrl);
+
         this.selectSfmSoftware = new ButtonGroup();
         this.selectSfmSoftware.add(rMetashape);
         this.selectSfmSoftware.add(rODM);
@@ -148,19 +166,11 @@ public class ConnectorGui extends JFrame {
         this.connect = new JButton("Connect");
         this.connect.addActionListener((e) -> {
             SwingUtilities.invokeLater(() -> {
-                connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
-                connector.setCalculateModel(this.checkboxCalc.isSelected());
-                connector.setHost(textHostname.getText());
-                connector.setPort(Integer.parseInt(this.textPort.getText()));
+                transferAllSettings();
                 connector.toggleConnect();
             });
         });
         left.add(this.connect);
-
-        this.checkboxCalc = new JCheckBox("Calculate Model");
-        this.checkboxCalc.setSelected(true);
-        this.checkboxCalc.setVisible(false);
-        left.add(this.checkboxCalc);
 
         JPanel top = new JPanel();
         top.setLayout(new BoxLayout(top, javax.swing.BoxLayout.X_AXIS));
@@ -185,12 +195,29 @@ public class ConnectorGui extends JFrame {
         });
         top.add(this.directoryButton);
 
+        JTabbedPane tabpane = new JTabbedPane();
+        cp.add(tabpane, java.awt.BorderLayout.CENTER);
+
+        this.processPanel = new JPanel();
+        this.processPanel.setLayout(new BoxLayout(this.processPanel, BoxLayout.Y_AXIS));
+        JScrollPane scrollPane = new JScrollPane(this.processPanel);
+        JPanel processPanelScroll = new JPanel();
+        processPanelScroll.setLayout(new BorderLayout());
+        processPanelScroll.add(scrollPane, BorderLayout.CENTER);
+        // tabpane.addTab("Process", scrollPane);
+        tabpane.addTab("Process", processPanelScroll);
+
+        JPanel logPanel = new JPanel();
+        logPanel.setLayout(new BorderLayout());
+        logPanel.add(scrollPaneLog, BorderLayout.CENTER);
+        tabpane.addTab("Log", logPanel);
+
         // this.logArea = new JTextArea();
         this.logArea.setEditable(false);
         this.logArea.setLineWrap(true);
         this.logArea.setWrapStyleWord(true);
         // this.scrollPaneLog = new JScrollPane(this.logArea);
-        cp.add(scrollPaneLog, java.awt.BorderLayout.CENTER);
+
         DefaultCaret caret = (DefaultCaret) this.logArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
@@ -211,8 +238,18 @@ public class ConnectorGui extends JFrame {
         this.setVisible(true);
     }
 
+    private void transferAllSettings() {
+        connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
+        connector.setCalculateModel(this.checkboxCalc.isSelected());
+        connector.setOdmUrl(this.odmUrl.getText());
+        connector.setHost(textHostname.getText());
+        connector.setPort(Integer.parseInt(this.textPort.getText()));
+    }
+
     private void switchSfm() {
         this.checkboxCalc.setVisible(false);
+        this.odmUrlLabel.setVisible(false);
+        this.odmUrl.setVisible(false);
         this.connector.setSoftware(this.selectSfmSoftware.getSelection().getActionCommand());
         if (this.rDownload.isSelected()) {
             this.loadFolder.setEnabled(false);
@@ -223,7 +260,8 @@ public class ConnectorGui extends JFrame {
             this.checkboxCalc.setVisible(true);
         }
         if (this.rODM.isSelected()) {
-
+            this.odmUrlLabel.setVisible(true);
+            this.odmUrl.setVisible(true);
         }
     }
 
@@ -245,6 +283,7 @@ public class ConnectorGui extends JFrame {
         this.textPort.setEnabled(enabled);
         this.rDownload.setEnabled(enabled);
         this.rODM.setEnabled(enabled);
+        this.odmUrl.setEnabled(enabled);
         this.rMetashape.setEnabled(enabled);
         this.checkboxCalc.setEnabled(enabled);
         this.photoButton.setEnabled(!enabled);
@@ -256,5 +295,12 @@ public class ConnectorGui extends JFrame {
         this.logArea.setCaretPosition(this.logArea.getText().length());
         scrollPaneLog.getVerticalScrollBar().setValue(scrollPaneLog.getVerticalScrollBar().getMaximum());
         // }
+    }
+
+    public void addToProcessPanel(ProcessGUI processGUI) {
+        SwingUtilities.invokeLater(() -> {
+            this.processPanel.add(processGUI);
+            this.processPanel.revalidate();
+        });
     }
 }

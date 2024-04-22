@@ -3,6 +3,7 @@ package photobox.odm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.BindException;
 import java.net.InetSocketAddress;
 
 import org.json.JSONObject;
@@ -11,35 +12,37 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-import photobox.Connector;
-
 public class OdmWebHookServer implements HttpHandler {
 
-    private Connector connector;
-    private OdmClient odmClient;
+    private OdmProject odmProject;
     private Thread thread;
+    private int port;
 
-    protected OdmWebHookServer(Connector connector, OdmClient odmClient) {
+    protected OdmWebHookServer(OdmProject odmProject) {
         super();
-        this.connector = connector;
-        this.odmClient = odmClient;
+        this.odmProject = odmProject;
+        this.port = 3001;
+
+        while (true) {
+            try {
+                HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+                server.createContext("/webhook", this);
+                server.setExecutor(null); // creates a default executor
+                this.thread = new Thread(() -> {
+                    server.start();
+                });
+                break;
+            } catch (BindException e) {
+                this.port++;
+            } catch (IOException e) {
+                odmProject.log("Error starting webhook server: " + e.getMessage());
+            }
+        }
     }
 
     protected void run() {
-
-        try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(3001), 0);
-
-            server.createContext("/webhook", this);
-            server.setExecutor(null); // creates a default executor
-            this.thread = new Thread(() -> {
-                server.start();
-            });
-            this.thread.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        System.out.println("Webhook server started on port " + this.port);
+        this.thread.start();
     }
 
     protected void stop() {
@@ -55,12 +58,16 @@ public class OdmWebHookServer implements HttpHandler {
             sb.append((char) i);
         }
         JSONObject json = new JSONObject(sb.toString());
-        this.odmClient.processWebhook(json);
+        this.odmProject.processWebhook(json);
 
         String response = "Moin!";
         t.sendResponseHeaders(200, response.length());
         OutputStream os = t.getResponseBody();
         os.write(response.getBytes());
         os.close();
+    }
+
+    public int getPort() {
+        return this.port;
     }
 }

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.ProtocolException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
@@ -22,22 +24,50 @@ import org.json.JSONObject;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
+import photobox.ProcessGUI;
 import photobox.domain.PbCamera;
 import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
 
-public class OdmProject {
+public class OdmProject extends ProcessGUI {
+    private OdmWebHookServer whs;
 
     private Connector connector;
     private String destDir;
     private OdmApi api;
 
+    private String uuid;
+
     protected OdmProject(Connector connector, String baseUrl, String destDir) {
+        super(connector, "OpenDroneMap");
         this.connector = connector;
         this.destDir = destDir;
         this.api = new OdmApi(baseUrl);
+        this.createWebHookServer();
+    }
+
+    private void createWebHookServer() {
+        if (this.whs == null) {
+            this.whs = new OdmWebHookServer(this);
+            new Thread("OdmWebHookServerThread") {
+                public void run() {
+                    whs.run();
+                }
+            }.start();
+        }
+    }
+
+    protected void processWebhook(JSONObject json) {
+        log("Received webhook");
+        int statusCode = json.getJSONObject("status").getInt("code");
+        String taskId = json.getString("uuid");
+        if (statusCode == 100) {
+            this.log("Task " + taskId + " is done");
+        } else {
+            this.log("Task " + taskId + " failed");
+        }
     }
 
     protected void run() {
@@ -45,30 +75,75 @@ public class OdmProject {
         try {
             PhotoBoxFolderReader pbfr = new PhotoBoxFolderReader(connector, destDir);
 
-            String uuid = createTask(pbfr);
+            String uuid = this.createTask(pbfr);
+            setLabel("OpenDroneMap: " + uuid);
 
             PbImage[] images = pbfr.getImages();
             for (PbImage image : images) {
                 File orgFile = image.getFile();
                 File file = this.editExif(image);
-                api.uploadFile("/task/new/upload/" + uuid, file, orgFile.getName());
+                api.uploadFile("/task/new/upload/" + this.uuid, file, orgFile.getName());
             }
 
             File gcpFile = this.createGCPFile(pbfr);
-            api.uploadFile("/task/new/upload/" + uuid, gcpFile, "gcp_file.txt");
+            api.uploadFile("/task/new/upload/" + this.uuid, gcpFile, "gcp_file.txt");
 
             File geoTxtFile = this.createGeoTxtFile(pbfr);
-            api.uploadFile("/task/new/upload/" + uuid, geoTxtFile, "geo.txt");
+            api.uploadFile("/task/new/upload/" + this.uuid, geoTxtFile, "geo.txt");
 
-            api.request("/task/new/commit/" + uuid, new HashMap<String, String>());
+            api.request("/task/new/commit/" + this.uuid, new HashMap<String, String>());
+
+            monitorTask();
 
         } catch (IOException e) {
             e.printStackTrace();
-            connector.log("Failed to process photos");
+            log("Failed to process photos");
         }
 
         return;
 
+    }
+
+    private void monitorTask() {
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+
+            private int log_data_row = 0;
+
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonResponse = api.request("/task/" + uuid + "/info?with_output=" + this.log_data_row);
+                    int status = jsonResponse.getJSONObject("status").getInt("code");
+
+                    if (status == 50) {
+                        t.cancel();
+                        log("Task canceled");
+                    }
+                    if (status == 20) {
+                        float progress = jsonResponse.getFloat("progress");
+                        logProgress(Math.round(progress));
+                    }
+                    JSONArray output = jsonResponse.getJSONArray("output");
+
+                    StringBuilder str = new StringBuilder();
+                    for (int i = log_data_row; i < output.length(); i++) {
+                        String line = output.getString(i);
+                        if (line.length() > 200) {
+                            continue;
+                        }
+                        str.append(line + "\n");
+                    }
+                    if (str.length() > 0) {
+                        log(str.toString());
+                        System.out.println(str.toString());
+                    }
+                    this.log_data_row += output.length();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 1000, 1000);
     }
 
     private String createTask(PhotoBoxFolderReader pbfr) throws IOException, ProtocolException {
@@ -83,19 +158,6 @@ public class OdmProject {
             camParameter.put("projection_type", "brown");
             camParameter.put("width", cam.getWidth());
             camParameter.put("height", cam.getHeight());
-
-            // TODO: Replace with actual camera parameters
-            /*
-             * camParameter.put("focal_x", 0.742411768569596);
-             * camParameter.put("focal_y", 0.742411768569596);
-             * camParameter.put("c_x", 0.001966772527179585);
-             * camParameter.put("c_y", 0.0049603303245847295);
-             * camParameter.put("k1", 0.04624957024186535);
-             * camParameter.put("k2", -0.02315359409038173);
-             * camParameter.put("p1", 0.0003167781080551945);
-             * camParameter.put("p2", 5.496613842429826e-05);
-             * camParameter.put("k3", -0.03875582329858454);
-             */
 
             camParameter.put("focal_x", img.getFocalLength() / cam.getWidth());
             camParameter.put("focal_y", img.getFocalLength() / cam.getWidth());
@@ -136,11 +198,13 @@ public class OdmProject {
 
         parameter.put("options", options.toString());
 
-        parameter.put("webhook", "http://host.docker.internal:3001/webhook");
+        parameter.put("webhook", "http://host.docker.internal:" + whs.getPort() + "/webhook");
+        System.out.println("Webhook: " + parameter.get("webhook"));
 
         JSONObject jsonResponse = api.request("/task/new/init", parameter);
         String uuid = jsonResponse.getString("uuid");
-        connector.log("Task ID: " + uuid);
+        log("Task ID: " + uuid);
+        this.uuid = uuid;
         return uuid;
     }
 
@@ -214,7 +278,7 @@ public class OdmProject {
     private File createFileFromString(String str, String fileName, String ending) throws IOException {
         // Create a temporary file
         File file = File.createTempFile(fileName, "." + ending);
-        this.connector.log("File path: " + file.getAbsolutePath());
+        log("File path: " + file.getAbsolutePath());
 
         // Write the string data to the file
         try (FileWriter writer = new FileWriter(file)) {

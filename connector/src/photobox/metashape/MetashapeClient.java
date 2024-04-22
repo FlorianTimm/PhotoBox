@@ -7,12 +7,10 @@ import com.agisoft.metashape.License;
 import photobox.Connector;
 import photobox.SfmClient;
 
-public class MetashapeClient implements SfmClient {
-
-    private final Connector connector;
+public class MetashapeClient extends SfmClient {
 
     public MetashapeClient(Connector connector) {
-        this.connector = connector;
+        super(connector);
     }
 
     public boolean connect() {
