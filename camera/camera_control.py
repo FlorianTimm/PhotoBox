@@ -301,7 +301,7 @@ class CameraControl:
                 Logger().info("Reboot Raspberry...")
                 exit(0)
             elif data == 'restart':
-                system("systemctl restart PhotoBoxKamera.service")
+                system("systemctl restart PhotoBoxCamera.service")
                 Logger().info("Restart Script...")
                 exit(1)
             elif data == 'update':

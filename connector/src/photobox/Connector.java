@@ -12,7 +12,7 @@ public class Connector {
     // https://www.codejava.net/coding/reading-and-writing-configuration-for-java-application-using-properties-class
 
     private int port = 50267;
-    private String host = "10.42.0.13";
+    private String host = "192.168.1.1";
     private ConnectorGui gui;
     private boolean isConnected = false;
     private PhotoBoxClient photoBox;
@@ -75,7 +75,7 @@ public class Connector {
             return false;
         }
         this.photoBox.setSfmClient(this.sfmClient);
-        // this.gui.setConnected();
+        this.gui.setConnected();
         this.isConnected = true;
         return true;
     }

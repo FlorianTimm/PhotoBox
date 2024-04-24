@@ -6,13 +6,21 @@ import java.io.File;
 import com.agisoft.metashape.Calibration;
 import com.agisoft.metashape.Camera;
 import com.agisoft.metashape.Chunk;
+import com.agisoft.metashape.DenseCloud;
 import com.agisoft.metashape.Document;
 import com.agisoft.metashape.Marker;
+import com.agisoft.metashape.ModelFormat;
 import com.agisoft.metashape.Photo;
 import com.agisoft.metashape.Progress;
 import com.agisoft.metashape.Sensor;
 import com.agisoft.metashape.Vector;
 import com.agisoft.metashape.tasks.AlignCameras;
+import com.agisoft.metashape.tasks.BuildDenseCloud;
+import com.agisoft.metashape.tasks.BuildDepthMaps;
+import com.agisoft.metashape.tasks.BuildModel;
+import com.agisoft.metashape.tasks.BuildTexture;
+import com.agisoft.metashape.tasks.BuildUV;
+import com.agisoft.metashape.tasks.ExportModel;
 import com.agisoft.metashape.tasks.MatchPhotos;
 import com.agisoft.metashape.Marker.Reference;
 import com.agisoft.metashape.Marker.Projection;
@@ -54,6 +62,12 @@ public class MetashapeProject extends ProcessGUI implements Progress {
             if (this.connector.getCalculateModel()) {
                 this.saveProject();
                 this.orientPhotos();
+                this.saveProject();
+                this.denseCloud();
+                this.saveProject();
+                this.createMesh();
+                this.saveProject();
+                this.exportData();
             }
 
             this.closeAndSaveProject();
@@ -237,6 +251,45 @@ public class MetashapeProject extends ProcessGUI implements Progress {
         }
     }
 
+    private void denseCloud() {
+        BuildDepthMaps build_depth_maps = new BuildDepthMaps();
+        build_depth_maps.setDownscale(4);
+        build_depth_maps.apply(this.chunk, this);
+        build_depth_maps.close();
+        build_depth_maps.delete();
+
+        BuildDenseCloud build_dense_cloud = new BuildDenseCloud();
+        build_dense_cloud.apply(this.chunk, this);
+        build_dense_cloud.close();
+        build_dense_cloud.delete();
+    }
+
+    private void createMesh() {
+        BuildModel buildModel = new BuildModel();
+        buildModel.apply(this.chunk, this);
+        buildModel.close();
+        buildModel.delete();
+
+        BuildUV buildUV = new BuildUV();
+        buildUV.apply(this.chunk, this);
+        buildUV.close();
+        buildUV.delete();
+
+        BuildTexture buildTexture = new BuildTexture();
+        buildTexture.apply(this.chunk, this);
+        buildTexture.close();
+        buildTexture.delete();
+    }
+
+    private void exportData() {
+        ExportModel exportModel = new ExportModel();
+        exportModel.setFormat(ModelFormat.ModelFormatOBJ);
+        exportModel.setPath(this.projectFolder + File.separator + "model.obj");
+        exportModel.apply(this.chunk, this);
+        exportModel.close();
+        exportModel.delete();
+    }
+
     private void closeAndSaveProject() {
         try {
             saveProject();
@@ -263,7 +316,7 @@ public class MetashapeProject extends ProcessGUI implements Progress {
 
     @Override
     public boolean aborted() {
-        log("Aborted");
+        // log("Aborted");
         return false;
     }
 }

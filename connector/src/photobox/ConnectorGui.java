@@ -265,28 +265,27 @@ public class ConnectorGui extends JFrame {
         }
     }
 
-    /*
-     * private void setConnected() {
-     * toggleInput(false);
-     * this.connect.setText("Disconnect");
-     * }
-     */
+    protected void setConnected() {
+        toggleInput(false);
+    }
 
     protected void setDisconnected() {
         toggleInput(true);
-        this.connect.setText("Connect");
     }
 
     private void toggleInput(boolean enabled) {
-        this.directoryButton.setEnabled(enabled);
-        this.textHostname.setEnabled(enabled);
-        this.textPort.setEnabled(enabled);
-        this.rDownload.setEnabled(enabled);
-        this.rODM.setEnabled(enabled);
-        this.odmUrl.setEnabled(enabled);
-        this.rMetashape.setEnabled(enabled);
-        this.checkboxCalc.setEnabled(enabled);
-        this.photoButton.setEnabled(!enabled);
+        SwingUtilities.invokeLater(() -> {
+            this.directoryButton.setEnabled(enabled);
+            this.textHostname.setEnabled(enabled);
+            this.textPort.setEnabled(enabled);
+            this.rDownload.setEnabled(enabled);
+            this.rODM.setEnabled(enabled);
+            this.odmUrl.setEnabled(enabled);
+            this.rMetashape.setEnabled(enabled);
+            this.checkboxCalc.setEnabled(enabled);
+            this.photoButton.setEnabled(!enabled);
+            this.connect.setText(enabled ? "Connect" : "Disconnect");
+        });
     }
 
     protected void log(String message) {
