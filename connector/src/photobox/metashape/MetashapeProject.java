@@ -8,6 +8,7 @@ import com.agisoft.metashape.Camera;
 import com.agisoft.metashape.Chunk;
 import com.agisoft.metashape.DenseCloud;
 import com.agisoft.metashape.Document;
+import com.agisoft.metashape.MappingMode;
 import com.agisoft.metashape.Marker;
 import com.agisoft.metashape.ModelFormat;
 import com.agisoft.metashape.Photo;

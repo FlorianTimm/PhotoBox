@@ -147,8 +147,9 @@ class MarkerChecker:
 
         # Logger().info(t)
 
-        t = t[t['count'] > 2]
-        t = t[~t['mode']].reset_index()
+        # TODO: REPAIR THIS
+        # t = t[t['count'] > 2]
+        # t = t[~t['mode']].reset_index()
 
         # Logger().info(t)
 
