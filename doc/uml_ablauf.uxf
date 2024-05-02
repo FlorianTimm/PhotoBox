@@ -1,0 +1,28 @@
+<diagram program="umletino" version="15.1"><zoom_level>13</zoom_level><element><id>UMLState</id><coordinates><x>663</x><y>156</y><w>143</w><h>65</h></coordinates><panel_attributes>Verknüpfungs-
+punkte</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLState</id><coordinates><x>143</x><y>52</y><w>117</w><h>169</h></coordinates><panel_attributes>Bilder</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>182</x><y>13</y><w>39</w><h>65</h></coordinates><panel_attributes>lt=-&gt;</panel_attributes><additional_attributes>10;10;10;30</additional_attributes></element><element><id>Relation</id><coordinates><x>247</x><y>52</y><w>442</w><h>65</h></coordinates><panel_attributes>lt=-&gt;
+manuelle Verknüpfung
+fg=#aaaaaa
+</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>Relation</id><coordinates><x>247</x><y>169</y><w>182</w><h>65</h></coordinates><panel_attributes>lt=-&gt;
+SIFT-Detektion
+fg=#aaaaaa
+</panel_attributes><additional_attributes>10;20;120;20</additional_attributes></element><element><id>UMLState</id><coordinates><x>403</x><y>156</y><w>130</w><h>78</h></coordinates><panel_attributes>SIFT
+fg=#aaaaaa</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>247</x><y>104</y><w>442</w><h>52</h></coordinates><panel_attributes>lt=-&gt;
+Detektion codierter Marker</panel_attributes><additional_attributes>10;20;320;20</additional_attributes></element><element><id>Relation</id><coordinates><x>520</x><y>169</y><w>169</w><h>65</h></coordinates><panel_attributes>lt=-&gt;
+SIFT-Matching
+fg=#aaaaaa
+</panel_attributes><additional_attributes>10;20;110;20</additional_attributes></element><element><id>Relation</id><coordinates><x>676</x><y>208</y><w>156</w><h>104</h></coordinates><panel_attributes>lt=-&gt;
+RANSAC
+Rückwärtsschnitt</panel_attributes><additional_attributes>10;10;10;60</additional_attributes></element><element><id>UMLState</id><coordinates><x>585</x><y>286</y><w>208</w><h>78</h></coordinates><panel_attributes>Orientierte Bilder</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>273</x><y>299</y><w>338</w><h>52</h></coordinates><panel_attributes>lt=-&gt;
+Vorwärtsschnitt</panel_attributes><additional_attributes>240;20;10;20</additional_attributes></element><element><id>UMLState</id><coordinates><x>143</x><y>286</y><w>143</w><h>78</h></coordinates><panel_attributes>Passpunkt-
+Koordinaten</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>208</x><y>351</y><w>130</w><h>143</h></coordinates><panel_attributes>lt=-&gt;
+Bündelblock-
+ausgleichung</panel_attributes><additional_attributes>10;10;10;90</additional_attributes></element><element><id>UMLState</id><coordinates><x>143</x><y>468</y><w>156</w><h>117</h></coordinates><panel_attributes>orientierter
+Bildverband</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>286</x><y>507</y><w>156</w><h>52</h></coordinates><panel_attributes>lt=-&gt;
+Vermaschung
+fg=#aaaaaa</panel_attributes><additional_attributes>10;20;100;20</additional_attributes></element><element><id>UMLSpecialState</id><coordinates><x>182</x><y>0</y><w>26</w><h>26</h></coordinates><panel_attributes>type=initial</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLState</id><coordinates><x>663</x><y>52</y><w>143</w><h>104</h></coordinates><panel_attributes>Passpunkte</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>247</x><y>91</y><w>624</w><h>325</h></coordinates><panel_attributes>lt=-&gt;</panel_attributes><additional_attributes>10;210;10;230;460;230;460;10;430;10</additional_attributes></element><element><id>UMLState</id><coordinates><x>416</x><y>468</y><w>156</w><h>117</h></coordinates><panel_attributes>Mesh
+fg=#aaaaaa</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLState</id><coordinates><x>702</x><y>468</y><w>156</w><h>117</h></coordinates><panel_attributes>3D-Modell
+fg=#aaaaaa</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>559</x><y>507</y><w>169</w><h>52</h></coordinates><panel_attributes>lt=-&gt;
+Vermaschung
+fg=#aaaaaa</panel_attributes><additional_attributes>10;20;110;20</additional_attributes></element><element><id>UMLSpecialState</id><coordinates><x>780</x><y>611</y><w>26</w><h>26</h></coordinates><panel_attributes>type=final
+fg=#aaaaaa</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>780</x><y>572</y><w>39</w><h>65</h></coordinates><panel_attributes>lt=-&gt;
+fg=#aaaaaa</panel_attributes><additional_attributes>10;10;10;30</additional_attributes></element></diagram>
