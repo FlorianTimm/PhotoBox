@@ -168,15 +168,48 @@ class Control:
             Logger().info("Error collecting photo from %s: %s", hostname, e)
         self.__pending_download_count[id] -= 1
         if self.__pending_download_count[id] == 0:
-            Logger().info("Collecting photos done!")
-            del self.__pending_download_count[id]
-            if self.__pending_photo_types[id] == "stack":
-                self.__stack_photos(id)
-            del self.__pending_photo_types[id]
-            make_archive(self.__conf['server']['Folder'] + id, 'zip', folder)
-            self.__led_control.photo_light()
-            self.send_to_desktop(
-                f"photoZip:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
+            self.all_images_downloaded(id, folder)
+
+    def all_images_downloaded(self, id, folder):
+        Logger().info("Collecting photos done!")
+        del self.__pending_download_count[id]
+        if self.__pending_photo_types[id] == "stack":
+            self.__stack_photos(id)
+        self.__led_control.photo_light()
+        del self.__pending_photo_types[id]
+        self.zip_and_send_folder(id, folder)
+
+    def zip_and_send_folder(self, id, folder):
+        Logger().info("Zipping folder...")
+        if path.exists(self.__conf['server']['Folder'] + id + '.zip'):
+            Logger().info("Info: Zip already exists!")
+            return
+        if self.__pending_download_count[id] > 0:
+            return
+        if self.__pending_photo_count[id] > 0:
+            return
+        if self.__pending_aruco_count[id] > 0:
+            return
+        if id in self.__pending_photo_types:
+            return
+        if not path.exists(folder):
+            Logger().info("Error: Folder not found!")
+            return
+
+        """
+        self.send_to_desktop(
+            f"aruco:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
+        self.send_to_desktop(
+            f"meta:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
+        self.send_to_desktop(
+            f"marker:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/marker.json")
+        self.send_to_desktop(
+            f"cameras:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/cameras.json")
+        """
+
+        make_archive(self.__conf['server']['Folder'] + id, 'zip', folder)
+        self.send_to_desktop(
+            f"photoZip:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
 
     def __check_folder(self, id):
         folder = self.__conf['server']['Folder'] + id + "/"
@@ -222,45 +255,41 @@ class Control:
         self.__pending_aruco_count[id] -= 1
 
         if self.__pending_aruco_count[id] == 0:
-            Logger().info("Aruco done!")
-            del self.__pending_aruco_count[id]
-            folder = self.__check_folder(id)
+            self.__all_aruco_received(id)
 
-            json_dump(self.__metadata[id], open(
-                folder + 'meta.json', "w"), indent=2)
+    def __all_aruco_received(self, id):
+        Logger().info("Aruco done!")
+        del self.__pending_aruco_count[id]
+        folder = self.__check_folder(id)
 
-            filter = MarkerChecker(
-                self.__marker, self.__detected_markers[id], self.__metadata[id])
-            self.__detected_markers[id] = filter.get_filtered_positions()
-            self.__marker = filter.get_corrected_coordinates()
-            cameras = filter.get_cameras()
+        json_dump(self.__metadata[id], open(
+            folder + 'meta.json', "w"), indent=2)
 
-            json_dump(self.__detected_markers[id], open(
-                folder + 'aruco.json', "w"), indent=2)
+        filter = MarkerChecker(
+            self.__marker, self.__detected_markers[id], self.__metadata[id])
+        self.__detected_markers[id] = filter.get_filtered_positions()
+        self.__marker = filter.get_corrected_coordinates()
+        cameras = filter.get_cameras()
 
-            marker = {}
-            for pid, corners in self.__marker.items():
-                marker[pid] = {}
-                for corner, pos in enumerate(corners):
-                    if pos is None:
-                        continue
-                    marker[pid][corner] = [pos.x,  pos.y,  pos.z]
-            Logger().info("Marker: %s", marker)
+        json_dump(self.__detected_markers[id], open(
+            folder + 'aruco.json', "w"), indent=2)
 
-            json_dump(marker, open(
-                folder + 'marker.json', "w"), indent=2)
+        marker = {}
+        for pid, corners in self.__marker.items():
+            marker[pid] = {}
+            for corner, pos in enumerate(corners):
+                if pos is None:
+                    continue
+                marker[pid][corner] = [pos.x,  pos.y,  pos.z]
+        Logger().info("Marker: %s", marker)
 
-            json_dump(cameras, open(
-                folder + 'cameras.json', "w"), indent=2)
+        json_dump(marker, open(
+            folder + 'marker.json', "w"), indent=2)
 
-            self.send_to_desktop(
-                f"aruco:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/aruco.json")
-            self.send_to_desktop(
-                f"meta:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/meta.json")
-            self.send_to_desktop(
-                f"marker:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/marker.json")
-            self.send_to_desktop(
-                f"cameras:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}/cameras.json")
+        json_dump(cameras, open(
+            folder + 'cameras.json', "w"), indent=2)
+
+        self.zip_and_send_folder(id, folder)
 
     def set_marker_from_csv(self, file, save=True) -> None:
         m = pd.read_csv(file)
