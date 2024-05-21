@@ -184,11 +184,11 @@ class Control:
         if path.exists(self.__conf['server']['Folder'] + id + '.zip'):
             Logger().info("Info: Zip already exists!")
             return
-        if self.__pending_download_count[id] > 0:
+        if id in self.__pending_download_count and self.__pending_download_count[id] > 0:
             return
-        if self.__pending_photo_count[id] > 0:
+        if id in self.__pending_photo_count and self.__pending_photo_count[id] > 0:
             return
-        if self.__pending_aruco_count[id] > 0:
+        if id in self.__pending_aruco_count and self.__pending_aruco_count[id] > 0:
             return
         if id in self.__pending_photo_types:
             return
