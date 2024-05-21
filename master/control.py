@@ -184,11 +184,11 @@ class Control:
         if path.exists(self.__conf['server']['Folder'] + id + '.zip'):
             Logger().info("Info: Zip already exists!")
             return
-        if id in self.__pending_download_count and self.__pending_download_count[id] > 0:
+        if id in self.__pending_download_count:
             return
-        if id in self.__pending_photo_count and self.__pending_photo_count[id] > 0:
+        if id in self.__pending_photo_count:
             return
-        if id in self.__pending_aruco_count and self.__pending_aruco_count[id] > 0:
+        if id in self.__pending_aruco_count:
             return
         if id in self.__pending_photo_types:
             return
@@ -210,6 +210,7 @@ class Control:
         make_archive(self.__conf['server']['Folder'] + id, 'zip', folder)
         self.send_to_desktop(
             f"photoZip:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
+        Logger().info("Zip done!")
 
     def __check_folder(self, id):
         folder = self.__conf['server']['Folder'] + id + "/"
@@ -259,7 +260,6 @@ class Control:
 
     def __all_aruco_received(self, id):
         Logger().info("Aruco done!")
-        del self.__pending_aruco_count[id]
         folder = self.__check_folder(id)
 
         json_dump(self.__metadata[id], open(
@@ -289,6 +289,7 @@ class Control:
         json_dump(cameras, open(
             folder + 'cameras.json', "w"), indent=2)
 
+        del self.__pending_aruco_count[id]
         self.zip_and_send_folder(id, folder)
 
     def set_marker_from_csv(self, file, save=True) -> None:
