@@ -48,7 +48,7 @@ def time(time: int) -> str:
 def overviewZip() -> str:
     '''Overview of all zip files with images.'''
     filelist = glob(conf['server']['Folder'] + "*.zip")
-    filelist.sort(key=lambda x: path.getmtime(x))
+    filelist.sort(key=lambda x: path.getmtime(x), reverse=True)
 
     def f2d(file: str):
         time = path.getmtime(file)
