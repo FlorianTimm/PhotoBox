@@ -2,27 +2,31 @@ package photobox;
 
 import java.io.File;
 
+import javax.swing.SwingUtilities;
+
 import photobox.metashape.MetashapeClient;
-import photobox.odm.ODMClient;
+import photobox.odm.OdmClient;
 
 public class Connector {
     // TODO: Save the last used host and port in a file
     // https://www.codejava.net/coding/reading-and-writing-configuration-for-java-application-using-properties-class
 
     private int port = 50267;
-    private String host = "10.42.0.13";
-    private ConnectorGUI gui;
+    private String host = "192.168.1.1";
+    private ConnectorGui gui;
     private boolean isConnected = false;
     private PhotoBoxClient photoBox;
     private SfmClient sfmClient;
     private String software = "Download";
     private File directory;
+    private boolean calcModel = true;
+    private String odmUrl = "http://localhost:3000";
 
     public static void main(String[] args) {
         new Connector(args);
     }
 
-    public Connector(String[] args) {
+    private Connector(String[] args) {
         // Regex to match a hostname or an IP address
         final String regex = "(^([A-Za-z](\\w+\\.)*\\w+)|^(\\d{1,3}.){3}\\d{1,3})(\\:\\d{1,5})?";
 
@@ -40,13 +44,18 @@ public class Connector {
 
         this.directory = new File(System.getProperty("user.home") + "/PhotoBox");
 
-        this.gui = new ConnectorGUI(this);
+        this.gui = new ConnectorGui(this);
+        new Thread("GUI Thread") {
+            public void run() {
+                gui.startGui();
+            }
+        }.start();
 
         log("PhotoBoxConnector started");
 
     }
 
-    public boolean toggleConnect() {
+    protected boolean toggleConnect() {
         if (this.isConnected) {
             return !this.disconnect();
         } else {
@@ -54,7 +63,7 @@ public class Connector {
         }
     }
 
-    public boolean connect() {
+    private boolean connect() {
         this.photoBox = new PhotoBoxClient(this.host, this.port, this);
 
         if (!this.photoBox.connect()) {
@@ -71,14 +80,14 @@ public class Connector {
         return true;
     }
 
-    public void processPhotos(String destDir) {
+    protected void processPhotos(String destDir) {
         if (this.sfmClient == null) {
             this.setSoftware(this.software);
             return;
         }
         boolean wasConnected = this.isConnected;
         if (!wasConnected) {
-            this.gui.log("Not connected");
+            this.log("Not connected");
             this.sfmClient.connect();
         }
         this.sfmClient.processPhotos(destDir);
@@ -87,22 +96,22 @@ public class Connector {
         }
     }
 
-    public void takePhoto() {
+    protected void takePhoto() {
         if (!this.isConnected) {
-            this.gui.log("Not connected");
+            this.log("Not connected");
             return;
         }
 
         this.photoBox.takePhoto();
     }
 
-    public boolean disconnect() {
+    private boolean disconnect() {
         if (!this.photoBox.disconnect()) {
-            this.gui.log("Failed to disconnect from PhotoBox");
+            this.log("Failed to disconnect from PhotoBox");
             return false;
         }
         if (!this.sfmClient.disconnect()) {
-            this.gui.log("Failed to disconnect from " + this.software);
+            this.log("Failed to disconnect from " + this.software);
             return false;
         }
 
@@ -112,54 +121,72 @@ public class Connector {
     }
 
     // Getters and setters
-    public void setHost(String host) {
+    protected void setHost(String host) {
         this.host = host;
     }
 
-    public void setPort(int port) {
+    protected void setPort(int port) {
         this.port = port;
     }
 
-    public void setSoftware(String software) throws IllegalArgumentException {
+    protected void setSoftware(String software) throws IllegalArgumentException {
         this.software = software;
         if (this.software.equals("Metashape")) {
             this.sfmClient = new MetashapeClient(this);
         } else if (this.software.equals("ODM")) {
-            this.sfmClient = new ODMClient(this);
+            this.sfmClient = new OdmClient(this, this.getOdmUrl());
         } else if (this.software.equals("Download")) {
-            this.sfmClient = new DownloadClient();
+            this.sfmClient = new DownloadClient(this);
         } else {
-            this.gui.log("Invalid software");
+            this.log("Invalid software");
             throw new IllegalArgumentException("Invalid software");
         }
     }
 
-    public String getHost() {
+    protected String getHost() {
         return this.host;
     }
 
-    public int getPort() {
+    protected int getPort() {
         return this.port;
     }
 
-    public String getSoftware() {
+    protected String getSoftware() {
         return this.software;
-    }
-
-    public boolean isConnected() {
-        return this.isConnected;
     }
 
     public void log(String message) {
         System.out.println(message);
-        // this.gui.log(message);
+        SwingUtilities.invokeLater(() -> {
+            this.gui.log(message);
+        });
     }
 
-    public File getDirectory() {
+    protected File getDirectory() {
         return this.directory;
     }
 
-    public void setDirectory(File directory) {
+    protected void setDirectory(File directory) {
         this.directory = directory;
+    }
+
+    protected void setCalculateModel(boolean selected) {
+        this.calcModel = selected;
+    }
+
+    public boolean getCalculateModel() {
+        return this.calcModel;
+    }
+
+    public String getOdmUrl() {
+        return this.odmUrl;
+    }
+
+    public void setOdmUrl(String odmUrl) {
+        this.odmUrl = odmUrl;
+    }
+
+    public ConnectorGui getGui() {
+        return this.gui;
     }
 }

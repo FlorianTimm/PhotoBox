@@ -6,6 +6,7 @@
 @version: 2024.03.11
 """
 
+from re import L
 import cv2
 import numpy as np
 import pandas as pd
@@ -145,10 +146,15 @@ class MarkerChecker:
         t['mode'] = t['mode'].apply(
             lambda x: True if isinstance(x, list) else x)
 
-        # Logger().info(t)
-
         t = t[t['count'] > 2]
-        t = t[~t['mode']].reset_index()
+        try:
+            # TODO: REPAIR THIS
+            t = t[(t['mode'] == False)]
+        except Exception:
+            Logger().info("Error in filtering")
+            pass
+
+        t.reset_index(inplace=True)
 
         # Logger().info(t)
 

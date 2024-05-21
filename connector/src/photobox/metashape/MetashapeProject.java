@@ -6,13 +6,22 @@ import java.io.File;
 import com.agisoft.metashape.Calibration;
 import com.agisoft.metashape.Camera;
 import com.agisoft.metashape.Chunk;
+import com.agisoft.metashape.DenseCloud;
 import com.agisoft.metashape.Document;
+import com.agisoft.metashape.MappingMode;
 import com.agisoft.metashape.Marker;
+import com.agisoft.metashape.ModelFormat;
 import com.agisoft.metashape.Photo;
 import com.agisoft.metashape.Progress;
 import com.agisoft.metashape.Sensor;
 import com.agisoft.metashape.Vector;
 import com.agisoft.metashape.tasks.AlignCameras;
+import com.agisoft.metashape.tasks.BuildDenseCloud;
+import com.agisoft.metashape.tasks.BuildDepthMaps;
+import com.agisoft.metashape.tasks.BuildModel;
+import com.agisoft.metashape.tasks.BuildTexture;
+import com.agisoft.metashape.tasks.BuildUV;
+import com.agisoft.metashape.tasks.ExportModel;
 import com.agisoft.metashape.tasks.MatchPhotos;
 import com.agisoft.metashape.Marker.Reference;
 import com.agisoft.metashape.Marker.Projection;
@@ -20,13 +29,14 @@ import com.agisoft.metashape.ReferencePreselectionMode;
 
 import photobox.Connector;
 import photobox.PhotoBoxFolderReader;
+import photobox.ProcessGUI;
 import photobox.domain.PbCamera;
 import photobox.domain.PbCameraPosition;
 import photobox.domain.PbImage;
 import photobox.domain.PbMarker;
 import photobox.domain.PbMarkerPosition;
 
-public class MetashapeProject implements Progress {
+public class MetashapeProject extends ProcessGUI implements Progress {
     private Connector connector;
     private Document project;
     private String projectFilePath;
@@ -34,29 +44,36 @@ public class MetashapeProject implements Progress {
     private String projectFolder;
     private PhotoBoxFolderReader pbfr;
 
-    public MetashapeProject(Connector connector, String projectFolder) {
-        this(connector, projectFolder, projectFolder + "/project.psx");
-    }
-
-    public MetashapeProject(Connector connector, String projectFolder, String projectFilePath) {
-        this.projectFilePath = projectFilePath;
+    protected MetashapeProject(Connector connector, String projectFolder) {
+        super(connector, "Metashape");
+        this.projectFilePath = projectFolder + "/project.psx";
         this.connector = connector;
         this.projectFolder = projectFolder;
     }
 
-    public void run() {
-        this.connector.log("Processing photos");
+    protected void run() {
+        log("Processing photos");
         try {
             this.createProject();
             this.pbfr = new PhotoBoxFolderReader(connector, projectFolder);
             this.addPhotos();
             this.addMarkerCoordinates();
             this.addMarkerPositions();
-            this.saveProject();
-            this.orientPhotos();
+
+            if (this.connector.getCalculateModel()) {
+                this.saveProject();
+                this.orientPhotos();
+                this.saveProject();
+                this.denseCloud();
+                this.saveProject();
+                this.createMesh();
+                this.saveProject();
+                this.exportData();
+            }
+
             this.closeAndSaveProject();
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -67,10 +84,10 @@ public class MetashapeProject implements Progress {
             saveProject();
             // this.chunk = this.project.addChunk();
             // doc.close();
-            connector.log("Project created");
+            log("Project created");
             return true;
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to create project");
         }
@@ -105,7 +122,7 @@ public class MetashapeProject implements Progress {
                 index = getIndexOfArray(imageFileNames, file.getName());
             }
             if (index == -1) {
-                this.connector.log("Failed to find image index");
+                log("Failed to find image index");
                 continue;
             }
             PbImage image = images[index];
@@ -164,7 +181,7 @@ public class MetashapeProject implements Progress {
     }
 
     private void addMarkerCoordinates() {
-        this.connector.log("Adding marker coordinates");
+        log("Adding marker coordinates");
         PbMarker[] markers = this.pbfr.getMarkers();
         for (PbMarker marker : markers) {
             Marker m = this.chunk.addMarker();
@@ -209,7 +226,7 @@ public class MetashapeProject implements Progress {
     }
 
     private void orientPhotos() {
-        this.connector.log("Orienting photos");
+        log("Orienting photos");
         try (MatchPhotos match_photos = new MatchPhotos()) {
             match_photos.setDownscale(5);
             match_photos.setReferencePreselectionMode(ReferencePreselectionMode.ReferencePreselectionSource);
@@ -220,7 +237,7 @@ public class MetashapeProject implements Progress {
             match_photos.delete();
 
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to orient photos");
         }
@@ -229,10 +246,49 @@ public class MetashapeProject implements Progress {
             align_cameras.apply(this.chunk, this);
             align_cameras.delete();
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to align cameras");
         }
+    }
+
+    private void denseCloud() {
+        BuildDepthMaps build_depth_maps = new BuildDepthMaps();
+        build_depth_maps.setDownscale(4);
+        build_depth_maps.apply(this.chunk, this);
+        build_depth_maps.close();
+        build_depth_maps.delete();
+
+        BuildDenseCloud build_dense_cloud = new BuildDenseCloud();
+        build_dense_cloud.apply(this.chunk, this);
+        build_dense_cloud.close();
+        build_dense_cloud.delete();
+    }
+
+    private void createMesh() {
+        BuildModel buildModel = new BuildModel();
+        buildModel.apply(this.chunk, this);
+        buildModel.close();
+        buildModel.delete();
+
+        BuildUV buildUV = new BuildUV();
+        buildUV.apply(this.chunk, this);
+        buildUV.close();
+        buildUV.delete();
+
+        BuildTexture buildTexture = new BuildTexture();
+        buildTexture.apply(this.chunk, this);
+        buildTexture.close();
+        buildTexture.delete();
+    }
+
+    private void exportData() {
+        ExportModel exportModel = new ExportModel();
+        exportModel.setFormat(ModelFormat.ModelFormatOBJ);
+        exportModel.setPath(this.projectFolder + File.separator + "model.obj");
+        exportModel.apply(this.chunk, this);
+        exportModel.close();
+        exportModel.delete();
     }
 
     private void closeAndSaveProject() {
@@ -241,7 +297,7 @@ public class MetashapeProject implements Progress {
             this.project.close();
             connector.log("Project saved and closed");
         } catch (Exception e) {
-            this.connector.log(e.getMessage());
+            log(e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to save and close project");
         }
@@ -251,17 +307,17 @@ public class MetashapeProject implements Progress {
 
     @Override
     public void progress(double progress) {
-        this.connector.log("Progress: " + progress);
+        logProgress((int) Math.round(progress));
     }
 
     @Override
     public void status(String status) {
-        this.connector.log("Status: " + status);
+        log("Status: " + status);
     }
 
     @Override
     public boolean aborted() {
-        this.connector.log("Aborted");
+        // log("Aborted");
         return false;
     }
 }

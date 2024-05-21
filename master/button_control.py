@@ -10,14 +10,12 @@ from typing import TYPE_CHECKING
 from common.logger import Logger
 
 
-gpio_available = False
+Button = None
 try:
     from gpiozero import Button  # type: ignore
-    gpio_available = True
-except ImportError:
+except ImportError or NotImplementedError:
     Logger().warning("GPIO not available")
-except NotImplementedError:
-    Logger().warning("GPIO not available")
+    Button = None
 
 if TYPE_CHECKING:
     from master.control import Control
@@ -48,9 +46,8 @@ class ButtonControl:
             control: The control object.
         """
         self.__control = control
-        self.__gpio_available = gpio_available
 
-        if self.__gpio_available and Button:
+        if Button is not None:
             Logger().info("Buttons are starting...")
             self.__button_blue = Button(
                 24, pull_up=True, hold_time=2, bounce_time=0.1)
