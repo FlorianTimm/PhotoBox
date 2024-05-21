@@ -87,7 +87,7 @@ def stack_html(id: str = "") -> str:
 def capture_html(action: Literal['photo', 'stack'] = "photo", id: str = "") -> str:
     if id == "":
         id = control.capture_photo(action)
-        return render_template('wait.htm', time=5,
+        return render_template('wait.htm', time=10,
                                target_url=f"/{action}/{id}", title="Photo...")
 
     hnames = dict(sorted(control.get_cameras().items()))
