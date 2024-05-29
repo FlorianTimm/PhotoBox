@@ -225,7 +225,7 @@ class Control:
             system('sudo mount /dev/sda1 /mnt/usb')
 
         Logger().info("Copy to USB...")
-        system("cp " + file + " /media/pi/USB")
+        system("cp " + file + " /mnt/usb")
         system("sync")
         system("sudo umount /dev/sda1")
 
