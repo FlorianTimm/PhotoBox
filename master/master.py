@@ -56,7 +56,15 @@ def overviewZip() -> str:
         t = datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
         return {'path': p, 'time': t}
     files = [f2d(file) for file in filelist]
-    return render_template('overviewZip.htm', files=files)
+
+    return render_template('overviewZip.htm', files=files, usb=path.exists('/dev/sda1'))
+
+
+@app.route("/usb/<path:filename>")
+def usb_copy(filename: str) -> str:
+    '''Copy zip file to USB stick.'''
+    control.check_and_copy_usb(filename)
+    return render_template('wait.htm', time=1, target_url="/overviewZip", title="Copying...")
 
 
 @app.route("/overview")

@@ -11,8 +11,11 @@
     <tr>
         <td><a href="/bilder/{{ file['path'] }}"">{{ file['path'] }}</a></td>
         <td>{{ file['time'] }}</td>
-</tr>
-{% endfor %}
+        {% if usb %}
+        <td><a href=" /usb/{{ file['path'] }}"">Copy to USB</a></td>
+        {% endif %}
+    </tr>
+    {% endfor %}
 
 </table>
 
