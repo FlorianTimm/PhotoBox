@@ -1,7 +1,7 @@
-sudo apt install git python3-flask python3-flask-cors
+sudo apt install git python3-flask python3-flask-cors python3-opencv --no-install-recommends
 
 # Kamera
-sudo apt install python3-picamera2 python3-opencv --no-install-recommends
+sudo apt install python3-picamera2 --no-install-recommends
 
 # Master
 

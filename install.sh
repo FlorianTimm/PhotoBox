@@ -11,6 +11,9 @@ fi
 if [ $n -eq 2 ]
 then
   cp  /home/photo/PhotoBox/master/PhotoBoxMaster.service /etc/systemd/system/PhotoBoxMaster.service
+  cd /home/photo/PhotoBox/master
+  python -m venv .venv --system-site-packages
+  ./.venv/bin/pip install pandas scipy
 fi
 
 ./update.sh

@@ -73,7 +73,7 @@ class CameraInterface(object):
         Logger().info("Fokus-Fenster:  %s", rect)
         self.__DEFAULT_CTRL: dict[str, Any] = {
             "AwbMode": controls.AwbModeEnum.Auto.value,
-            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted.value,
+            "AeMeteringMode": controls.AeMeteringModeEnum.Spot.value,
             "AeExposureMode": controls.AeExposureModeEnum.Long.value,
             "AfMetering": controls.AfMeteringEnum.Windows.value,
             "AfWindows": [rect],

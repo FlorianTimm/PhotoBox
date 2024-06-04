@@ -212,6 +212,25 @@ class Control:
             f"photoZip:{id}:{socket.gethostname()}:{self.__conf['server']['WebPort']}/bilder/{id}.zip")
         Logger().info("Zip done!")
 
+        self.check_and_copy_usb(id + '.zip')
+
+    def check_and_copy_usb(self, file):
+        if not path.exists('/dev/sda1'):
+            Logger().info("USB not found!")
+            return
+        if not path.exists("/mnt/usb"):
+            makedirs("/mnt/usb")
+        if not path.ismount('/mnt/usb'):
+            system('sudo mount /dev/sda1 /mnt/usb')
+
+        file = self.__conf['server']['Folder'] + file
+        Logger().info("Copy to USB...")
+        system("cp " + file + " /mnt/usb")
+        system("sync")
+        system("sudo umount /dev/sda1")
+
+        Logger().info("Copy to USB done!")
+
     def __check_folder(self, id):
         folder = self.__conf['server']['Folder'] + id + "/"
         if not path.exists(folder):
