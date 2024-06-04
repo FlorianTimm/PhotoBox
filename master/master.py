@@ -139,6 +139,18 @@ def restart() -> str:
     return control.restart()
 
 
+@app.route("/pause")
+def pause() -> str:
+    control.pause()
+    return render_template('wait.htm', time=5, target_url="/", title="Standby")
+
+
+@app.route("/resume")
+def resume() -> str:
+    control.resume()
+    return render_template('wait.htm', time=5, target_url="/", title="Resume...")
+
+
 @app.route('/proxy/<host>/<path>')
 def proxy(host: str, path: str) -> bytes:
     r: GetResponse = get("http://"+host+"/"+path)

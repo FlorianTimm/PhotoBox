@@ -343,16 +343,16 @@ class Control:
 
     def switch_pause_resume(self, ):
         if self.__cams_in_standby:
-            self.__pause()
+            self.pause()
         else:
-            self.__resume()
+            self.resume()
 
-    def __pause(self, ):
+    def pause(self, ):
         self.__cams_in_standby = False
         self.send_to_all('pause')
         Thread(target=self.__led_control.running_light).start()
 
-    def __resume(self, ):
+    def resume(self, ):
         if not self.__cams_in_standby:
             self.__cams_in_standby = True
             self.search_cameras(False)
