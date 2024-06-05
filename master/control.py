@@ -37,7 +37,7 @@ from master.focus_stack import focus_stack
 from typing import Any, Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
-from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, Metadata, Point3D, ArucoMarkerCorners
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CommonCamSettings, Metadata, Point3D, ArucoMarkerCorners
 from common.conf import Conf
 
 
@@ -54,15 +54,15 @@ class Control:
     __desktop_message_queue: Queue[str] = Queue()
     __marker: dict[int, ArucoMarkerCorners] = {}
     __metadata: dict[str, dict[str, Metadata]] = {}
-    __camera_settings: dict[str, Any] = {}
+    __camera_settings: CommonCamSettings
 
     def __init__(self,  app: Flask) -> None:
         self.__webapp = app
         self.__conf = Conf().get()
 
         self.__camera_settings = {
-            'exposure_sync': self.__conf['kameras']['ExposureSync'],
-            'exposure_value': self.__conf['kameras']['ExposureValue']
+            'exposure_sync': int(self.__conf['kameras']['ExposureSync']) == 1,
+            'exposure_value': float(self.__conf['kameras']['ExposureValue'])
         }
 
         if self.__camera_settings['exposure_value'] != 0:
@@ -452,13 +452,14 @@ class Control:
         return render_template('wait.htm', time=15, target_url="/", title="Restarting...")
 
     def set_config_from_web(self, config: dict) -> None:
+        print(config)
         if 'color' in config:
             self.__led_control.set_photo_light_color(
                 (int(config['color'][1:3], 16), int(config['color'][3:5], 16), int(config['color'][5:7], 16)))
-        if 'exposure_sync' in config:
-            self.__camera_settings['exposure_sync'] = config['exposure_sync']
+        self.__camera_settings['exposure_sync'] = 'exposure_sync' in config
         if 'exposure_value' in config:
-            self.__camera_settings['exposure_value'] = config['exposure_value']
+            self.__camera_settings['exposure_value'] = int(
+                config['exposure_value'])
             self.send_to_all(
                 f'settings:{{"exposure_value":{config["exposure_value"]}}}')
 

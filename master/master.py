@@ -230,6 +230,7 @@ def marker_post():
 def config_get() -> str:
     """ Config """
     c = control.get_config_for_web()
+    print(c)
     return render_template('config.htm', color=c['color'], exposure_value=c['exposure_value'], exposure_sync=c['exposure_sync'])
 
 
