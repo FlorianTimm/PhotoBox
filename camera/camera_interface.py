@@ -211,10 +211,14 @@ class CameraInterface(object):
         Thread(target=aruco_search, args=(self,
                                           img, aruco_callback), name="Aruco").start()
 
-    def meta(self) -> None | dict[str, Any]:
+    def meta(self) -> dict[str, Any]:
         self.resume()
-        m = self.__cam.capture_metadata(wait=True)
-        return m
+        try:
+            m = self.__cam.capture_metadata()
+        except Exception as e:
+            Logger().error("Error getting metadata: %s", e)
+            m = {}
+        return m  # type: ignore
 
     @overload
     def set_settings(
