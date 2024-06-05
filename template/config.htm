@@ -1,0 +1,17 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Config{% endblock %}
+
+{% block title2 %}Configuration{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+<form method="POST">
+    <label for="color">Light color:</label>
+    <input type="color" name="color" value="{{ color }}">
+    <input type="submit" value="Save">
+</form>
+{% endblock %}

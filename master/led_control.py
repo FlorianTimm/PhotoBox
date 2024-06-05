@@ -66,6 +66,8 @@ class LedControl:
     __YELLOW = (255, 255, 100)
     __LIGHTRED = (50, 0, 0)
 
+    __photo_light_color = __WHITE
+
     def __init__(self, control: 'Control'):
         """
         Initializes the LedControl object.
@@ -179,7 +181,7 @@ class LedControl:
         Returns:
             None
         """
-        self.__fill(self.__WHITE)
+        self.__fill(self.__photo_light_color)
         if (val > 0):
             sleep(float(val))
             self.status_led()
@@ -206,3 +208,11 @@ class LedControl:
                     self.__pixels[j+self.__num_pixels//8*i] = self.__BLACK
                 if self.__control.get_cams_started():
                     break
+
+    def get_photo_light_color(self):
+        return self.__photo_light_color
+
+    def set_photo_light_color(self, color):
+        self.__photo_light_color = color
+        self.photo_light(5)
+        return self.__photo_light_color

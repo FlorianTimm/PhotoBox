@@ -409,7 +409,18 @@ class Control:
         Logger().info("Restart Skript...")
         return render_template('wait.htm', time=15, target_url="/", title="Restarting...")
 
+    def set_config_from_web(self, config: dict) -> None:
+        if 'color' in config:
+            self.__led_control.set_photo_light_color(
+                (int(config['color'][1:3], 16), int(config['color'][3:5], 16), int(config['color'][5:7], 16)))
+
     # Getter
+
+    def get_config_for_web(self, ) -> dict:
+        c = {}
+
+        c['color'] = '#%02x%02x%02x' % self.__led_control.get_photo_light_color()
+        return c
 
     def get_hostnames(self, ) -> dict[str, str]:
         return dict(sorted(self.__list_of_cameras.items()))

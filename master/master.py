@@ -226,4 +226,19 @@ def marker_post():
     return redirect(request.url)
 
 
+@app.route("/config", methods=['GET'])
+def config_get() -> str:
+    """ Config """
+    c = control.get_config_for_web()
+    return render_template('config.htm', color=c['color'])
+
+
+@app.route("/config", methods=['POST'])
+def config_post() -> str:
+    """ Config """
+    control.set_config_from_web(request.form)
+    return render_template('wait.htm', time=1, target_url="/config",
+                           title="Setup...")
+
+
 control.start()
