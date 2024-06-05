@@ -241,6 +241,11 @@ class CameraInterface(object):
                     Logger().info("white_balance: %s",
                                   settings['white_balance'])
                     controls.AwbMode = settings['white_balance']
+                if 'exposure_value' in settings:
+                    Logger().info("exposure_value: %s",
+                                  settings['exposure_value'])
+                    controls.ExposureValue = settings['exposure_value']
+
         return settings
 
     def focus(self, focus: float) -> str:
