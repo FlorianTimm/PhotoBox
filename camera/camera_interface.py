@@ -213,10 +213,8 @@ class CameraInterface(object):
 
     def meta(self) -> None | dict[str, Any]:
         self.resume()
-        values = self.__cam.capture_metadata(wait=True)
-        print(values)
-        _, _, m = values  # type: ignore
-        return m  # type: ignore
+        m = self.__cam.capture_metadata(wait=True)
+        return m
 
     @overload
     def set_settings(
