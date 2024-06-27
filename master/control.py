@@ -147,6 +147,7 @@ class Control:
         self.send_to_all(
             f'settings:{{"shutter_speed":{et}}}')
         Logger().info("Exposure synced: %d", et)
+        sleep(1)
 
     def send_to_desktop(self, message: str) -> None:
         self.__desktop_message_queue.put(message)
