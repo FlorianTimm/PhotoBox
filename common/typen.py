@@ -12,6 +12,7 @@ from typing import Required, TypedDict, NotRequired, Union,  TypeAlias, NamedTup
 class CommonCamSettings(TypedDict):
     exposure_value: Required[float]
     exposure_sync: Required[bool]
+    # shutter_speed: NotRequired[float]
 
 
 class CamSettingsWithoutFilename(TypedDict):

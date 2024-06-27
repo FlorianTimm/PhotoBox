@@ -143,7 +143,7 @@ class Control:
         if count > 0:
             et /= count
         et = int(et)
-        self.__camera_settings['exposure_value'] = et
+        # self.__camera_settings['shutter_speed'] = et
         self.send_to_all(
             f'settings:{{"shutter_speed":{et}}}')
         Logger().info("Exposure synced: %d", et)
