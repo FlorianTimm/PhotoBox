@@ -211,9 +211,13 @@ class CameraInterface(object):
         Thread(target=aruco_search, args=(self,
                                           img, aruco_callback), name="Aruco").start()
 
-    def meta(self) -> None | dict[str, Any]:
+    def meta(self) -> dict[str, Any]:
         self.resume()
-        _, m = self.__cam.capture_metadata(wait=True)  # type: ignore
+        try:
+            m = self.__cam.capture_metadata()
+        except Exception as e:
+            Logger().error("Error getting metadata: %s", e)
+            m = {}
         return m  # type: ignore
 
     @overload
@@ -241,6 +245,11 @@ class CameraInterface(object):
                     Logger().info("white_balance: %s",
                                   settings['white_balance'])
                     controls.AwbMode = settings['white_balance']
+                if 'exposure_value' in settings:
+                    Logger().info("exposure_value: %s",
+                                  settings['exposure_value'])
+                    controls.ExposureValue = settings['exposure_value']
+
         return settings
 
     def focus(self, focus: float) -> str:

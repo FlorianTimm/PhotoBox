@@ -9,6 +9,11 @@
 from typing import Required, TypedDict, NotRequired, Union,  TypeAlias, NamedTuple
 
 
+class CommonCamSettings(TypedDict):
+    exposure_value: Required[float]
+    exposure_sync: Required[bool]
+
+
 class CamSettingsWithoutFilename(TypedDict):
     focus: NotRequired[float]
     iso: NotRequired[float]

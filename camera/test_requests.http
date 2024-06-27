@@ -1,0 +1,16 @@
+POST http://camera.local:8080/settings/  HTTP/1.1
+Content-Type: application/json
+
+{
+  "exposure_value": 0
+}
+
+
+####
+
+POST http://camera.local:8080/settings/  HTTP/1.1
+Content-Type: application/json
+
+{
+  "shutter_speed": 0
+}

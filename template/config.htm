@@ -1,0 +1,24 @@
+{% extends 'base.htm' %}
+
+{% block title1 %}Config{% endblock %}
+
+{% block title2 %}Configuration{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+<form method="POST">
+    <label for="color">Light color:</label>
+    <input type="color" name="color" value="{{ color }}">
+    <br>
+    <label for="exposure_value">ExposureValue:</label>
+    <input type="range" name="exposure_value" min="-8" max="8" value="{{ exposure_value }}">
+    <br>
+    <label for="exposure_sync">same exposure:</label>
+    <input type="checkbox" name="exposure_sync" {% if exposure_sync %}checked{% endif %}>
+    <br>
+    <input type="submit" value="Save">
+</form>
+{% endblock %}

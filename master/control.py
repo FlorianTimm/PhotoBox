@@ -37,7 +37,7 @@ from master.focus_stack import focus_stack
 from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
-from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, Metadata, Point3D, ArucoMarkerCorners
+from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CommonCamSettings, Metadata, Point3D, ArucoMarkerCorners
 from common.conf import Conf
 
 
@@ -54,10 +54,20 @@ class Control:
     __desktop_message_queue: Queue[str] = Queue()
     __marker: dict[int, ArucoMarkerCorners] = {}
     __metadata: dict[str, dict[str, Metadata]] = {}
+    __camera_settings: CommonCamSettings
 
     def __init__(self,  app: Flask) -> None:
         self.__webapp = app
         self.__conf = Conf().get()
+
+        self.__camera_settings = {
+            'exposure_sync': int(self.__conf['kameras']['ExposureSync']) == 1,
+            'exposure_value': float(self.__conf['kameras']['ExposureValue'])
+        }
+
+        if self.__camera_settings['exposure_value'] != 0:
+            self.send_to_all(
+                f'settings:{{"exposure_value":{self.__camera_settings["exposure_value"]}}}')
 
         if not path.exists(self.__conf['server']['Folder']):
             makedirs(self.__conf['server']['Folder'])
@@ -103,6 +113,9 @@ class Control:
         return id
 
     def __capture_thread(self, action: Literal['photo', 'stack'], id: str):
+        if 'exposure_sync' in self.__camera_settings:
+            self.sync_exposure()
+
         photo_count = len(self.__list_of_cameras) * \
             (4 if action == "stack" else 1)
         self.__pending_photo_count[id] = photo_count
@@ -110,6 +123,30 @@ class Control:
         self.__pending_aruco_count[id] = photo_count
         self.__pending_photo_types[id] = action
         self.send_to_all(f'{action}:{id}')
+
+    def sync_exposure(self):
+        self.__led_control.photo_light()
+        self.send_to_all('settings:{"shutter_speed":0}')
+        sleep(1)
+
+        et = 0
+        count = 0
+        for ip in self.__list_of_cameras.values():
+            try:
+                data = requests.get(
+                    f"http://{ip}:{self.__conf['kameras']['WebPort']}/meta").json()['ExposureTime']
+                print(data)
+                et += data
+                count += 1
+            except Exception as e:
+                Logger().error("Error getting lux: %s", e)
+        if count > 0:
+            et /= count
+        et = int(et)
+        self.__camera_settings['exposure_value'] = et
+        self.send_to_all(
+            f'settings:{{"shutter_speed":{et}}}')
+        Logger().info("Exposure synced: %d", et)
 
     def send_to_desktop(self, message: str) -> None:
         self.__desktop_message_queue.put(message)
@@ -127,6 +164,9 @@ class Control:
             return
         self.__list_of_cameras[hostname] = ip
         self.__led_control.status_led(5)
+        if self.__camera_settings['exposure_value'] != 0:
+            self.send_to_all(
+                f'settings:{{"exposure_value":{self.__camera_settings["exposure_value"]}}}')
 
     def receive_photo(self, ip: str, id_lens: str, filename: str) -> None:
         global photo_count
@@ -215,20 +255,22 @@ class Control:
         self.check_and_copy_usb(id + '.zip')
 
     def check_and_copy_usb(self, file):
-        if not path.exists('/dev/sda1'):
-            Logger().info("USB not found!")
-            return
-        if not path.exists("/mnt/usb"):
-            makedirs("/mnt/usb")
-        if not path.ismount('/mnt/usb'):
-            system('sudo mount /dev/sda1 /mnt/usb')
+        try:
+            if not path.exists('/dev/sda1'):
+                Logger().info("USB not found!")
+                return
+            if not path.exists("/mnt/usb"):
+                makedirs("/mnt/usb")
+            if not path.ismount('/mnt/usb'):
+                system('sudo mount /dev/sda1 /mnt/usb')
 
-        file = self.__conf['server']['Folder'] + file
-        Logger().info("Copy to USB...")
-        system("cp " + file + " /mnt/usb")
-        system("sync")
-        system("sudo umount /dev/sda1")
-
+            file = self.__conf['server']['Folder'] + file
+            Logger().info("Copy to USB...")
+            system("cp " + file + " /mnt/usb")
+            system("sync")
+            system("sudo umount /dev/sda1")
+        except Exception as e:
+            Logger().error("Error copying to USB: %s", e)
         Logger().info("Copy to USB done!")
 
     def __check_folder(self, id):
@@ -409,7 +451,27 @@ class Control:
         Logger().info("Restart Skript...")
         return render_template('wait.htm', time=15, target_url="/", title="Restarting...")
 
+    def set_config_from_web(self, config: dict) -> None:
+        print(config)
+        if 'color' in config:
+            self.__led_control.set_photo_light_color(
+                (int(config['color'][1:3], 16), int(config['color'][3:5], 16), int(config['color'][5:7], 16)))
+        self.__camera_settings['exposure_sync'] = 'exposure_sync' in config
+        if 'exposure_value' in config:
+            self.__camera_settings['exposure_value'] = int(
+                config['exposure_value'])
+            self.send_to_all(
+                f'settings:{{"exposure_value":{config["exposure_value"]}}}')
+
     # Getter
+
+    def get_config_for_web(self, ) -> dict:
+        c = {}
+
+        c['color'] = '#%02x%02x%02x' % self.__led_control.get_photo_light_color()
+        c['exposure_sync'] = self.__camera_settings['exposure_sync']
+        c['exposure_value'] = self.__camera_settings['exposure_value']
+        return c
 
     def get_hostnames(self, ) -> dict[str, str]:
         return dict(sorted(self.__list_of_cameras.items()))
