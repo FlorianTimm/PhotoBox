@@ -34,7 +34,7 @@ from master.button_control import ButtonControl
 from master.led_control import LedControl
 from master.focus_stack import focus_stack
 
-from typing import Any, Literal, NoReturn
+from typing import Literal, NoReturn
 from numpy.typing import NDArray
 from numpy import uint8
 from common.typen import ArucoMarkerPos, ArucoMetaBroadcast, CommonCamSettings, Metadata, Point3D, ArucoMarkerCorners

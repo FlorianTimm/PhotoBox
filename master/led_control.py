@@ -214,5 +214,5 @@ class LedControl:
 
     def set_photo_light_color(self, color):
         self.__photo_light_color = color
-        self.photo_light(5)
+        self.photo_light()
         return self.__photo_light_color
