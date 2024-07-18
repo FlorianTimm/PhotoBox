@@ -1,27 +1,158 @@
-<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>130</x><y>460</y><w>210</w><h>70</h></coordinates><panel_attributes>ButtonControl
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>680</x><y>710</y><w>240</w><h>70</h></coordinates><panel_attributes>ButtonControl
 --
-        </panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>390</x><y>210</y><w>210</w><h>70</h></coordinates><panel_attributes>CameraControlThread
+--</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>170</y><w>210</w><h>70</h></coordinates><panel_attributes>CameraControlThread
 --
---
-__init__(self,  control: Control)
-run(self)
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>270</x><y>320</y><w>210</w><h>100</h></coordinates><panel_attributes>Control
---
-        </panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>640</x><y>210</y><w>210</w><h>70</h></coordinates><panel_attributes>DesktopControlThread
 --
 __init__(self,  control: Control)
 run(self)
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>390</x><y>460</y><w>210</w><h>70</h></coordinates><panel_attributes>FocusStack
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>450</x><y>170</y><w>420</w><h>510</h></coordinates><panel_attributes>Control
 --
-        </panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>0</x><y>320</y><w>210</w><h>70</h></coordinates><panel_attributes>LedControl
+// - __list_of_cameras: dict[str, str] = dict()
+// - __detected_markers: dict[str, dict[str, list[ArucoMarkerPos]]] = dict()
+// - __system_is_stopping = False
+// - __pending_photo_count: dict[str, int] = {}
+// - __pending_download_count: dict[str, int] = {}
+// - __pending_aruco_count: dict[str, int] = {}
+// - __pending_photo_types: dict[str, Literal["photo", "stack"]] = {}
+// - __cams_in_standby = True
+// - __desktop_message_queue: Queue[str] = Queue()
+// - __marker: dict[int, ArucoMarkerCorners] = {}
+// - __metadata: dict[str, dict[str, Metadata]] = {}
+// - __camera_settings: CommonCamSettings
 --
-        </panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>540</x><y>360</y><w>210</w><h>70</h></coordinates><panel_attributes>MarkerCheck
++ __init__(self,  app: Flask) -&gt; None
++ start(self)
++ search_cameras(self, send_search: bool = True) -&gt; None
++ capture_photo(self, action: Literal['photo', 'stack'] = "photo",
+//- __capture_thread(self, action: Literal['photo', 'stack'], id: str)
++ sync_exposure(self)
++ send_to_desktop(self, message: str) -&gt; None
++ send_to_all(self, msg_str: str) -&gt; None
++ found_camera(self, hostname: str, ip: str) -&gt; None
++ receive_photo(self, ip: str, id_lens: str, filename: str) -&gt; None
+//- __download_photo(self, ip: str, id: str,
++ all_images_downloaded(self, id, folder)
++ zip_and_send_folder(self, id, folder)
++ check_and_copy_usb(self, file)
+//- __check_folder(self, id)
+//- __stack_photos(self, id: str) -&gt; None
++ find_aruco(self)
++ receive_aruco(self, data: str) -&gt; None
+//- __all_aruco_received(self, id)
++ set_marker_from_csv(self, file, save=True) -&gt; None
+//- __save_markers(self, ) -&gt; None
+//- __load_markers(self, ) -&gt; None
++ switch_pause_resume(self, )
++ pause(self, )
++ resume(self, )
++ set_time(self, time: int) -&gt; str
++ system_control(self, action: Literal['shutdown', 'reboot']) -&gt; NoReturn
+//- __exit_handler(self, )
++ update(self, )
++ restart(self, )
++ set_config_from_web(self, config: dict) -&gt; None
++ get_config_for_web(self, ) -&gt; dict
++ get_hostnames(self, ) -&gt; dict[str, str]
++ get_cams_started(self) -&gt; bool
++ get_leds(self) -&gt; LedControl
+//- __get_hostname(self, ip: str) -&gt; list[str]
++ get_marker(self)
++ is_system_stopping(self)
++ get_cameras(self)
++ get_detected_markers(self)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>260</y><w>210</w><h>70</h></coordinates><panel_attributes>DesktopControlThread
 --
-        </panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>230</x><y>90</y><w>210</w><h>40</h></coordinates><panel_attributes>&lt;&lt;Script&gt;&gt;
+__init__(self,  control: Control)
+run(self)
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>580</y><w>480</w><h>100</h></coordinates><panel_attributes>FocusStack
+--
+--
++ findHomography(image_1_kp, image_2_kp, matches) -&gt; npt.NDArray[np.float32]
++ align_images(images: list[npt.NDArray[np.uint8]]) -&gt; list[npt.NDArray[np.uint8]]
++ doLap(image: npt.NDArray[np.uint8]) -&gt; npt.NDArray[np.uint8]
++ focus_stack(unimages: list[npt.NDArray[np.uint8]]) -&gt; npt.NDArray[np.uint8]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>420</x><y>710</y><w>240</w><h>180</h></coordinates><panel_attributes>LedControl
+--
+// - __RED = (255, 75, 75)
+// - __BLUE = (75, 75, 255)
+// - __GREEN = (75, 255, 75)
+// - __WHITE = (255, 255, 255)
+// - __BLACK = (0, 0, 0)
+// - __YELLOW = (255, 255, 100)
+// - __LIGHTRED = (50, 0, 0)
+// - __photo_light_color = __WHITE
+--
++ __init__(self, control: 'Control')
++ switch_off(self)
++ starting(self)
++ waiting(self)
+//- __fill(self, color)
++ status_led(self, val: float = 0) -&gt; None
++ photo_light(self, val: float = 0) -&gt; None
++ running_light(self)
++ get_photo_light_color(self)
++ set_photo_light_color(self, color)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>350</y><w>480</w><h>210</h></coordinates><panel_attributes>MarkerCheck
+--
+// - __marker_coords: pd.DataFrame
+// - __marker_pos: pd.DataFrame
+// - __metadata:  pd.DataFrame
+// - __cameras: dict[str, CameraExterior]
+--
++ __init__(self, marker_coords: dict[int, ArucoMarkerCorners], 
+       marker_pos: dict[str, list[ArucoMarkerPos]], 
+       metadata: dict[str, Metadata], cameras: d+  CameraExterior] = {})
+// - __create_marker_coords_dataframe(self, marker_coords: dict[int, ArucoMarkerCorners]) -&gt; pd.DataFrame
+// - __create_marker_pos_dataframe(self, marker_pos: dict[str, list[ArucoMarkerPos]]) -&gt; pd.DataFrame
+// - __create_metadata_dataframe(self, metadata: dict[str, Metadata]) -&gt; pd.DataFrame
+// - __camera_matrix(self, lens_position: float, c_offset: float = 0, cx_offset: float = 0, cy_offset: float = 0) -&gt; tuple[np.ndarray, np.ndarray]
++ check(self) -&gt; None
++ recalculate_coordinates(self, cameras: dict[str, dict[str, np.ndarray]], 
+       t: pd.DataFrame) -&gt; bool
+// - __check_marker_position(self) -&gt; dict[str, dict[str, np.ndarray]]
+// - __create_dataframe(self) -&gt; pd.DataFrame
++ get_corrected_coordinates(self) -&gt; dict[int, ArucoMarkerCorners]
++ get_filtered_positions(self) -&gt; dict[str, list[ArucoMarkerPos]]
++ get_cameras(self) -&gt; dict[str, CameraExterior]
++ rotationMatrixToEuler(self, R: np.ndarray) -&gt; np.ndarray
++ isRotationMatrix(self, R: np.ndarray) -&gt; bool</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>170</x><y>170</y><w>230</w><h>560</h></coordinates><panel_attributes>&lt;&lt;Script&gt;&gt;
 Master
-bg=yellow</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>510</x><y>60</y><w>210</w><h>80</h></coordinates><panel_attributes>StoppableThread
+--
++ conf: ConfigParser
++ app: Flask
++ control: Control
+--
++ static_file(filename: 
+     PathLike[str] | str) -&gt; Response
++ index() -&gt; str
++ time(time: int) -&gt; str
++ overviewZip() -&gt; str
++ usb_copy(filename: str) -&gt; str
++ overview() -&gt; str
++ search_html() -&gt; str
++ photo_html(id: str = "") -&gt; str
++ stack_html(id: str = "") -&gt; str
++ capture_html(action: 
+     Literal['photo', 'stack'] = "photo",
+     id: str = "") -&gt; str
++ preview() -&gt; str
++ focus(val: float = -1) -&gt; str
++ shutdown_html() -&gt; NoReturn
++ reboot_html() -&gt; NoReturn
++ restart() -&gt; str
++ pause() -&gt; str
++ resume() -&gt; str
++ proxy(host: str, path: str) -&gt; bytes
++ update() -&gt; str
++ aruco() -&gt; str
++ aruco_erg() -&gt; str
++ test() -&gt; str
++ photo_light_html(val: int = 0) -&gt; str
++ status_led_html(val: int = 0) -&gt; str
++ marker_get() -&gt; str
++ marker_post()
++ config_get() -&gt; str
++ config_post() -&gt; str
+bg=yellow</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1200</x><y>170</y><w>200</w><h>160</h></coordinates><panel_attributes>StoppableThread
 --
 --
  __init__(self,  *args, **kwargs)
 stop(self)
-stopped(self): boolean</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>530</x><y>130</y><w>30</w><h>100</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;80</additional_attributes></element><element><id>Relation</id><coordinates><x>680</x><y>130</y><w>30</w><h>100</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;80</additional_attributes></element><element><id>Relation</id><coordinates><x>310</x><y>120</y><w>30</w><h>220</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;200;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>440</x><y>270</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;50</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>270</y><w>260</w><h>80</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>240;10;240;60;10;60</additional_attributes></element><element><id>Relation</id><coordinates><x>300</x><y>410</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>200</x><y>350</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;10;70;10</additional_attributes></element><element><id>Relation</id><coordinates><x>470</x><y>370</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>70;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>440</x><y>410</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element></diagram>
+stopped(self): boolean</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1120</x><y>280</y><w>100</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>80;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>390</x><y>240</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>200</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>290</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>480</x><y>670</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>450</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>630</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>1120</x><y>200</y><w>100</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>80;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>750</x><y>670</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element></diagram>

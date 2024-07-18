@@ -1,4 +1,4 @@
-<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>0</x><y>130</y><w>360</w><h>270</h></coordinates><panel_attributes>CameraControl
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>180</x><y>380</y><w>350</w><h>270</h></coordinates><panel_attributes>CameraControl
 --
 //- __sock: socket.socket
 //- __cam: CameraInterface
@@ -26,13 +26,13 @@
 //- __receive_broadcast()
 //- __take_focusstack(id: str, addr: tuple[str, int])
 //- __take_photo(data: str, addr: tuple[str, int])
-//- __answer(addr: str, msg: str)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>950</x><y>210</y><w>320</w><h>100</h></coordinates><panel_attributes>CameraAruco
+//- __answer(addr: str, msg: str)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>610</x><y>130</y><w>320</w><h>120</h></coordinates><panel_attributes>CameraAruco
 --
 //- __parameter: DetectorParameters
 //- __dict: Dictionary
 --
 + detect_from_rgb(image: bytes): list[ArucoMarkerPos]
-+ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>450</x><y>130</y><w>380</w><h>350</h></coordinates><panel_attributes>CameraInterface
++ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>590</x><y>300</y><w>380</w><h>350</h></coordinates><panel_attributes>CameraInterface
 --
 //- __cam: Picamera2
 //- __rgb_config: dict[str, Any]
@@ -63,6 +63,25 @@
 + focus(focus: float): str
 //- __get_status(): dict[str, Any]
 //- __capture_photo(settings: CamSettings): tuple[CompletedRequest, Metadata, CamSettings]
-//- __request_capture_with_meta(): tuple[CompletedRequest, Metadata</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>350</x><y>160</y><w>120</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>100;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>820</x><y>260</y><w>150</w><h>70</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>130;10;10;50</additional_attributes></element><element><id>UMLClass</id><coordinates><x>70</x><y>0</y><w>210</w><h>70</h></coordinates><panel_attributes>Camera
+//- __request_capture_with_meta(): tuple[CompletedRequest, Metadata</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>520</x><y>410</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>70;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>770</x><y>240</y><w>30</w><h>80</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;60</additional_attributes></element><element><id>UMLClass</id><coordinates><x>180</x><y>50</y><w>310</w><h>290</h></coordinates><panel_attributes>&lt;&lt;Script&gt;&gt;
+Camera
 --
-        </panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>150</x><y>60</y><w>30</w><h>90</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;70;10;10</additional_attributes></element></diagram>
++ conf: ConfigParser
++ cc: CameraControl
+--
++ static_file(filename: PathLike[str] | str) -&gt; Response
++ web_index()
++ web_pause()
++ web_resume()
++ photo_view()
++ web_shutdown()
++ stream()
++ photo(focus: float = -2)
++ settings(focus: float = -1)
++ preview(focus: float = -2)
++ focus(focus: float = -1)
++ aruco(id: str = "")
++ meta()
++ start_web()
+
+bg=yellow</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>330</x><y>330</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element></diagram>
