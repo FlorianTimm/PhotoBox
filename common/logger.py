@@ -1,30 +1,47 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+This module contains the Logger class, which is a singleton class used to log messages to the console and a file.
+The log level and log file are set in the configuration file.
+
+Author: Florian Timm
+Version: 2024.06.20
+"""
+
 from common.conf import Conf
 from common.singleton import SingletonMeta
-
 
 import logging
 import sys
 
 
 class Logger(metaclass=SingletonMeta):
-    '''
-    Logger class
+    """
+    A singleton class used to log messages to the console and a file.
 
-    This class is a singleton class that is used to log messages to the console and to a file.
-    The log level is set in the configuration file and can be set to DEBUG, INFO, WARNING, ERROR, CRITICAL, NOTSET.
-    The log file is also set in the configuration file.
+    This class provides methods for logging messages with different severity levels.
+
+    Attributes:
+        __logger (Logger | None): The logger object.
 
     Methods:
-    +log(level, msg, *args, **kwargs)
-    +info(msg, *args, **kwargs)
-    +debug(msg, *args, **kwargs)
-    +warning(msg, *args, **kwargs)
-    +error(msg, *args, **kwargs)
-    +critical(msg, *args, **kwargs)
-    +get(): logging.Logger
-    -__load()
+        log: Log a message with the specified severity level.   
+        info: Log a message with severity 'INFO'.
+        debug: Log a message with severity 'DEBUG'.
+        warning: Log a message with severity 'WARNING'.
+        error: Log a message with severity 'ERROR'.
+        critical: Log a message with severity 'CRITICAL'.
 
-    '''
+    Usage:
+        logger = Logger.get()
+        logger.info("This is an info message.")
+        logger.debug("This is a debug message.")
+        logger.warning("This is a warning message.")
+        logger.error("This is an error message.")
+        logger.critical("This is a critical message.")
+    """
+
     __logger: logging.Logger | None = None
 
     def log(self, level, msg, *args, **kwargs) -> None:
