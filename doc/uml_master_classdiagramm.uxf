@@ -1,11 +1,44 @@
-<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>680</x><y>710</y><w>240</w><h>70</h></coordinates><panel_attributes>ButtonControl
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>610</x>
+      <y>750</y>
+      <w>240</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>ButtonControl
 --
---</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>170</y><w>210</w><h>70</h></coordinates><panel_attributes>CameraControlThread
+--</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>890</x>
+      <y>210</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>CameraControlThread
 --
 --
 __init__(self,  control: Control)
 run(self)
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>450</x><y>170</y><w>420</w><h>510</h></coordinates><panel_attributes>Control
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>320</x>
+      <y>170</y>
+      <w>480</w>
+      <h>550</h>
+    </coordinates>
+    <panel_attributes>Control
 --
 // - __list_of_cameras: dict[str, str] = dict()
 // - __detected_markers: dict[str, dict[str, list[ArucoMarkerPos]]] = dict()
@@ -59,17 +92,50 @@ run(self)
 + get_marker(self)
 + is_system_stopping(self)
 + get_cameras(self)
-+ get_detected_markers(self)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>260</y><w>210</w><h>70</h></coordinates><panel_attributes>DesktopControlThread
++ get_detected_markers(self)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>890</x>
+      <y>300</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>DesktopControlThread
 --
 __init__(self,  control: Control)
 run(self)
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>580</y><w>480</w><h>100</h></coordinates><panel_attributes>FocusStack
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>850</x>
+      <y>620</y>
+      <w>550</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>FocusStack
 --
 --
 + findHomography(image_1_kp, image_2_kp, matches) -&gt; npt.NDArray[np.float32]
 + align_images(images: list[npt.NDArray[np.uint8]]) -&gt; list[npt.NDArray[np.uint8]]
 + doLap(image: npt.NDArray[np.uint8]) -&gt; npt.NDArray[np.uint8]
-+ focus_stack(unimages: list[npt.NDArray[np.uint8]]) -&gt; npt.NDArray[np.uint8]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>420</x><y>710</y><w>240</w><h>180</h></coordinates><panel_attributes>LedControl
++ focus_stack(unimages: list[npt.NDArray[np.uint8]]) -&gt; npt.NDArray[np.uint8]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>320</x>
+      <y>750</y>
+      <w>270</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>LedControl
 --
 // - __RED = (255, 75, 75)
 // - __BLUE = (75, 75, 255)
@@ -89,7 +155,18 @@ run(self)
 + photo_light(self, val: float = 0) -&gt; None
 + running_light(self)
 + get_photo_light_color(self)
-+ set_photo_light_color(self, color)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>920</x><y>350</y><w>480</w><h>210</h></coordinates><panel_attributes>MarkerCheck
++ set_photo_light_color(self, color)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>850</x>
+      <y>390</y>
+      <w>550</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>MarkerCheck
 --
 // - __marker_coords: pd.DataFrame
 // - __marker_pos: pd.DataFrame
@@ -112,7 +189,18 @@ run(self)
 + get_filtered_positions(self) -&gt; dict[str, list[ArucoMarkerPos]]
 + get_cameras(self) -&gt; dict[str, CameraExterior]
 + rotationMatrixToEuler(self, R: np.ndarray) -&gt; np.ndarray
-+ isRotationMatrix(self, R: np.ndarray) -&gt; bool</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>170</x><y>170</y><w>230</w><h>560</h></coordinates><panel_attributes>&lt;&lt;Script&gt;&gt;
++ isRotationMatrix(self, R: np.ndarray) -&gt; bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>210</y>
+      <w>250</w>
+      <h>620</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Script&gt;&gt;
 Master
 --
 + conf: ConfigParser
@@ -150,9 +238,122 @@ Master
 + marker_post()
 + config_get() -&gt; str
 + config_post() -&gt; str
-bg=yellow</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1200</x><y>170</y><w>200</w><h>160</h></coordinates><panel_attributes>StoppableThread
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1200</x>
+      <y>210</y>
+      <w>200</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>StoppableThread
 --
 --
  __init__(self,  *args, **kwargs)
 stop(self)
-stopped(self): boolean</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1120</x><y>280</y><w>100</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>80;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>390</x><y>240</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>200</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>290</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>480</x><y>670</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>450</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>860</x><y>630</y><w>80</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>60;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>1120</x><y>200</y><w>100</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>80;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>750</x><y>670</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element></diagram>
+stopped(self): boolean</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1090</x>
+      <y>320</y>
+      <w>130</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>110.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>260</x>
+      <y>280</y>
+      <w>80</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>790</x>
+      <y>240</y>
+      <w>120</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>100.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>790</x>
+      <y>330</y>
+      <w>120</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>100.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>410</x>
+      <y>710</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>790</x>
+      <y>490</y>
+      <w>80</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>790</x>
+      <y>670</y>
+      <w>80</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1090</x>
+      <y>240</y>
+      <w>130</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>110.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>680</x>
+      <y>710</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>

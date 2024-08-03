@@ -6,7 +6,6 @@
 @version: 2024.03.11
 """
 
-from re import L
 import cv2
 import numpy as np
 import pandas as pd

@@ -134,6 +134,3 @@ licence.lic
 connector/bin/Connector.class
 *.class
 *.jar
-
-
-doc/*.pdf
