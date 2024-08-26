@@ -6,8 +6,8 @@
     <coordinates>
       <x>0</x>
       <y>0</y>
-      <w>1370</w>
-      <h>1120</h>
+      <w>1440</w>
+      <h>1460</h>
     </coordinates>
     <panel_attributes>title=Capturing an object
 autoTick=true
@@ -23,13 +23,25 @@ user-&gt;con: Software-Button;on=con
 con-&gt;master; on=master; off=con
 --=soft
 tick=
+combinedFragment=alt: Using web interface~hard user master
+user-&gt;master :Web-Interface
+--=hard
+tick=
 combinedFragment=alt: Using hardware button~hard user master
 user-&gt;master :Hardware-Button
 --=hard
 tick=
 
 combinedFragment=parallel to each camera~loop camera master
-master-&gt;camera; on=camera
+
+
+combinedFragment=opt: sync exposure~exposure camera master
+master-&gt;camera :get exposure; on=camera
+master&lt;-camera  :exposure settings
+master-&gt;camera :set exposure; off=camera
+--=exposure
+
+master-&gt;camera : take picture; on=camera
 camera-&gt;camera + :take picture
 camera.&gt;master :photo taken; 
 camera-&gt;camera ++ :search aruco
@@ -48,7 +60,8 @@ con-&gt;master: downloading marker coordinates; off=master
 con-&gt;sfm: data; on=sfm
 sfm-&gt;sfm+: calculate 3d
 tick=
-off=sfm
+sfm-&gt;user: 3d model;off=sfm
+
 </panel_attributes>
     <additional_attributes/>
   </element>

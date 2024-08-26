@@ -1,4 +1,15 @@
-<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>180</x><y>380</y><w>350</w><h>270</h></coordinates><panel_attributes>CameraControl
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>180</x>
+      <y>380</y>
+      <w>380</w>
+      <h>270</h>
+    </coordinates>
+    <panel_attributes>CameraControl
 --
 //- __sock: socket.socket
 //- __cam: CameraInterface
@@ -26,13 +37,35 @@
 //- __receive_broadcast()
 //- __take_focusstack(id: str, addr: tuple[str, int])
 //- __take_photo(data: str, addr: tuple[str, int])
-//- __answer(addr: str, msg: str)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>610</x><y>130</y><w>320</w><h>120</h></coordinates><panel_attributes>CameraAruco
+//- __answer(addr: str, msg: str)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>610</x>
+      <y>130</y>
+      <w>370</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>CameraAruco
 --
 //- __parameter: DetectorParameters
 //- __dict: Dictionary
 --
 + detect_from_rgb(image: bytes): list[ArucoMarkerPos]
-+ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>590</x><y>300</y><w>380</w><h>350</h></coordinates><panel_attributes>CameraInterface
++ detect(image: bytes): list[ArucoMarkerPos]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>590</x>
+      <y>300</y>
+      <w>430</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>CameraInterface
 --
 //- __cam: Picamera2
 //- __rgb_config: dict[str, Any]
@@ -63,7 +96,40 @@
 + focus(focus: float): str
 //- __get_status(): dict[str, Any]
 //- __capture_photo(settings: CamSettings): tuple[CompletedRequest, Metadata, CamSettings]
-//- __request_capture_with_meta(): tuple[CompletedRequest, Metadata</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>520</x><y>410</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>70;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>770</x><y>240</y><w>30</w><h>80</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;10;10;60</additional_attributes></element><element><id>UMLClass</id><coordinates><x>180</x><y>50</y><w>310</w><h>290</h></coordinates><panel_attributes>&lt;&lt;Script&gt;&gt;
+//- __request_capture_with_meta(): tuple[CompletedRequest, Metadata</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>410</y>
+      <w>60</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>40.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>770</x>
+      <y>240</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>180</x>
+      <y>20</y>
+      <w>370</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Script&gt;&gt;
 Camera
 --
 + conf: ConfigParser
@@ -84,4 +150,18 @@ Camera
 + meta()
 + start_web()
 
-bg=yellow</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>330</x><y>330</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element></diagram>
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>330</x>
+      <y>330</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>

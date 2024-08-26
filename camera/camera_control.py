@@ -324,7 +324,7 @@ class CameraControl:
 
         metadata: dict[str, dict[str, Any]] = {}
 
-        for f in [1, 3, 4, 5]:
+        for f in [1, 2, 4, 5, 7]:
             filename = id + '_' + str(f) + '.jpg'
             cs: CamSettingsWithFilename = {
                 'focus': f,

@@ -297,9 +297,9 @@ m2=*</panel_attributes>
     <id>UMLPackage</id>
     <coordinates>
       <x>189</x>
-      <y>54</y>
+      <y>45</y>
       <w>1134</w>
-      <h>783</h>
+      <h>792</h>
     </coordinates>
     <panel_attributes>photobox
 --

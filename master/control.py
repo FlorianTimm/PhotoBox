@@ -117,7 +117,7 @@ class Control:
             self.sync_exposure()
 
         photo_count = len(self.__list_of_cameras) * \
-            (4 if action == "stack" else 1)
+            (5 if action == "stack" else 1)
         self.__pending_photo_count[id] = photo_count
         self.__pending_download_count[id] = photo_count
         self.__pending_aruco_count[id] = photo_count
