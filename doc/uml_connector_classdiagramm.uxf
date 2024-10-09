@@ -6,12 +6,13 @@
     <id>UMLClass</id>
     <coordinates>
       <x>441</x>
-      <y>72</y>
+      <y>81</y>
       <w>270</w>
-      <h>243</h>
+      <h>252</h>
     </coordinates>
     <panel_attributes>::Connector
 --
+
 --
 +main(String[] args): void
 #toggleConnect(): void
@@ -26,7 +27,8 @@
 #getDirectory(): File
 #setDirectory(File directory): void
 #setCalculateModel(boolean selected): void
-+getCalculateModel(): boolean</panel_attributes>
++getCalculateModel(): boolean
+bg=yellow</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -35,10 +37,11 @@
       <x>810</x>
       <y>513</y>
       <w>288</w>
-      <h>54</h>
+      <h>63</h>
     </coordinates>
     <panel_attributes>::MetashapeClient
 --
+
 --
 +MetashapeClient(Connector connector): ctor</panel_attributes>
     <additional_attributes/>
@@ -47,12 +50,13 @@
     <id>UMLClass</id>
     <coordinates>
       <x>531</x>
-      <y>513</y>
+      <y>531</y>
       <w>252</w>
       <h>63</h>
     </coordinates>
     <panel_attributes>::OdmClient
 --
+
 --
 +ODMClient(Connector connector): ctor
 #processWebhook(JSONObject json)</panel_attributes>
@@ -61,13 +65,14 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>252</x>
-      <y>324</y>
+      <x>243</x>
+      <y>342</y>
       <w>396</w>
-      <h>90</h>
+      <h>108</h>
     </coordinates>
     <panel_attributes>::PhotoBoxClient
 --
+
 --
 +PhotoBoxClient(String host, int port, Connector connector): ctor
 +connect(): boolean
@@ -79,13 +84,14 @@
     <id>UMLClass</id>
     <coordinates>
       <x>819</x>
-      <y>243</y>
+      <y>261</y>
       <w>261</w>
       <h>108</h>
     </coordinates>
     <panel_attributes>&lt;&lt;interface&gt;&gt;
 ::SfmClient
 --
+
 --
 +connect(): boolean
 +disconnect(): boolean
@@ -96,12 +102,13 @@
     <id>UMLClass</id>
     <coordinates>
       <x>819</x>
-      <y>90</y>
+      <y>108</y>
       <w>270</w>
-      <h>90</h>
+      <h>108</h>
     </coordinates>
     <panel_attributes>::ConnectorGui
 --
+
 --
 #ConnectorGui(Connector connector): ctor
 #startGui(): void
@@ -113,12 +120,13 @@
     <id>UMLClass</id>
     <coordinates>
       <x>1152</x>
-      <y>504</y>
+      <y>522</y>
       <w>162</w>
-      <h>45</h>
+      <h>63</h>
     </coordinates>
     <panel_attributes>::DownloadClient
 --
+
 --
 </panel_attributes>
     <additional_attributes/>
@@ -127,18 +135,18 @@
     <id>Relation</id>
     <coordinates>
       <x>945</x>
-      <y>342</y>
+      <y>360</y>
       <w>27</w>
-      <h>189</h>
+      <h>171</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;190.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;170.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>648</x>
-      <y>342</y>
+      <y>360</y>
       <w>225</w>
       <h>189</h>
     </coordinates>
@@ -149,7 +157,7 @@
     <id>Relation</id>
     <coordinates>
       <x>1026</x>
-      <y>342</y>
+      <y>360</y>
       <w>225</w>
       <h>180</h>
     </coordinates>
@@ -160,7 +168,7 @@
     <id>Relation</id>
     <coordinates>
       <x>702</x>
-      <y>135</y>
+      <y>153</y>
       <w>135</w>
       <h>36</h>
     </coordinates>
@@ -173,7 +181,7 @@ m2=1</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>702</x>
-      <y>288</y>
+      <y>306</y>
       <w>135</w>
       <h>36</h>
     </coordinates>
@@ -185,26 +193,27 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>396</x>
-      <y>225</y>
-      <w>63</w>
+      <x>387</x>
+      <y>243</y>
+      <w>72</w>
       <h>117</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>10.0;110.0;10.0;10.0;50.0;10.0</additional_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0;60.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>252</x>
-      <y>630</y>
+      <y>711</y>
       <w>270</w>
-      <h>108</h>
+      <h>126</h>
     </coordinates>
     <panel_attributes>::OdmWebHookServer
 --
+
 --
 #OdmWebHookServer(Connector connector, 
      OdmClient client)
@@ -218,12 +227,13 @@ m2=1</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>531</x>
-      <y>630</y>
+      <y>711</y>
       <w>252</w>
-      <h>99</h>
+      <h>126</h>
     </coordinates>
     <panel_attributes>::OdmProject
 --
+
 --
 #OdmProject(Connector connector, 
       String baseUrl, String destDir)
@@ -236,52 +246,53 @@ m2=1</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>639</x>
-      <y>567</y>
+      <y>585</y>
       <w>36</w>
-      <h>81</h>
+      <h>144</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=*</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>369</x>
-      <y>567</y>
+      <y>585</y>
       <w>234</w>
-      <h>81</h>
+      <h>144</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1
 </panel_attributes>
-    <additional_attributes>230.0;10.0;230.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+    <additional_attributes>230.0;10.0;230.0;90.0;10.0;90.0;10.0;140.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>819</x>
-      <y>558</y>
+      <y>567</y>
       <w>63</w>
-      <h>108</h>
+      <h>117</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=*</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;90.0;50.0;90.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;100.0;50.0;100.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>864</x>
-      <y>576</y>
+      <y>594</y>
       <w>261</w>
-      <h>126</h>
+      <h>144</h>
     </coordinates>
     <panel_attributes>::MetashapeProject
 --
+
 --
 #MetashapeProject(Connector connector, 
       String projectFolder)
@@ -296,10 +307,10 @@ m2=*</panel_attributes>
   <element>
     <id>UMLPackage</id>
     <coordinates>
-      <x>189</x>
-      <y>45</y>
-      <w>1134</w>
-      <h>792</h>
+      <x>225</x>
+      <y>54</y>
+      <w>1098</w>
+      <h>801</h>
     </coordinates>
     <panel_attributes>photobox
 --
@@ -310,7 +321,7 @@ fg=#888888</panel_attributes>
     <id>UMLPackage</id>
     <coordinates>
       <x>243</x>
-      <y>432</y>
+      <y>468</y>
       <w>549</w>
       <h>378</h>
     </coordinates>
@@ -323,9 +334,9 @@ fg=#888888</panel_attributes>
     <id>UMLPackage</id>
     <coordinates>
       <x>801</x>
-      <y>486</y>
+      <y>477</y>
       <w>333</w>
-      <h>234</h>
+      <h>279</h>
     </coordinates>
     <panel_attributes>metashape
 --
@@ -337,7 +348,7 @@ fg=#888888
     <id>UMLPackage</id>
     <coordinates>
       <x>1134</x>
-      <y>180</y>
+      <y>198</y>
       <w>153</w>
       <h>99</h>
     </coordinates>
@@ -358,10 +369,11 @@ fg=#888888</panel_attributes>
       <x>1143</x>
       <y>603</y>
       <w>171</w>
-      <h>126</h>
+      <h>144</h>
     </coordinates>
     <panel_attributes>::PhotoBoxFolderReader
 --
+
 --
 +PhotoBoxFolderReader(
            Connector connector,
@@ -375,38 +387,39 @@ fg=#888888</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>981</x>
-      <y>693</y>
+      <y>729</y>
       <w>270</w>
-      <h>72</h>
+      <h>81</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;60.0;270.0;60.0;270.0;40.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0;270.0;70.0;270.0;20.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>639</x>
-      <y>720</y>
-      <w>657</w>
-      <h>63</h>
+      <x>774</x>
+      <y>738</y>
+      <w>522</w>
+      <h>99</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0;700.0;50.0;700.0;10.0</additional_attributes>
+    <additional_attributes>10.0;80.0;550.0;80.0;550.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>252</x>
-      <y>459</y>
+      <y>495</y>
       <w>270</w>
-      <h>126</h>
+      <h>144</h>
     </coordinates>
     <panel_attributes>::OdmApi
 --
+
 --
 #OdmApi(String baseUrl): ctor
 #request(String urlPart): JSONObject
@@ -420,28 +433,28 @@ m2=1</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>513</x>
-      <y>459</y>
+      <y>495</y>
       <w>108</w>
-      <h>72</h>
+      <h>54</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1
 </panel_attributes>
-    <additional_attributes>90.0;60.0;90.0;20.0;10.0;20.0</additional_attributes>
+    <additional_attributes>90.0;40.0;90.0;20.0;10.0;20.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>468</x>
-      <y>576</y>
+      <y>630</y>
       <w>117</w>
-      <h>72</h>
+      <h>99</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=1
 m2=1
 </panel_attributes>
-    <additional_attributes>100.0;60.0;100.0;40.0;10.0;40.0;10.0;10.0</additional_attributes>
+    <additional_attributes>100.0;90.0;100.0;60.0;10.0;60.0;10.0;10.0</additional_attributes>
   </element>
 </diagram>

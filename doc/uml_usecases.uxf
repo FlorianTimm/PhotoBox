@@ -29,8 +29,8 @@ erzeugen
   <element>
     <id>UMLUseCase</id>
     <coordinates>
-      <x>410</x>
-      <y>100</y>
+      <x>380</x>
+      <y>110</y>
       <w>170</w>
       <h>80</h>
     </coordinates>
@@ -42,26 +42,26 @@ erzeugen
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>570</x>
-      <y>140</y>
-      <w>190</w>
-      <h>130</h>
+      <x>540</x>
+      <y>150</y>
+      <w>220</w>
+      <h>120</h>
     </coordinates>
     <panel_attributes>lt=.&gt;
 &lt;&lt;includes&gt;&gt;</panel_attributes>
-    <additional_attributes>10.0;10.0;170.0;110.0</additional_attributes>
+    <additional_attributes>10.0;10.0;90.0;40.0;140.0;40.0;200.0;100.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>590</x>
-      <y>250</y>
+      <y>240</y>
       <w>120</w>
       <h>50</h>
     </coordinates>
     <panel_attributes>lt=.&gt;
 &lt;&lt;includes&gt;&gt;</panel_attributes>
-    <additional_attributes>10.0;10.0;100.0;30.0</additional_attributes>
+    <additional_attributes>10.0;20.0;70.0;20.0;100.0;30.0</additional_attributes>
   </element>
   <element>
     <id>UMLActor</id>
@@ -78,12 +78,12 @@ erzeugen
     <id>Relation</id>
     <coordinates>
       <x>240</x>
-      <y>150</y>
-      <w>200</w>
-      <h>230</h>
+      <y>160</y>
+      <w>170</w>
+      <h>220</h>
     </coordinates>
     <panel_attributes/>
-    <additional_attributes>10.0;210.0;180.0;10.0</additional_attributes>
+    <additional_attributes>10.0;200.0;150.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>

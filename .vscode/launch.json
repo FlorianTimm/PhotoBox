@@ -19,6 +19,7 @@
             "request": "launch",
             "classPaths": [
                 "${workspaceFolder}/connector/bin",
+                "${workspaceFolder}/connector/lib/jniLibs/linux64/",
                 "${workspaceFolder}/connector/lib/metashape-java-api.jar",
                 "${workspaceFolder}/connector/lib/json-20240205.jar",
                 "${workspaceFolder}/connector/lib/commons-io-2.16.1.jar",
@@ -26,7 +27,8 @@
             ],
             "mainClass": "photobox.Connector",
             //"args": "localhost:50267",
-            "cwd": "${workspaceFolder}/connector/"
+            "cwd": "${workspaceFolder}/connector/",
+            "args": "-Djava.library.path=${workspaceFolder}/lib/jniLibs/linux64"
         }
     ]
 }

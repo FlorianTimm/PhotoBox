@@ -4,14 +4,15 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>140</x>
-      <y>160</y>
+      <x>440</x>
+      <y>420</y>
       <w>210</w>
       <h>90</h>
     </coordinates>
     <panel_attributes>&lt;&lt;singleton&gt;&gt;
 Conf
 --
+
 --
 get(): ConfigParser</panel_attributes>
     <additional_attributes/>
@@ -19,14 +20,15 @@ get(): ConfigParser</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>370</x>
-      <y>160</y>
+      <x>670</x>
+      <y>420</y>
       <w>240</w>
-      <h>180</h>
+      <h>190</h>
     </coordinates>
     <panel_attributes>&lt;&lt;singleton&gt;&gt;
 Logger
 --
+
 --
 +log(level, msg, *args, **kwargs)
 +info(msg, *args, **kwargs)
@@ -41,65 +43,67 @@ Logger
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>630</x>
-      <y>160</y>
+      <x>930</x>
+      <y>420</y>
       <w>210</w>
-      <h>100</h>
+      <h>110</h>
     </coordinates>
     <panel_attributes>CamSettings
 --
 focus: float
 iso: float
 shutter_speed: float
-filename: str {optional}</panel_attributes>
+filename: str {optional}
+--</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>720</x>
-      <y>250</y>
+      <x>1020</x>
+      <y>520</y>
       <w>30</w>
-      <h>80</h>
+      <h>70</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>630</x>
-      <y>310</y>
+      <x>930</x>
+      <y>570</y>
       <w>210</w>
       <h>60</h>
     </coordinates>
     <panel_attributes>CamSettingsWithFilename
 --
-filename: str</panel_attributes>
+filename: str
+--</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>860</x>
-      <y>160</y>
+      <x>1160</x>
+      <y>420</y>
       <w>210</w>
       <h>110</h>
     </coordinates>
     <panel_attributes>ArucoMarkerPos
 --
---
 +id: int
 +corner: int
 +x: float
-+y: float</panel_attributes>
++y: float
+--</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLPackage</id>
     <coordinates>
-      <x>120</x>
-      <y>120</y>
+      <x>420</x>
+      <y>380</y>
       <w>970</w>
       <h>270</h>
     </coordinates>
