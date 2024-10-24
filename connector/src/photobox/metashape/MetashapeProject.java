@@ -72,6 +72,7 @@ public class MetashapeProject extends ProcessGUI implements Progress {
             }
 
             this.closeAndSaveProject();
+            logProgress(100);
         } catch (Exception e) {
             log(e.getMessage());
             e.printStackTrace();
