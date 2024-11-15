@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>13</zoom_level>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>832</x>
+      <y>117</y>
+      <w>130</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>tie points</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>195</x>
+      <y>117</y>
+      <w>156</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>images</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>260</x>
+      <y>78</y>
+      <w>39</w>
+      <h>65</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>338</x>
+      <y>130</y>
+      <w>377</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+detection of coded markers</panel_attributes>
+    <additional_attributes>10.0;20.0;270.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>845</x>
+      <y>208</y>
+      <w>182</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+RANSAC
+spatial resection</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>754</x>
+      <y>299</y>
+      <w>208</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>orientated images</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>416</x>
+      <y>312</y>
+      <w>364</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+spatial intersection</panel_attributes>
+    <additional_attributes>260.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>195</x>
+      <y>299</y>
+      <w>234</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>control point
+coordinates</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>273</x>
+      <y>364</y>
+      <w>143</w>
+      <h>156</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+bundle block
+adjustment</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>195</x>
+      <y>494</y>
+      <w>234</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>image orientation
+image coordinates
+control point coordinates</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>416</x>
+      <y>533</y>
+      <w>143</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+transfer</panel_attributes>
+    <additional_attributes>10.0;20.0;90.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>260</x>
+      <y>65</y>
+      <w>26</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>689</x>
+      <y>117</y>
+      <w>143</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>control points</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>377</x>
+      <y>169</y>
+      <w>338</w>
+      <h>156</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;100.0;10.0;10.0;240.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>533</x>
+      <y>494</y>
+      <w>156</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>SfM software
+fg=#aaaaaa</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>806</x>
+      <y>494</y>
+      <w>156</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>3d model
+fg=#aaaaaa</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>676</x>
+      <y>533</y>
+      <w>156</w>
+      <h>52</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+processing
+fg=#aaaaaa</panel_attributes>
+    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>884</x>
+      <y>650</y>
+      <w>26</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>type=final
+fg=#aaaaaa</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>884</x>
+      <y>598</y>
+      <w>39</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+fg=#aaaaaa</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>273</x>
+      <y>364</y>
+      <w>611</w>
+      <h>65</h>
+    </coordinates>
+    <panel_attributes>lt=-
+</panel_attributes>
+    <additional_attributes>450.0;10.0;450.0;30.0;10.0;30.0</additional_attributes>
+  </element>
+</diagram>
